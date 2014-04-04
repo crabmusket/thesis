@@ -1,0 +1,52 @@
+\documentclass{article}
+
+\title{Honours Thesis Proposal}
+\date{\today}
+\author{Daniel Buckmaster \\ 310227488}
+
+\begin{document}
+
+\maketitle
+
+\begin{tabular}{ll}
+	{\bf Title:} & Model Predictive Control for Solar Heated Water Systems \\
+	{\bf Proposer:} & Daniel Buckmaster \\
+	{\bf Supervisor:} & Dr. Ian Manchester \\
+\end{tabular}
+
+\section{Background}
+
+Current domestic and commercial solar thermal systems are often simply controlled
+by differential or proportional control schemes* that cannot consider the complexities
+of the underlying system. User load patterns, tank stratification, solar
+irradiance prediction, and pump hunting are important factors to consider
+when controlling a water heating system*. Ideally, the system would use as much
+solar energy as possible to provide heated water, with secondary gas/electric
+boosters only providing what is absolutely necessary to meet the user's load
+schedule requirements.
+
+Model-predictive control is used in a variety of industrial applications \cite{Camacho04}
+and is a proven method to incorporate predictions and model information explicitly into
+a control scheme. It is a natural fit for problems where load schedules may be
+known ahead of time, and the process dynamics are known and well-approximated by
+mathematical models.
+
+\section{Problem statement}
+
+Create a model-predictive control scheme that maximises solar hot water usage
+in a hybrid domestic or light commercial installation.
+
+\section{Method}
+
+Mathematical models of the hot water storage tank, solar collector, and piping
+arrangement will be derived. Convex relaxations of these equations will be used
+to solve the optimal control problem, and the controller tested in simulation.
+Historical data of solar water system use will provide samples of user load
+patterns, and will also be used to verify/compare the final controller.
+
+\section{Schedule}
+
+\bibliographystyle{plain}
+\bibliography{../report/library}
+
+\end{document}
