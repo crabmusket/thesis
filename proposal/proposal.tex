@@ -14,71 +14,96 @@
 	{\bf Supervisor:} & Dr. Ian Manchester \\
 \end{tabular}
 
+\vspace{5mm}
+
+{\it Note: instances of [] signify statements that require citation.}
+
 \section{Background}
 
 \subsection{Solar water heating}
 
 Current domestic and commercial solar thermal systems are often simply controlled
-by differential or proportional control schemes* that cannot consider the
-complexities of the underlying system. User load patterns, tank stratification,
-solar irradiance prediction, and pump hunting are important factors to consider
-when controlling a water heating system*. In addition, the potential growth of
-legionella bacteria in warm water has resulted in legislation of specific heating
-patterns that allow tank water to remain safe. Ideally, the system would use as
-much solar energy as possible to provide heated water, with secondary gas/electric
-boosters only providing what is absolutely necessary to meet the user's load
-schedule requirements. The question of {\it when} to boost is not trivially
-determined.
+by differential or proportional control schemes (\cite{LSTS}, for example \cite{Hasan11} and \cite{Cao14})
+that cannot consider the complexities of the underlying system.
+Important factors to consider when controlling a water heating system include
+user load patterns [], tank stratification \cite{Hollands89}, solar irradiance
+prediction [], and pump hunting \cite{LSTS}.
+In addition, the potential growth of legionella bacteria in warm water has
+resulted in legislation of specific heating patterns that allow tank water to
+remain safe (for example, \cite{AS3666}).
+Ideally, the system would use as much solar energy as possible to provide heated
+water, with secondary gas/electric boosters only providing what is absolutely
+necessary to meet the user's load schedule requirements.
+The question of {\it when} to boost is not trivially answered.
 
 \subsection{Model-predictive control}
 
 Model-predictive control (MPC) is used in a variety of industrial applications
-\cite{Camacho04} and is a proven method to incorporate predictions and model
-information explicitly into a control scheme. It is a natural fit for problems
-where load schedules may be known ahead of time, and the process dynamics are
-known and well-approximated by mathematical models.
+\cite{Allgower04} and is a proven method to incorporate predictions and model
+information explicitly into a control scheme \cite{Camacho04}.
+It is a natural fit for problems where load schedules may be known ahead of time,
+and the process dynamics are known and well-approximated by mathematical models.
+
+MPC has previously been applied to full-system climate control, yielding between
+15\% and 30\% savings on energy bills in \cite{Siroky11} and up to 20\% in \cite{Ma12}.
 
 \subsection{Convex optimisation}
 
 MPC requires solving an optimisation problem each sampling period to determine
-the optimal course of action. Convex optimisation problems are a subclass of
-optimisation problem for which a globally optimal solution can be determined
-very efficiently on modern hardware, even for large-dimension problems. If a
-problem is convex, or can be transformed easily into one that is, or can be
+the optimal course of action.
+Convex optimisation problems are a subclass of optimisation problem for which a
+globally optimal solution can be determined very efficiently on modern hardware,
+even for large-dimension problems.
+If a problem is convex, or can be transformed easily into one that is, or can be
 solved adequately by using the solution of a convex relaxation of the problem,
 then it is feasible to apply MPC for optimal control.
+Many well-known optimisation problems (such as least-squares) are convex.
 
 An open problem in optimisation is efficiently solving problems where the decision
-variables must take on binary values.
+variables must take on binary values [].
+This is of some interest in water heating systems with large boilers which have
+only binary control options, especially since these systems cannot be rapidly
+switched on and off [].
 
-\section{Problem statement}
+\section{Proposal}
+
+\subsection{Problem statement}
 
 Create a model-predictive control scheme that maximises solar hot water usage
 in a hybrid domestic or light commercial installation and adheres to regulation
 for the safe operation of such systems.
 
-\section{Method}
+\subsection{Method}
 
 Mathematical models of the hot water storage tank, solar collector, and piping
 arrangement will be derived. Convex relaxations of these equations will be used
 to solve the optimal control problem, and the controller tested in simulation.
+Once the basic controller is working, it will be extended in an ad-hoc fashion
+to perform boosting for legionella control.
 Historical data of solar water system use will provide samples of user load
-patterns, and will also be used to verify/compare the final controller.
+patterns, and will also be used to verify the final controller and compare it
+with current technology.
 
-\section{Validation}
+\subsection{Validation}
 
 The system will be compared to existing technologies using STCs, or Small-scale
 Technology Certificates, which represent the amount of electricity displaced by
-the use of a solar water heating system. \cite{CER13} They provide a benchmark
+the use of a solar water heating system \cite{CER13}. They provide a benchmark
 against which different renewable technologies can be compared, as well as
 providing monetary incentive for home or business owners to install these
 technologies.
 
-{\it Alternatively}
-
-
-
 \section{Schedule}
+
+Literature review has begun and will be finished before Week 13 of Semester 1, 2014.
+Mathematical model development will begin in Week 7 of Semester 1, and be complete
+by Week 1 of Semester 2.
+Controller design will begin in Week 11 of Semester 1 and be completed by Week 4
+of Semester 2.
+Simulation with CER data will take place before Week 5 of Semester 2, and will
+be written up before Week 10 of that semester.
+
+\clearpage
 
 \bibliographystyle{plain}
 \bibliography{../report/library}
