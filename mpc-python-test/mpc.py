@@ -73,7 +73,7 @@ ylabel('Displacement (m)');
 
 ## MPC
 dt = 0.05
-H = 50
+H = 100
 
 # Do a proper simulation over the time horizon
 (A, B, C, D) = makeProblem(N, m, k, d, 0, 'u');
@@ -87,9 +87,12 @@ def builder(i, j):
     if j > i:
         return z
     else:
-        return C * matrix_power(A, i-j) * B
+        s = copy(z)
+        for ii in range(1, i+2-j):
+            s += C * matrix_power(A, ii) * B
+        return s
 Psi = bmat([[C * matrix_power(A, i)] for i in range(1, H+1)])
-Theta = bmat([[builder(i, j) for j in range(1, H+1)] for i in range(1, H+1)])
+Theta = bmat([[builder(i, j) for j in range(0, H)] for i in range(0, H)])
 
 X0 = zeros((2*N, 1))
 us = ones((H, 1))
