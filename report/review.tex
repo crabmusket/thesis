@@ -1,1 +1,31 @@
-\section{Literature review}
+\chapter{Related and prior work}
+
+\section{Solar water heating systems}
+
+\section{Model-predictive control}
+
+\section{Convex optimisation}
+
+\subsection{Mathematical background}
+
+Convex optimisation refers to the class of mathematical optimisation problems where the objective and constraint functions are all convex with respect to the decision variable \cite{Boyd04}.
+The particular shape of convex optimisation problems admits the use of very efficient algorithms to compute globally optimum solutions.
+More?
+
+\subsection{Applications}
+
+When applied to an MPC controller in \cite{Wang10}, a bespoke quadratic program (QP) solver achieved a 200Hz control frequency on a system with 13 states and 3 inputs over a 30-step control horizon.
+This was achievable by taking advantage of the structure of the MPC problem and the QP that was formed.
+The authors implemented an algorithm that solved the problem with time complexity linear in the horizon dimension, rather than cubic as seen in interior-point methods \cite{}.
+
+\subsection{Convex relaxation}
+
+\subsection{Disciplined convex programming}
+
+While the theoretical advantages of using convex optimisation are widely known \cite{Luo06}, in practise these rewards may be difficult to reap.
+While there exist general-purpose solvers for non-smooth convex optimisation problems which have attractive theoretical properties, they may in practise be slower than transforming a non-smooth problem into a smooth problem of higher dimension, and using an efficient solver for the new problem class.
+Grant and Boyd opine in \cite{Grant08} that this process is difficult and error-prone, even for experts in the field.
+They propose a method called {\emph disciplined convex programming} (DCP) \cite{Grant06} which aims to express convex optimisation problems in such a way that transformation to an efficiently-solvable representation can be automated, removing this ``expertise barrier'' as they put it.
+
+Recent DCP software such as CVX for MATLAB \cite{CVX} and CVXPY \cite{CVXPY} implements this paradigm to provide a simple user interface without sacrificing the efficiency of specialised solvers for subclasses of convex problems.
+{\opinion It has yet to be seen whether the same gains discovered in \cite{Wang10} in the area of MPC can be achieved by this general software.}
