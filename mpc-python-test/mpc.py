@@ -1,11 +1,12 @@
 from numpy import *             # Grab all of the NumPy functions
 from numpy.linalg import *
+from scipy.linalg import *
 from matplotlib.pyplot import * # Grab MATLAB plotting functions
 from control.matlab import *    # MATLAB-like functions
 
 # If dt <= 0, gives the state space equations for xdot(x). Otherwise gives the
 # equation for x(t+dt|x).
-def makeProblem(N, m, k, c, dt, *args):
+def makeProblem(N, m, k, c, *args):
     a = diag(ones(N) * -2) \
       + diag(ones(N-1), 1) \
       + diag(ones(N-1), -1)
@@ -22,36 +23,37 @@ def makeProblem(N, m, k, c, dt, *args):
         else:
             B[N, 0] = 1
 
-    if dt > 0:
-        A = A * dt + eye(A.shape[0])
-        B = B * dt;
-
     C = zeros((1, 2*N));
     C[0, N] = 1
 
-    D = 0;
+    D = matrix(0);
 
     return (A, B, C, D)
 
+def discretise(dt, (A, B, C, D)):
+    Ad = matrix(expm2(A * dt))
+    Bd = A.I * (Ad - eye(Ad.shape[0])) * B
+    return (Ad, Bd, C, D)
+
 ## Define problem
 # Number of masses
-N = 3;
+N = 5;
 m = 0.1;
 k = 1;
 d = 0.01;
 
 ## LQR cost matrix
 # Construct Q
-Q_v = diag([1] + ones(N-2)*2 + [1]) \
+Q_v = diag([1] + [2 for _ in range(N-2)] + [1]) \
     + diag(ones(N-1), -1) * -1 \
     + diag(ones(N-1), 1) * -1
 Q = bmat([[k/2*Q_v,        zeros((N, N))], \
-            [zeros((N, N)),  m/2*eye(N)]])
+          [zeros((N, N)),  m/2*eye(N)]])
 
 ## LQR control
 # Make systems
-(A, B, C, D) = makeProblem(N, m, k, d, 0, 'u')
-(_, b, _, _) = makeProblem(N, m, k, d, 0, 'w')
+(A, B, C, D) = makeProblem(N, m, k, d, 'u')
+(_, b, _, _) = makeProblem(N, m, k, d, 'w')
 
 # rho = 10
 (K, _, _) = lqr(A, B, Q, 10)
@@ -72,29 +74,27 @@ ylabel('Displacement (m)');
 #hold(True); plot(t2, r2); plot(t3, r3); show(); hold(False)
 
 ## MPC
-dt = 0.05
-H = 100
+dt = 0.1
+H = 20
 
 # Do a proper simulation over the time horizon
-(A, B, C, D) = makeProblem(N, m, k, d, 0, 'u');
+(A, B, C, D) = makeProblem(N, m, k, d, 'u');
 s = ss(A, B, C, D)
 (r, t) = step(s, T=linspace(0, H*dt, 200))
 
 # Construct predictor from discretised SS model
-(A, B, C, D) = makeProblem(N, m, k, d, dt, 'u');
+(A, B, C, D) = discretise(dt, makeProblem(N, m, k, d, 'u'))
+
 z = zeros((C*A*B).shape)
 def builder(i, j):
     if j > i:
         return z
     else:
-        s = copy(z)
-        for ii in range(1, i+2-j):
-            s += C * matrix_power(A, ii) * B
-        return s
-Psi = bmat([[C * matrix_power(A, i)] for i in range(1, H+1)])
-Theta = bmat([[builder(i, j) for j in range(0, H)] for i in range(0, H)])
+        return C * matrix_power(A, i-j) * B
+psi = bmat([[C * matrix_power(A, i)] for i in range(1, H+1)])
+theta = bmat([[builder(i, j) for j in range(0, H)] for i in range(0, H)])
 
 X0 = zeros((2*N, 1))
 us = ones((H, 1))
-ys = Psi * X0 + Theta * us
+ys = psi * X0 + theta * us
 hold(True); plot(t, r); plot(linspace(dt, H*dt, H), ys); show(); hold(False)
