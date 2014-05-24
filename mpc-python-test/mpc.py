@@ -1,7 +1,10 @@
+import matplotlib
+matplotlib.use('agg')
+from matplotlib.pyplot import * # Grab MATLAB plotting functions
+
 from numpy import *             # Grab all of the NumPy functions
 from numpy.linalg import *
 from scipy.linalg import *
-from matplotlib.pyplot import * # Grab MATLAB plotting functions
 from control.matlab import *    # MATLAB-like functions
 
 # If dt <= 0, gives the state space equations for xdot(x). Otherwise gives the
@@ -97,4 +100,4 @@ theta = bmat([[builder(i, j) for j in range(0, H)] for i in range(0, H)])
 X0 = zeros((2*N, 1))
 us = ones((H, 1))
 ys = psi * X0 + theta * us
-hold(True); plot(t, r); plot(linspace(dt, H*dt, H), ys); show(); hold(False)
+hold(True); plot(t, r); plot(linspace(dt, H*dt, H), ys); savefig('fig.png'); hold(False)
