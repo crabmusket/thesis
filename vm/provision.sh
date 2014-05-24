@@ -1,28 +1,14 @@
-sudo apt-get update
+cd /vagrant/vm
 
 ## Tools
-sudo apt-get install git python-pip -y
-wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python
+apt-get update
+apt-get install git -y
 
-## Install scipy, numpy, etc.
-sudo apt-get build-dep python-scipy -y
-sudo apt-get install python-scipy libagg-dev python-matplotlib -y
+# Components
+./setup-python.sh
+./setup-node.sh
 
-## SLICOT
-git clone git://github.com/avventi/Slycot.git
-cd Slycot
-sudo python setup.py install
-cd ..
-rm -r Slycot
-
-## python-control
-wget http://sourceforge.net/projects/python-control/files/control-0.6d.tar.gz/download -O control-0.6d.tar.gz
-tar xzf control-0.6d.tar.gz
-rm control-0.6d.tar.gz
-cd control-0.6d
-sudo python setup.py install
-cd ..
-rm -r control-0.6d
-
-# cvxpy
-sudo pip install cvxpy
+# Startup scripts
+cp startup-node.sh /etc/init.d/
+chmod +x /etc/init.d/startup-node.sh
+update-rc.d startup-node.sh defaults
