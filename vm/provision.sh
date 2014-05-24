@@ -1,14 +1,12 @@
 cd /vagrant/vm
 
 ## Tools
-apt-get update
+apt-get update > /dev/null
 apt-get install git -y
 
 # Components
 ./setup-python.sh
 ./setup-node.sh
 
-# Startup scripts
-cp startup-node.sh /etc/init.d/
-chmod +x /etc/init.d/startup-node.sh
-update-rc.d startup-node.sh defaults
+# Startup script
+cp ./thesis-viewer.conf /etc/init/thesis-viewer.conf
