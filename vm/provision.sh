@@ -2,7 +2,7 @@ cd /vagrant/vm
 
 ## Tools
 apt-get update > /dev/null
-apt-get install git -y
+apt-get install git -y > /dev/null
 
 # Components
 ./setup-python.sh
