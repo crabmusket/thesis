@@ -47,3 +47,39 @@
  * Sub-problems are 'inlined' into the user's desired problem.
  * Introduces more variables and constraints, but the use of more efficient
    solvers. Tends to be beneficial in practise.
+
+## Siroky10
+
+### Introduction
+
+ * Building climate control accounts for a large amount of first-world energy
+   expenditure.
+ * BAS can control not only HVAC but also blinds and lighting.
+ * Thermal mass is important to consider when heating/cooling a building and
+   critical to the MPC problem.
+ * Different energy rates (i.e. nighttime) should also be taken into account by
+   the control strategy.
+
+### MPC
+
+ * MPC is typically used to control high-level setpoints, with per-room
+   controllers ensuring those setpoints are maintained.
+ * Aim to minimise the electricity bill while meeting comfort constraints.
+ * Stability is often a non-issue for building control.
+ * Objective function minimises difference from a trajectory using a quadratic
+   form to penalise deviation.
+ * Energy bill is usually an _affine_ function of the contron effort.
+ * Peak energy demand can be penalised using the L∞ norm.
+
+### Modeling
+
+ * Actual models (e.g. Simulink or TRNSYS) cannot be used to formulate control
+   strategies using optimisation, and are slow to solve, so RC modelling is
+   typically used instead.
+ * Once an RC model structure is derived, its properties can be filled in using
+   statistical identification or _a priori_ knowledge of the materials and
+   construction.
+
+### Case study
+
+
