@@ -1,11 +1,15 @@
 ## Install scipy, numpy, etc.
-apt-get install python-pip libagg-dev libatlas-base-dev gfortran -y > /dev/null
-pip install scipy==0.14.0 > /dev/null
-pip install matplotlib==1.3.1 > /dev/null
+apt-get build-dep python-scipy matplotlib -y
+apt-get install python-dev python-pip libagg-dev -y
+
+pip install distribute --upgrade
+pip install numpy==1.8.1 \
+            scipy==0.14.0 \
+            matplotlib==1.3.1 > install.txt
 
 if [ $(python -c "import setuptools" &> /dev/null) ]; then
 	# Python setup
-	wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python > /dev/null
+	wget https://bootstrap.pypa.io/ez_setup.py -O - | sudo python
 	rm ./setuptools-3.5.1.zip
 fi
 
@@ -14,7 +18,7 @@ if [ $(python -c "import control.matlab" &> /dev/null) ]; then
 	git clone git://github.com/avventi/Slycot.git
 	cd Slycot
 	git checkout 5af5f283
-	python setup.py install > /dev/null
+	python setup.py install
 	cd ..
 	rm -r Slycot
 
@@ -23,10 +27,10 @@ if [ $(python -c "import control.matlab" &> /dev/null) ]; then
 	tar xzf control-0.6d.tar.gz
 	rm control-0.6d.tar.gz
 	cd control-0.6d
-	python setup.py install > /dev/null
+	python setup.py install
 	cd ..
 	rm -r control-0.6d
 fi
 
 # cvxpy
-pip install cvxpy==0.2 > /dev/null
+pip install cvxpy==0.2
