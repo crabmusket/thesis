@@ -82,4 +82,25 @@
 
 ### Case study
 
-
+ * Building layout (three identical blocks) gave good opportunity to compare
+   strategies with identical weather conditions, and with different insulation
+   conditions.
+ * A/B study where one block was controlled by fixed curves and others by MPC.
+ * Reference trajectory is known, dictated by daytime/nighttime setpoints in
+   each room.
+ * Comfort is used not as a constraint (may lead to infeasible problem) but
+   penalised in cost function (only negative difference penalised).
+ * Q and R in const function constant, since energy rate is flat, but had to be
+   tuned per-block.
+ * Lower limit of control input depends on return water temperature but this
+   effect was neglected.
+ * H = 2 days, δt = 20 min
+ * QP solve time: 21s on 2x2.5GHz
+ * Backup strategy in case network comms or other software failed.
+ * Two comparisons: cross-comparison of blocks under different control, and
+   comparison of HDD (heating degree days) for two blocks in similar external
+   conditions.
+ * Saved from 15% to 28% of energy bill. Relative savings larger in insulated
+   block, but absolute savings larger in uninsulated block.
+ * MPC savings depend on many building-specific factors.
+ * Cost/benefit analysis should include cost of model development and integration.
