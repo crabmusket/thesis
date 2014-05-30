@@ -7,6 +7,10 @@ from numpy.linalg import *
 from scipy.linalg import *
 from control.matlab import *    # MATLAB-like functions
 
+title('');
+xlabel('Time (s)');
+ylabel('Displacement (m)');
+
 # If dt <= 0, gives the state space equations for xdot(x). Otherwise gives the
 # equation for x(t+dt|x).
 def makeProblem(N, m, k, c, *args):
@@ -71,10 +75,15 @@ s3 = ss(A-B*K, b, C, D);
 ts = linspace(0, 30, 500)
 (r2, t2) = impulse(s2, T=ts)
 (r3, t3) = impulse(s3, T=ts)
-title('');
-xlabel('Time (s)');
-ylabel('Displacement (m)');
-#hold(True); plot(t2, r2); plot(t3, r3); show(); hold(False)
+
+figure(1)
+try:
+    hold(True)
+    plot(t2, r2)
+    plot(t3, r3)
+    savefig('lqr.png')
+    hold(False)
+except: pass
 
 ## MPC
 dt = 0.1
@@ -100,4 +109,12 @@ theta = bmat([[builder(i, j) for j in range(0, H)] for i in range(0, H)])
 X0 = zeros((2*N, 1))
 us = ones((H, 1))
 ys = psi * X0 + theta * us
-hold(True); plot(t, r); plot(linspace(dt, H*dt, H), ys); savefig('fig.png'); hold(False)
+
+figure(2)
+try:
+    hold(True)
+    plot(t, r)
+    plot(linspace(dt, H*dt, H), ys.transpose().tolist()[0])
+    savefig('fig.png')
+    hold(False)
+except: pass
