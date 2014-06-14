@@ -204,3 +204,28 @@
  * Collector and load control functions are integrated to derive the heat flow
    equation for each node at a specific flow rate.
  * Equations are solved using a matrix differential equation.
+
+## Halvgaard12
+
+### Experiment
+
+ * 9sqm solar panel, 788L tank with stratifiers on inputs, 3x3kW heating elements.
+ * Electricity prices vary, known 12 hours ahead. Weather forecast known 36 hours
+   ahead.
+ * Use heat flow model of tank, not explicit stratification model. Single
+   temperature assumed to be average of 8 sensors.
+ * Domestic load with even spikes at 7am, 12n, 7pm.
+ * Parameter estimation (ML/MAP) used to derive state space model with noise.
+ * Heating element efficiency fixed at η=1.
+
+### Results
+
+ * Annual savings around 25-30%.
+ * Prediction horizon > 24 hrs did not have much effect on the savings.
+ * Perfect forecasts did not have much effect on savings.
+ * Power consumption tended to increase as prediction horizon lengthened, because
+   energy was used at off-peak times.
+ * Control is only active at the lower temperature bound.
+ * When minimizing power consumption, prediction horizon had no effect due to
+   sampling time (1h) being much longer than dynamics (~5min).
+ * Milliseconds to solve MPC problem.
