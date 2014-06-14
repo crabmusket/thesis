@@ -175,3 +175,32 @@
  * Over a range of weather conditions in a 6 month simulation, MPC consistently
    outperformed manual control.
  * Performed best at ambient temperatures of 285 to 291K.
+
+## Cristofari02
+
+### Intro and description
+
+ * Countries want to reduce their oil dependence (since 1973!).
+ * France is putting emphasis on nuclear power; Corsica is diversifying.
+ * Solar installations are not yet price-competitive.
+ * Greece is introducing political incentives that increase competitiveness.
+ * This paper invstigates new materials that might make a solar collector more
+   affortable without sacrificing performance.
+ * Collector installation cost: 20%, material cost: 80%, representing 50% of
+   total solar system cost. This is high.
+ * This paper develops a model of the collector taking material heat capacitance
+   into account allowing simulation of the collector.
+
+### Modeling
+
+ * Stratified tank model with 10 nodes. Each node has uniform volume but
+   changes in temperature.
+ * Water entering the tank is put into a single node which has a density
+   closest to its own, and then pushes water into adjacent nodes.
+ * Two loops: upwards flow from load return, and downards flow from collector
+   return.
+ * Collector control function is defined as a binary function of the node index,
+   temperautre in the node and in the entering water.
+ * Collector and load control functions are integrated to derive the heat flow
+   equation for each node at a specific flow rate.
+ * Equations are solved using a matrix differential equation.
