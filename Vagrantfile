@@ -23,7 +23,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine.
-  config.vm.network "forwarded_port", guest: 80, host: 8008
+  config.vm.network "forwarded_port", guest: 8888, host: 8888
+
+  # Provider-specific configuration.
+  config.vm.provider "virtualbox" do |v|
+    v.name = "thesis"
+    v.memory = 1024
+  end
 
   # Share an additional folder to the guest VM. The first argument is
   # the path on the host to the actual folder. The second argument is
