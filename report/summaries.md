@@ -247,3 +247,24 @@
  * With a PTDA of 1.0, the payback time was 7.4 years.
  * Over 20 years, _total_ investment in the solar system was less than the _initial_
    investment in the GGS.
+
+## Hollands89
+
+### Intro and advantages
+
+ * High flow changes the collector efficiency curve favourably, but stratification
+   can move the operating point along the curve and achieve better results.
+ * Improve "performance" by 38%.
+ * Reduced cost of piping, heat exchange, and pumping.
+
+### Modelling
+
+ * Degradation of stratification due to conduction between layers takes several
+   days and is usually ignored. Losses due to conduction with the side walls,
+	however, may be significant.
+ * Usually modelled by fixed-volume disks whose temperature/energy changes.
+ * Systems down to 3 nodes underestimated solar output by up to 10%. Up to 64
+   nodes were needed to properly model complex load/supply patterns.
+ * It's not the flow rate that has so much affect as the stratification. High
+   flow rate tends to destroy stratification, so low flow rates "look better".
+	High flow rates could be used with good diffusers.
