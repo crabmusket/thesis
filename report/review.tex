@@ -2,11 +2,11 @@
 
 \section{Convex optimisation}
 
+\todo{Astfalk, }
+
 When applied to an MPC controller in \cite{Wang10}, a bespoke quadratic program (QP) solver achieved a 200Hz control frequency on a system with 13 states and 3 inputs over a 30-step control horizon.
 This was achievable by taking advantage of the structure of the MPC problem and the QP that was formed.
 The authors implemented an algorithm that solved the problem with time complexity linear in the horizon dimension, rather than cubic as seen in interior-point methods.
-
-\todo{Astfalk, }
 
 \section{Model-predictive control}
 
@@ -15,7 +15,25 @@ The authors implemented an algorithm that solved the problem with time complexit
 \section{Hot water system modelling}
 
 Camacho and Bordons estimate that one of the key differences in MPC control is the significant up-front modelling effort, as the system model is very important to the overall control achieved.
-Therefore we take care to study various efforts to model hot water tanks.
+Therefore we take care to study various efforts in modelling hot water tanks.
+
+\subsection{Stratified models}
+
+Stratification is the natural tendency of water to form layers of uniform temperature, between which there is relatively little heat flow.
+Hollands and Lightstone's 1989 paper reviews the benefits of maintaining stratification in a hot water storage tank \cite{Hollands89}.
+At this point, stratified tanks were just beginning to become the preferred paradigm for storage in domestic hot water systems.
+Their review points out that systems that maintain tank stratification (usually by designing for low flow rates, but potentially by using good diffusers inside the tank) can improve performance by nearly 40\% in some circumstances.
+\todo{Make sure I understand how.}
+
+The authors review mathematical models for stratified tanks and relate that it was usual to model the tank as several fixed-volume, variable-temperature layers.
+With as few as three of these layers, they found that models could under-predict system performance by 10\%.
+With complex supply and load patterns, they found that up to sixty-four layers were needed to capture the system's dynamics.
+
+Cristofari {\it et al} formulated a stratified tank model for simulation, rather than optimisation, of SWHSs in Corsica \cite{Cristofari02}.
+They assume that a perfect diffuser exists on the tank inputs and outputs, so that water added or removed is done so from an appropriate stratified layer - i.e. the layer whose density matches the incoming mass most closely.
+To model this effect, they use a {\it control function} that selects a binary (0 or 1) value to multiply the water entry by at each layer.
+
+\subsection{Heat transfer models}
 
 \todo{DuffBradnum, Ayompe, Cao, Hollands, }
 

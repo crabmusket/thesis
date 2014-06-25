@@ -245,8 +245,8 @@
  * Analysed in terms of PTDA: practical to designed area, i.e. the difference in
    collector area from the system design to the actual installation.
  * With a PTDA of 1.0, the payback time was 7.4 years.
- * Over 20 years, _total_ investment in the solar system was less than the _initial_
-   investment in the GGS.
+ * Over 20 years, _total_ investment in the solar system was less than the
+   _initial_ investment in the GGS.
 
 ## Hollands89
 
