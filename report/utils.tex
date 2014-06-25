@@ -1,6 +1,8 @@
 % An \opinion command for when I make stuff up.
 \usepackage{color}
-\newcommand{\opinion}[1]{\emph{\color{red}{#1}}}
+\newcommand{\opinion}[1]{{\color{red}#1}}
+% And TODO which looks the same.
+\newcommand{\todo}[1]{\emph{\color{red}{#1}}}
 
 % Rename 'Bibliography' to 'References'.
 \usepackage[nottoc,notlof,notlot]{tocbibind}

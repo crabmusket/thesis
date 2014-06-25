@@ -2,12 +2,27 @@
 
 \section{Convex optimisation}
 
-\subsection{Applications}
+When applied to an MPC controller in \cite{Wang10}, a bespoke quadratic program (QP) solver achieved a 200Hz control frequency on a system with 13 states and 3 inputs over a 30-step control horizon.
+This was achievable by taking advantage of the structure of the MPC problem and the QP that was formed.
+The authors implemented an algorithm that solved the problem with time complexity linear in the horizon dimension, rather than cubic as seen in interior-point methods.
 
-When applied to an MPC controller in \cite{Wang10}, a bespoke quadratic program
-(QP) solver achieved a 200Hz control frequency on a system with 13 states and 3
-inputs over a 30-step control horizon. This was achievable by taking advantage
-of the structure of the MPC problem and the QP that was formed. The authors
-implemented an algorithm that solved the problem with time complexity linear in
-the horizon dimension, rather than cubic as seen in interior-point methods
-\cite{}.
+\todo{Astfalk, }
+
+\section{Model-predictive control}
+
+\todo{Jalali, Wright, }
+
+\section{Hot water system modelling}
+
+Camacho and Bordons estimate that one of the key differences in MPC control is the significant up-front modelling effort, as the system model is very important to the overall control achieved.
+Therefore we take care to study various efforts to model hot water tanks.
+
+\todo{DuffBradnum, Ayompe, Cao, Hollands, }
+
+\section{Building automation}
+
+\todo{Siroky, Ma, Gyalistras, }
+
+\section{Water tank control}
+
+\todo{Beckman, Azzouzi, Hasan, Yang, Sossan, AbdelMalek, Michaels, \cite{Halvgaard12}}
