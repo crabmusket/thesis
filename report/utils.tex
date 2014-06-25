@@ -1,5 +1,10 @@
+% An \opinion command for when I make stuff up.
 \usepackage{color}
 \newcommand{\opinion}[1]{\emph{\color{red}{#1}}}
 
+% Rename 'Bibliography' to 'References'.
 \usepackage[nottoc,notlof,notlot]{tocbibind}
 \renewcommand\bibname{References}
+
+% More convenient reference. \refer{Section}{sec:x}
+\newcommand{\refer}[2]{\hyperref[#2]{#1 \ref*{#2}}}

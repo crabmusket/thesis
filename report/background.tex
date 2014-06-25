@@ -38,4 +38,48 @@ The handbook points out that simple controllers such as timers or single sensors
 For this reason, it recommends the use of temperature differential controllers.
 
 Simply, the temperature of the water exiting the solar collectors is compared to the temperature in the tank, and the pump is activated if there is a positive difference (i.e. useful heat is available).
-The handbook goes on to detail refinements to this approach - using proportional motor speeds instead of binary control, hysterisis to avoid pump hunting (rapid on/off motor cycles), and also mentions integrating with building automation systems and ``time-of-day clocks ... for applications that have a repeated daily hot water demand pattern.''
+The handbook goes on to detail refinements to this approach - using proportional motor speeds instead of binary control, hysterisis to avoid pump hunting (rapid on/off motor cycles), and also mentions integration with building automation systems and ``time-of-day clocks ... for applications that have a repeated daily hot water demand pattern.''
+
+\section{Model-predictive control}
+
+\subsection{Overview and comparison to PID control}
+
+As described by Camacho and Bordons in their work on the subject \cite{Camacho04}, model-predictive control (MPC) is a class of control strategies that incporate an explicit model of the system into their decision-making process.
+Note that this model may include the system's input response, disturbance response, predictions of time-varying effects, etcetera.
+The typical implementation of MPC follows this simplified flow:
+
+\begin{enumerate}
+	\item Measure or estimate current state and predict disturbances.
+	\item Optimise sequence of control inputs over some finite time horizon.
+	\item Apply the first input to the system.
+	\item Repeat at next time interval.
+\end{enumerate}
+
+In this way, feedback control is achieved by repeatedly measuring the system state.
+Note that although a plan of inputs is generated over a time horizon, the entire plan is not usually used.
+This strategy has a natural analogy in pathfinding; it is necessary to plan the entire path to determine which direction to move in first.
+
+Camacho and Bordons compare MPC to PID by likening PID to driving a car by only looking in the rear-view mirror.
+In this situation, the driver can only respond to past errors, as PID does.
+MPC allows future conditions to be anticipated and explicitly included in the decision-making process.
+
+\section{Convex optimisation}
+
+\subsection{Mathematical background and significance}
+
+Convex optimisation refers to the class of mathematical optimisation problems where the objective and constraint functions are all convex with respect to the decision variable(s) \cite{Boyd04}.
+Convexity, briefly, is the property that a function is `bowl-shaped'.
+Importantly, this implies that any local minimum of the function will also be a {\it global} minimum.
+The particular shape of convex optimisation problems admits the use of very efficient algorithms to compute globally optimum solutions.
+
+Since the core of model-predictive control algorithms involve optimising the choice of cost function over the future control sequence, convex optimisation problems play an important role in its implementation.
+
+\subsection{Disciplined convex programming}
+
+While the theoretical advantages of using convex optimisation are widely known \cite{Luo06}, in practise these rewards may be difficult to reap.
+While there exist general-purpose solvers for non-smooth convex optimisation problems which have attractive theoretical properties, they may in practise be slower than transforming a non-smooth problem into a smooth problem of higher dimension, and using an efficient solver for the new problem class.
+Grant and Boyd opine in \cite{Grant08} that this process is difficult and error-prone, even for experts in the field.
+They propose a method called {\it disciplined convex programming} (DCP) \cite{Grant06} which aims to express convex optimisation problems in such a way that transformation to an efficiently-solvable representation can be automated, removing this ``expertise barrier'', as they put it.
+
+Recent DCP software such as CVX for MATLAB \cite{CVX} and CVXPY \cite{CVXPY} implements this paradigm to provide a simple user interface without sacrificing the efficiency of specialised solvers for subclasses of convex problems.
+\opinion{It has yet to be seen whether the same gains discovered in \cite{Wang10} in the area of MPC can be achieved by this general software.}
