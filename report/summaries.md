@@ -229,3 +229,21 @@
  * When minimizing power consumption, prediction horizon had no effect due to
    sampling time (1h) being much longer than dynamics (~5min).
  * Milliseconds to solve MPC problem.
+
+## Cao14
+
+### Intro and design
+
+ * Not so much research focused on replacing existing systems with SHWS.
+ * Hot water _consumption_ is "high quantity but low quality" (like solar energy).
+ * Differential temperature controllers used to circulate water in the collectors.
+
+### Economics
+
+ * System lifetime designed to be 20 years.
+ * Considered cash inflow from carbon credits.
+ * Analysed in terms of PTDA: practical to designed area, i.e. the difference in
+   collector area from the system design to the actual installation.
+ * With a PTDA of 1.0, the payback time was 7.4 years.
+ * Over 20 years, _total_ investment in the solar system was less than the _initial_
+   investment in the GGS.
