@@ -29,18 +29,65 @@ The authors review mathematical models for stratified tanks and relate that it w
 With as few as three of these layers, they found that models could under-predict system performance by 10\%.
 With complex supply and load patterns, they found that up to sixty-four layers were needed to capture the system's dynamics.
 
-Cristofari {\it et al} formulated a stratified tank model for simulation, rather than optimisation, of SWHSs in Corsica \cite{Cristofari02}.
+Cristofari \etal formulated a stratified tank model for simulation, rather than optimisation, of SWHSs in Corsica \cite{Cristofari02}.
 They assume that a perfect diffuser exists on the tank inputs and outputs, so that water added or removed is done so from an appropriate stratified layer - i.e. the layer whose density matches the incoming mass most closely.
 To model this effect, they use a {\it control function} that selects a binary (0 or 1) value to multiply the water entry by at each layer.
+They also model heat transfers between each layer to represent the flow of water through the tank as it is drawn off and added in at different heights.
 
-\subsection{Heat transfer models}
+\subsection{Mixed-tank models}
 
 \todo{DuffBradnum, Ayompe, Cao, Hollands, }
 
 \section{Building automation}
 
-\todo{Siroky, Ma, Gyalistras, }
+\subsection{HVAC control}
+
+\subsubsection{Prague}
+
+A study of model-predictive control for heating, ventilation and air-conditioning (HVAC) systems was undertaken by Siroky \etal in the Czech Republic \cite{Siroky11}.
+They implemented a controller for a building with three identical blocks, which provided a good opportunity to apply different control methods across near-uniform weather and lighting conditions.
+Instead of cooling, this study was mainly concerned with heating the building during cold winder conditions.
+Over their cross-comparisons between blocks with different control strategies, they found that the MPC controller saved between 15\% and 28\% of their energy bill.
+(However, they concluded that any economic analysis of applying MPC control must also include the cost of model development, integration, and ongoing maintenance.)
+
+In this application, the MPC controller specified setpoints for each room, and low-level controllers were responsible for ensuring these targets were met.
+The authors note that they did not represent the setpoint targets as constraints in their optimisation problem, as this would often lead to infeasible optimisation problems.
+Instead, they considered a cost function which significantly penalised deviations below the reference temperature, but was more tolerant to deviations above it.
+
+This cost function also accounted for the energy bill, which was their desired minimisation target.
+This required manually tweaking cost weighting matrices to ensure that the tradeoffs of deviating from the reference setpoints were balanced by the desire to minimise the building's energy bill.
+They also considered the use of the $L_\infty$ norm on the input to reduce the {\it peak} electricity usage.
+
+The authors make several practical notes on the application of MPC.
+They opine that stability is not often a concern in building control due to the slow and naturally stable dynamics.
+They also emphasize the role that modelling building thermal mass plays in any form of HVAC control.
+Finally, they note that a full building automation system could control not just the air conditioning, but lighting and blinds as well in search of an efficient environment.
+
+\todo{GYALISTRAS}
 
 \section{Water tank control}
 
-\todo{Beckman, Azzouzi, Hasan, Yang, Sossan, AbdelMalek, Michaels, \cite{Halvgaard12}}
+\todo{HALVGAARD}
+\todo{Maybe: Azzouzi, Hasan, Yang, Sossan, AbdelMalek, Michaels}
+
+\subsection{Berkeley}
+
+A study of a {\it chilled} water tank took place on the campus of Berkeley university by Ma \etal \cite{Ma12}.
+The authors designed and implemented a controller for the university's chilling plant, which cools and stores water to distribute to the various air conditioners around campus.
+This system did not directly control the air conditioning equipment; instead, its responsibility was to optimise the chilling process, usually at night before its use during the day.
+
+Over four trials, they compared the hand-designed control regime the university had been operating under, a restricted MPC algorithm, an improved manual control regime informed by the improvements made by MPC, and finally an unrestricted MPC controller.
+The unrestrained MPC controller performed best out of the four trials, increasing the power plant's efficiency by 19\% and reducing the daily HVAC electricity bill by 76\%.
+They found that overall, the MPC strategy was very similar to the manual strategy used by the operators, but with more finely-tuned timing.
+
+This study considered a stratified water tank where only two layers were modelled (a third was observed in actual data, but ignored).
+The campus load was modelled as an RC network that accounted for wall and window thermal masses, thermal loads from occupants, lights, equipment, and environmental facturs such as ambient temperature and sunlight.
+Weather prediction was used to predict the campus load based on historical data.
+
+The controller included a robustness guarantee.
+Historical disturbance data for the campus was used to construct a terminal constraint set on the MPC optimisation problem to ensure that the controller would chill enough water to guarantee the campus could be cooled if actual load exceeded predicted load.
+
+In addition, the authors incorporated a binary (non-convex) control input - the mass flow rate to the chillers - by choosing to optimise not over a sequence of input values in time, but by restricting the controller to only use the chiller for one continuous period, and optimising over the start and end times of this period.
+In this way they were able to avoid the difficulties in designing an optimal binary controller.
+\todo{Verify this is what they did. It sure looked like it, but...}
+

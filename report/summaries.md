@@ -68,7 +68,7 @@
  * Stability is often a non-issue for building control.
  * Objective function minimises difference from a trajectory using a quadratic
    form to penalise deviation.
- * Energy bill is usually an _affine_ function of the contron effort.
+ * Energy bill is usually an _affine_ function of the control effort.
  * Peak energy demand can be penalised using the L∞ norm.
 
 ### Modeling
@@ -90,7 +90,7 @@
    each room.
  * Comfort is used not as a constraint (may lead to infeasible problem) but
    penalised in cost function (only negative difference penalised).
- * Q and R in const function constant, since energy rate is flat, but had to be
+ * Q and R in cost function constant, since energy rate is flat, but had to be
    tuned per-block.
  * Lower limit of control input depends on return water temperature but this
    effect was neglected.

@@ -12,9 +12,19 @@ Therefore, using `free' solar energy to heat water is an obvious way to signific
 
 Solar domestic hot water (SDHW), or solar hot water systems (SHWS) are \opinion{something}.
 
-\subsection{Typical system}
+\subsection{System design}
 
-Describe a typical solar hot water system here.
+The solar water heating systems we are concerned with have a number of variables in their design.
+
+\begin{description}
+	\item[Loop openness] An open-loop system is one in which the water circulating through the collectors is potable and is passed directly to the load.
+		In a closed-loop system, by contrast, the collector has its own circuit and liquid is not passed from it to the user.
+		This means that, for example, anti-freeze chemicals can be added to the collector loop.
+		In this case, a heat exchanger must be used to transfer heat from the collector loop to the storage tank.
+	\item[\todo{thingy}] Some systems include a \todo{thingy} that allows water from the collector output to bypass the storage tank and be returned to the collector input for further heating.
+\end{description}
+
+The common elements include the solar collector itself and collector circulation pump, the stratified storage tank, the boosting element, which may be positioned at a variable height in the tank, and the load.
 
 \subsection{Economics}
 
@@ -41,6 +51,10 @@ For this reason, it recommends the use of temperature differential controllers.
 
 Simply, the temperature of the water exiting the solar collectors is compared to the temperature in the tank, and the pump is activated if there is a positive difference (i.e. useful heat is available).
 The handbook goes on to detail refinements to this approach - using proportional motor speeds instead of binary control, hysterisis to avoid pump hunting (rapid on/off motor cycles), and also mentions integration with building automation systems and ``time-of-day clocks ... for applications that have a repeated daily hot water demand pattern.''
+
+Additional insight is provided in a 1994 paper by Beckman \etal \cite{Beckman94} in which the process of designing these binary differential controllers is analysed.
+They primarily cocern themselves with designing hysterisis bands that result in stable simulations, in order that fair and correct results may be obtained when comparing system ratings.
+They note that in practise, this instability in pump control is rarely a problem because ``solar radiation is generally increasing continuously (in the morning) and the system soon reaches a stable condition''.
 
 \section{Model-predictive control}
 
@@ -74,7 +88,7 @@ Convexity, briefly, is the property that a function is `bowl-shaped'.
 Importantly, this implies that any local minimum of the function will also be a {\it global} minimum.
 The particular shape of convex optimisation problems admits the use of very efficient algorithms to compute globally optimum solutions.
 
-Since the core of model-predictive control algorithms involve optimising the choice of cost function over the future control sequence, convex optimisation problems play an important role in its implementation.
+Since the core of model-predictive control algorithms involves optimising the choice of cost function over the future control sequence, convex optimisation problems play an important role in its implementation.
 
 \subsection{Disciplined convex programming}
 
