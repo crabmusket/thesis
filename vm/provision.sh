@@ -2,8 +2,11 @@ cd /vagrant/vm
 
 ## Tools
 apt-get update > /dev/null
-apt-get install git -y > /dev/null
-apt-get install python-software-properties -y
+apt-get install \
+	git \
+	python-software-properties \
+	software-properties-common \
+	-y
 
 # TexLive
 add-apt-repository ppa:texlive-backports/ppa -y
@@ -14,7 +17,7 @@ apt-get install \
 	texlive-common \
 	texlive-full \
 	texlive-latex-extra \
-	-y > /dev/null
+	-y
 apt-get upgrade -y > /dev/null
 
 # Components
