@@ -3,7 +3,15 @@
 *.blg
 *.log
 *.pdf
+*.toc
+*.make
+*.fls
 *.synctex.gz
 
 .vagrant/
 node_modules/
+
+*.pyc
+
+*.d
+*.out
