@@ -15,3 +15,5 @@ node_modules/
 
 *.d
 *.out
+
+report/_out_/*
