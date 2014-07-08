@@ -3,8 +3,8 @@ mpl.use('agg')
 import matplotlib.pyplot as p
 import datetime as dt
 
-from .. import load
-(ts, vs) = load.predictedFrom(
+from .. import insolation
+(ts, vs) = insolation.predictedFrom(
     time=dt.datetime(2014, 7, 1, 04, 00, 00),
     over=dt.timedelta(hours=12),
     interval=dt.timedelta(minutes=10))

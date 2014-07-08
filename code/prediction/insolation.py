@@ -1,7 +1,6 @@
 import numpy as np
 import datetime as dt
 from math import ceil, sin, pi
-from itertools import islice
 from ..utils import iterate, take
 
 def predictedFrom(time, over, interval):
