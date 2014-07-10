@@ -29,7 +29,7 @@ The authors review mathematical models for stratified tanks and relate that it w
 With as few as three of these layers, they found that models could under-predict system performance by 10\%.
 With complex supply and load patterns, they found that up to sixty-four layers were needed to capture the system's dynamics.
 
-Cristofari \etal formulated a stratified tank model for simulation, rather than optimisation, of SWHSs in Corsica \cite{Cristofari02}.
+Cristofari \etal{} formulated a stratified tank model for simulation, rather than optimisation, of SWHSs in Corsica \cite{Cristofari02}.
 They assume that a perfect diffuser exists on the tank inputs and outputs, so that water added or removed is done so from an appropriate stratified layer - i.e. the layer whose density matches the incoming mass most closely.
 To model this effect, they use a {\it control function} that selects a binary (0 or 1) value to multiply the water entry by at each layer.
 They also model heat transfers between each layer to represent the flow of water through the tank as it is drawn off and added in at different heights.
@@ -44,7 +44,7 @@ They also model heat transfers between each layer to represent the flow of water
 
 \subsubsection{Prague}
 
-A study of model-predictive control for heating, ventilation and air-conditioning (HVAC) systems was undertaken by Siroky \etal in the Czech Republic \cite{Siroky11}.
+A study of model-predictive control for heating, ventilation and air-conditioning (HVAC) systems was undertaken by Siroky \etal{} in the Czech Republic \cite{Siroky11}.
 They implemented a controller for a building with three identical blocks, which provided a good opportunity to apply different control methods across near-uniform weather and lighting conditions.
 Instead of cooling, this study was mainly concerned with heating the building during cold winder conditions.
 Over their cross-comparisons between blocks with different control strategies, they found that the MPC controller saved between 15\% and 28\% of their energy bill.
@@ -63,7 +63,46 @@ They opine that stability is not often a concern in building control due to the 
 They also emphasize the role that modelling building thermal mass plays in any form of HVAC control.
 Finally, they note that a full building automation system could control not just the air conditioning, but lighting and blinds as well in search of an efficient environment.
 
-\todo{GYALISTRAS}
+\subsubsection{The OptiControl project}
+
+The OptiControl is a project aimed at developing autonomous building control technology, based in Switzerland and funded collaboratively by industry and governments.
+The project focuses on using MPC to control HVAC systems in buildings.
+In its two-year progress report by Gyalistras \etal{} cite{Gyalistras10}, a chapter is devoted to their findings related to MPC, authored by Oldewurtel, Parisio, Jones and Morari \cite{Oldewurtel10}.
+
+They note that MPC is a natural way of describing control problems, which allows designers to specify {\it what} they want the overall system to achieve (i.e., the goal function), rather than {\it how} to achieve the goal.
+It is a high-level specification\footnotemark{} and lends itself to easy and even on-the-fly tuning - for example, the authors note that the user may be allowed to set a preference between minimising energy usage and minimising their energy bill (which are sometimes mutually exclusive goals).
+They also believe that a benefit of MPC is that an expert is not required to design control rules.
+
+\footnotetext{Compare this to the commonly-cited benefit of functional programming languages over their imperative counterparts: the ease with which you can describe {\it what} to compute rather than {\it how} to about computing it.}
+
+The authors describe in detail the control algorithms used in the OptiControl project, which focus on robustness in the face of disturbances.
+Disturbances, in this case, are both model inaccuracies as well as inaccuracies in the weather prediction.
+Though Siroky \etal{} noted that stability is not usually a concern for building control, the OptiControl authors believe that robustness - the guarantees a system makes in the face of uncertain disturbances - is critical.
+They examine three MPC formulations that deal with this uncertainty in different ways.
+
+\begin{description}
+   \item[Certainty equivalence]
+      This is, according to Oldewurtel and colleagues, the most common MPC approach, and is the approach used by Siroky \etal{}.
+      This formulation of MPC assumes that the disturbances will exactly equal their mean (or expected) value during the execution of the plan.
+      This is optimistic at best, and though the authors find it an unreasonable approach, they note that it can be made robust by tightening constraints to alleviate the effects of potential disturbances.
+
+   \item[Chance constraints]
+      Chance constraints formulate the constraints of an MPC problem as an inequality not on the state itself, but on the probability of the state exceeding its constraints, like so:
+      $$ P(y_t \leq \bar{y}) \geq 1 - \alpha, $$
+      where $\alpha$ is the desired probability that the constraints will be satisfied.
+      This form is then used to derive appropriate bounds by which to shift $\bar{y}$ - in effect, automating (or providing some mathematical basis for) the tightening described by the {\bf certainty equivalence} method.
+      The authors found that this approach resulted in very conservative control, which they were unsatisfied with.
+
+   \item[Affine disturbance feedback]
+      The OptiControl project developed an MPC formulation that describes $u$ as a function of the prior disturbances to the system $w$, weighted by matrix $M$.
+      They let
+      $$ u_i = \sum _{j=0} ^{i-1} M_{ij} w_j + h_j $$
+      and optimise over $\hat{M}$ instead of $\hat{u}$.
+      They then insert this definition into the {\bf chance constraint} formulation and solve the resulting second-order cone problem.
+      For performance reasons, they found it necessary to pre-compute various permutations of $M$ and combine them with linear weighting during the actual optimisation process.
+\end{description}
+
+These latter two methods were developed by and for the OptiControl project.
 
 \section{Water tank control}
 
@@ -72,7 +111,7 @@ Finally, they note that a full building automation system could control not just
 
 \subsection{Berkeley}
 
-A study of a {\it chilled} water tank took place on the campus of Berkeley university by Ma \etal \cite{Ma12}.
+A study of a {\it chilled} water tank took place on the campus of Berkeley university by Ma \etal{} \cite{Ma12}.
 The authors designed and implemented a controller for the university's chilling plant, which cools and stores water to distribute to the various air conditioners around campus.
 This system did not directly control the air conditioning equipment; instead, its responsibility was to optimise the chilling process, usually at night before its use during the day.
 
