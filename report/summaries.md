@@ -261,10 +261,75 @@
 
  * Degradation of stratification due to conduction between layers takes several
    days and is usually ignored. Losses due to conduction with the side walls,
-	however, may be significant.
+   however, may be significant.
  * Usually modelled by fixed-volume disks whose temperature/energy changes.
  * Systems down to 3 nodes underestimated solar output by up to 10%. Up to 64
    nodes were needed to properly model complex load/supply patterns.
  * It's not the flow rate that has so much affect as the stratification. High
    flow rate tends to destroy stratification, so low flow rates "look better".
-	High flow rates could be used with good diffusers.
+   High flow rates could be used with good diffusers.
+
+## Oldewurtel10
+
+### MPC theory
+
+ * Probabilistic cost function: minimise the chance of an event occurring, such
+   as cost bounds being violated.
+ * Linear system is most common, and the only one that results in a convex
+   optimisation problem.
+ * Input-affine model covers vast array of models, and was used in OptiControl
+   by repeatedly linearising about the operating point.
+ * Identified constraints as key benefit of MPC.
+ * Robust MPC acknowledges that there may be several system trajectories for
+   each input due to disturbances, and attempts to ensure the constraints hold
+   on each of those possible trajectories.
+ * Affine disturbance feedback MPC:
+    * Sequence of future inputs _u_ and disturbances _w_.
+    * Input at time _i_ depends on all prior disturbances, weighted by entries in
+      matrix _M_. So _ui_ is an affine function of _M_, _w_ and _h_???
+    * Optimise over _M_ instead of _u_.
+    * Computation time can be reduced by restricting DOF of _M_ or replacing it
+      with a weighted sum of precomputed matrices.
+ * Disturbances are well-modelled as Gaussians, except that they have _infinite
+   support_ - i.e. there is a small chance of an arbitrarily large disturbance
+   happening. So there are no guarantees, actually.
+ * Instead of constraining state, which we cannot therefore guarantee, we
+   constrain the probability of a violation.
+ * Europan standards specify comfort bounds in this way. Cool.
+ * Performance bound could theoretically be calculated over an entire year at
+   once, but since the bilinear system model required linearisation, that could
+   not be done.
+
+### Model and solver
+
+ * Bilinear, two terms coming from the heat flow without considering the window,
+   and with the window/blind position as an input (there is a term with _xu_).
+ * SQP is used - repeatedly linearise system around current solution then solve
+   QP, checking for a convergence.
+ * 'Mild' nonlinearities and only linear programs once that's happened, not QPs.
+ * Certainty equivalence constraints - just use the mean value of expected
+   disturbances, and tighten the constraint bounds to provide robustness.
+ * Chance constraints - ends up being the same as CE, but with margins determined
+   somewhat mathematically. Or something. Apparently it's very conservative,
+   especially with long prediction horizons.
+ * SMPC - less conservative than CC. Uses _M_ as described in 'affine disturbance
+   feedback' MPC. Results in SOCP. Pre-processed in OptiControl to avoid long
+   calculations during runtime.
+ * Cost functions: either non-renewable energy used, or total power bill.
+   Minimised expected value.
+ * 'Add variables' to allow constraints to be violated with heavy penalty, since
+   constraints make for infeasible problems sometimes. Weight these penalties
+   to design for relative importance of constraints.
+
+### Discussion
+
+ * MPC describes 'what' to achieve (minimise cost while satisfying comfort)
+   instead of describing 'how' to do this. Like functional programming!
+ * Does not need an expert... lol.
+ * Easily adjust on-the-fly between weightings (just a linear combination).
+ * Low-level controllers should be considered:
+    * Derive controls with rule-based interpretation of MPC solutions.
+    * Use next predicted temperature in MPC problem as set-point of low-level
+      controller (PID or whatever).
+    * Include low-level controller model in MPC problem and generate inputs
+      at the planning stage.
