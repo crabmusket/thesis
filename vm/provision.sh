@@ -17,6 +17,7 @@ apt-get install \
 	texlive-common \
 	texlive-full \
 	texlive-latex-extra \
+	texlive-bibtex-extra \
 	-y
 apt-get upgrade -y > /dev/null
 

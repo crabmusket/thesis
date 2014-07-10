@@ -1,6 +1,8 @@
 \documentclass{report}
 
 \usepackage[hidelinks]{hyperref}
+\usepackage[firstinits=true, backend=bibtex]{biblatex}
+\addbibresource{library.bib}
 
 \input{utils}
 
@@ -17,7 +19,6 @@
 \input{chapters/background}
 \input{chapters/review}
 
-\bibliographystyle{plain}
-\bibliography{library}
+\printbibliography
 
 \end{document}
