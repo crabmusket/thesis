@@ -1,10 +1,8 @@
 \documentclass{report}
 
-\usepackage[hidelinks]{hyperref}
-\usepackage[firstinits=true, backend=bibtex]{biblatex}
-\addbibresource{library.bib}
-
 \input{utils}
+
+\addbibresource{library.bib}
 
 \title{MPC for solar domestic hot water}
 \author{Daniel Buckmaster}
@@ -19,6 +17,6 @@
 \input{chapters/background}
 \input{chapters/review}
 
-\printbibliography
+\printbibliography[heading=bibintoc]
 
 \end{document}

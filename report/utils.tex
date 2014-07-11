@@ -13,3 +13,18 @@
 
 % Because I need this so often.
 \newcommand{\etal}{\emph{et al}}
+
+% Bibliography using Biblatex.
+\usepackage[hidelinks]{hyperref}
+\usepackage[
+	firstinits=true,
+	backend=bibtex,
+	isbn=false,
+	doi=false,
+	%backref=true,
+	maxbibnames=100,
+	maxcitenames=1
+]{biblatex}
+\DefineBibliographyStrings{english}{%
+  bibliography = {References},
+}
