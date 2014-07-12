@@ -109,10 +109,6 @@ These latter two methods were developed by and for the OptiControl project.
 
 \todo{Maybe: Azzouzi, Hasan, Yang, Sossan, AbdelMalek, Michaels}
 
-\subsection{Technical University of Denmark}
-
-\textcite{Halvgaard12}
-
 \subsection{University of California, Merced}
 
 A study of a {\it chilled} water tank took place on the campus of Berkeley university by \textcite{Ma12}.
@@ -134,3 +130,28 @@ In addition, the authors incorporated a binary (non-convex) control input - the 
 In this way they were able to avoid the difficulties in designing an optimal binary controller.
 \todo{Verify this is what they did. It sure looked like it, but...}
 
+\subsection{Technical University of Denmark}
+
+\textcite{Halvgaard12} used their mixed-tank model to perform what they term `economic MPC', by which they mean that their objective function measured the monetary cost to the operator of the water tank.
+They treated the tank as a single thermal mass with mixed temperature as described in \refer{Section}{sec:review:mixed-tank}.
+Additionally, they simplified all inputs and disturbances to rates of heat flow (for example, a certain rate of energy was drawn by the load at particular times).
+This resulted in a single-dimensional system governed by the differential equation
+$$ C \dot{T} = Q_h + Q_s - Q_l - U A (T - T_a) $$
+where
+\begin{itemize}
+	\item $T$ is the temperature of the tank,
+	\item $T_a$ is the ambient temperature,
+	\item $Q_h$ is the temperature added to the tank by the electric heating element,
+	\item $Q_s$ is the heat added by the solar collector,
+	\item $Q_l$ is the heat removed by the load, and
+	\item $U A$ is the product of heat transmission and surface area of the tank.
+\end{itemize}
+
+\citeauthor{Halvgaard12} used simulated load and weather predictions to evaluate the MPC controller they designed.
+The load, importantly, involved three equal draw-offs at 7am, noon, and 7pm.
+In addition, they used real wholesale electricity prices from the Elspot market, which has a significant off-peak discount in the early morning.
+
+To discover the constants used in the model, the authors applied a maximum likelihood/maximum {\it a posteriori} parameter estimation approach.
+They discovered savings of 25-30\% of the electricity bill with the MPC controlling the tank heating element during simulation.
+However, over longer time horizons, they discovered that total power usage would increase even as the energy bill decreased, because the optimised heating schedule simply used power during off-peak times.
+The authors also noted that any prediction horizon longer than 24 hours did not noticeably affect the savings achieved, and nor did the accuracy of the weather forecasts.
