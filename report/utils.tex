@@ -1,8 +1,8 @@
+\usepackage{todonotes}
+
 % An \opinion command for when I make stuff up.
 \usepackage{color}
 \newcommand{\opinion}[1]{{\color{red}#1}}
-% And TODO which looks the same.
-\newcommand{\todo}[1]{\emph{\color{red}{#1}}}
 
 % Rename 'Bibliography' to 'References'.
 \usepackage[nottoc,notlof,notlot]{tocbibind}
@@ -21,10 +21,13 @@
 	backend=bibtex,
 	isbn=false,
 	doi=false,
-	%backref=true,
+	backref=true,
 	maxbibnames=100,
 	maxcitenames=1
 ]{biblatex}
-\DefineBibliographyStrings{english}{%
+
+\DefineBibliographyStrings{english}{
   bibliography = {References},
+  backrefpage = {see page},
+  backrefpages = {see pages},
 }

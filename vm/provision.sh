@@ -18,6 +18,7 @@ apt-get install \
 	texlive-full \
 	texlive-latex-extra \
 	texlive-bibtex-extra \
+	pgf \
 	-y
 apt-get upgrade -y > /dev/null
 
