@@ -7,12 +7,13 @@ from numpy.linalg import *
 from scipy.linalg import *
 from control.matlab import *    # MATLAB-like functions
 
+import cvxopt as cvx
+from cvxpy import *
+
 title('');
 xlabel('Time (s)');
 ylabel('Displacement (m)');
 
-# If dt <= 0, gives the state space equations for xdot(x). Otherwise gives the
-# equation for x(t+dt|x).
 def makeProblem(N, m, k, c, *args):
     a = diag(ones(N) * -2) \
       + diag(ones(N-1), 1) \
@@ -86,17 +87,14 @@ try:
 except: pass
 
 ## MPC
-dt = 0.1
-H = 20
+dt = 0.1 # Time step
+H = 50   # Time horizon (in steps)
+x0 = matrix([1, 0]*N).transpose() # Initial condition
 
-# Do a proper simulation over the time horizon
-(A, B, C, D) = makeProblem(N, m, k, d, 'u');
-s = ss(A, B, C, D)
-(r, t) = step(s, T=linspace(0, H*dt, 200))
-
-# Construct predictor from discretised SS model
+# Construct predictor from discretised SS model.
 (A, B, C, D) = discretise(dt, makeProblem(N, m, k, d, 'u'))
 
+# Construct the matrices that predict the state over the preduction horizon.
 z = zeros((C*A*B).shape)
 def builder(i, j):
     if j > i:
@@ -106,15 +104,41 @@ def builder(i, j):
 psi = bmat([[C * matrix_power(A, i)] for i in range(1, H+1)])
 theta = bmat([[builder(i, j) for j in range(0, H)] for i in range(0, H)])
 
-X0 = zeros((2*N, 1))
-us = ones((H, 1))
-ys = psi * X0 + theta * us
+# Construct optimisation problem data.
+X0    = cvx.matrix(x0)
+Q     = cvx.matrix(identity(H))
+Psi   = cvx.matrix(psi)
+Theta = cvx.matrix(theta)
+umax  = cvx.matrix(ones((H, 1)))
+u     = Variable(H)
+y     = Variable(H)
 
+# DSLs for the win! Flatten arguments and return as list.
+def SubjectTo(*args):
+    return list(args)
+
+# And solve.
+op = Problem(
+    Minimize  (norm(y)),
+    SubjectTo (y == Psi * X0 + Theta * u,
+               -3 <= u, u <= 3)
+)
+op.solve()
+
+# Convert data back out of cvxpy format.
+us = array(u.value)
+ys = array(y.value)
+
+# Plot.
+stepr = psi * x0 + theta * zeros((H, 1)) # Step response without control
+ts = linspace(dt, H*dt, H)
 figure(2)
 try:
     hold(True)
-    plot(t, r)
-    plot(linspace(dt, H*dt, H), ys.transpose().tolist()[0])
-    savefig('fig.png')
+    plot(ts, ys.transpose().tolist()[0])
+    plot(ts, sr.transpose().tolist()[0])
+    plot(ts, us.transpose().tolist()[0])
+    savefig('mpc.png')
     hold(False)
 except: pass
+
