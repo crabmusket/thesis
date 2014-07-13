@@ -11,7 +11,7 @@ N = 5
 m = 0.1
 k = 1
 d = 0.01
-springSys = springs.model(N, m, k, d, 'u')
+springSys = springs.model(N, m, k, d, 'u', 'obsall')
 
 x0 = matrix([1, 0]*N).transpose()
 
@@ -24,7 +24,7 @@ controller = mpc.law(
     sys = springSys
 )
 
-tf = 10
+tf = 30
 
 s = simulation.Run(
     xdot = sysTo.xdot(springSys),
@@ -36,7 +36,7 @@ s = simulation.Run(
 (us, xs) = s.result()
 r = hstack(xs)
 
-ts = linspace(0, tf, num = tf/dt+1)
+ts = linspace(0, tf, num = len(r[0,:]))
 figure()
 try:
     hold(True)

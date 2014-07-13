@@ -18,6 +18,7 @@ def SubjectTo(*args):
 def law(H, dt, umax, sys):
     # Construct predictor from discretised SS model.
     (A, B, C, D) = discretise(dt, sys)
+    N = A.shape[0]/2
 
     # Construct the matrices that predict the state over the prediction horizon.
     z = zeros((C*A*B).shape)
@@ -26,24 +27,26 @@ def law(H, dt, umax, sys):
             return z
         else:
             return C * matrix_power(A, i-j) * B
-    psi = bmat([[C * matrix_power(A, i)] for i in range(1, H+1)])
     theta = bmat([[builder(i, j) for j in range(0, H)] for i in range(0, H)])
+    psi = bmat([[C * matrix_power(A, i)] for i in range(1, H+1)])
 
     # Construct optimisation problem data.
-    Psi   = cvx.matrix(psi)
     Theta = cvx.matrix(theta)
-    Q     = cvx.matrix(identity(H))
+    Psi   = cvx.matrix(psi)
+    Q     = cvx.matrix(kron(eye(H), diag([0, 1]*N)))
 
     def solve(x, t):
         u = Variable(H)
-        y = Variable(H)
+        y = Variable(H*C.shape[0])
         X0 = cvx.matrix(x)
         op = Problem(
             Minimize
-                (norm(y)),
+                #(norm(y)), # Dist from 0
+                (quad_form(y, Q)), # Kinetic energy of system
             SubjectTo
                 (y == Psi * X0 + Theta * u,
-                 -umax <= u, u <= umax)
+                 -umax <= u,
+                 u <= umax)
         )
         op.solve()
         return array(u.value).transpose().tolist()[0][0]
