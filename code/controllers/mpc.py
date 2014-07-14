@@ -34,10 +34,11 @@ def linear(H, dt, umax, sys, *args):
     Theta = cvx.matrix(theta)
     Psi   = cvx.matrix(psi)
     Q     = cvx.matrix(kron(eye(H), diag([0]*(N) + [1]*N)))
+    last  = cvx.matrix([0]*(H-1)*C.shape[0] + [1]*C.shape[0])
 
     def solve(x, t):
         u = Variable(H)
-        y = Variable(H*C.shape[0])
+        y = Variable(H * C.shape[0])
         X = cvx.matrix(x)
         op = Problem(
             Minimize
@@ -46,6 +47,7 @@ def linear(H, dt, umax, sys, *args):
                 #(norm(Q*y)), # Dist from 0 with all states involved
             SubjectTo
                 (y == Psi * X + Theta * u,
+                 #transpose(last) * y == 0,
                  -umax <= u,
                  u <= umax)
         )

@@ -15,7 +15,7 @@ sys = springs.model(N, m, k, d, 'u', 'obsall')
 
 x0 = matrix([1]*N + [0]*N).T
 
-H = 20
+H = 100
 dt = 0.1
 controller = mpc.linear(
     H = H,
@@ -24,7 +24,7 @@ controller = mpc.linear(
     sys = sys
 )
 
-tf = 10
+tf = 30
 s = simulation.Run(
     xdot = sysTo.xdot(sys),
     u = controller,
@@ -39,8 +39,8 @@ ts = linspace(0, tf, num = len(r[0,:]))
 figure()
 try:
     a1 = subplot(211)
-    ylabel('Spring extensions')
-    for i in range(0, N):
+    ylabel('Mass positions')
+    for i in [N-1, 0]:#range(0, N):
         plot(ts, r[i,:])
 
     a2 = subplot(212, sharex=a1)
