@@ -15,13 +15,13 @@ def model(N, m, k, c, *args):
         if 'w' in args:
             B[2*N-1, 0] = 1
         else:
-            B[1, 0] = 1
+            B[N, 0] = 1
 
     if 'obsall' in args:
         C = eye(2*N)
     else:
         C = zeros((1, 2*N))
-        C[0, 2*N-1] = 1
+        C[0, N-1] = 1
 
     D = matrix(0)
 

@@ -15,7 +15,7 @@ def discretise(dt, (A, B, C, D)):
 def SubjectTo(*args):
     return list(args)
 
-def law(H, dt, umax, sys):
+def linear(H, dt, umax, sys, *args):
     # Construct predictor from discretised SS model.
     (A, B, C, D) = discretise(dt, sys)
     N = A.shape[0]/2
@@ -33,18 +33,19 @@ def law(H, dt, umax, sys):
     # Construct optimisation problem data.
     Theta = cvx.matrix(theta)
     Psi   = cvx.matrix(psi)
-    Q     = cvx.matrix(kron(eye(H), diag([0, 1]*N)))
+    Q     = cvx.matrix(kron(eye(H), diag([0]*(N) + [1]*N)))
 
     def solve(x, t):
         u = Variable(H)
         y = Variable(H*C.shape[0])
-        X0 = cvx.matrix(x)
+        X = cvx.matrix(x)
         op = Problem(
             Minimize
-                #(norm(y)), # Dist from 0
-                (quad_form(y, Q)), # Kinetic energy of system
+                (norm(y)), # Dist from 0
+                #(quad_form(y, Q)), # Kinetic energy of system
+                #(norm(Q*y)), # Dist from 0 with all states involved
             SubjectTo
-                (y == Psi * X0 + Theta * u,
+                (y == Psi * X + Theta * u,
                  -umax <= u,
                  u <= umax)
         )
