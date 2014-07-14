@@ -24,14 +24,25 @@ def ellipseToSegment(c, A, d, x1, x2):
 	# Check distance plus floating-point epsilon.
 	return op.objective.value <= d + 0.000001
 
-c = matrix([0, 0], (2, 1))
-A = matrix([1, 0, 0, 1], (2, 2))
-x1 = matrix([2, 2], (2, 1))
-x2 = matrix([-2, 2], (2, 1))
-print ellipseToSegment(c, A, 1, x1, x2)
+def ellipse():
+    c = matrix([0, 0], (2, 1))
+    A = matrix([1, 0, 0, 1], (2, 2))
+    x1 = matrix([2, 2], (2, 1))
+    x2 = matrix([-2, 2], (2, 1))
+    print ellipseToSegment(c, A, 1, x1, x2)
 
-c = matrix([1, 1], (2, 1))
-A = matrix([1, 0, 0, 5], (2, 2))
-x1 = matrix([0, 1], (2, 1))
-x2 = matrix([0, -1], (2, 1))
-print ellipseToSegment(c, A, 0, x1, x2)
+    c = matrix([1, 1], (2, 1))
+    A = matrix([1, 0, 0, 5], (2, 2))
+    x1 = matrix([0, 1], (2, 1))
+    x2 = matrix([0, -1], (2, 1))
+    print ellipseToSegment(c, A, 0, x1, x2)
+
+def inequality():
+    x = Variable(5)
+    xlim = 1
+    op = Problem(
+        Minimize(norm(x)),
+        [-xlim <= x, x <= xlim]
+    )
+    op.solve()
+    print x.value
