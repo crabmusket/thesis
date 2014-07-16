@@ -33,18 +33,18 @@ def linear(H, dt, umax, sys, *args):
     # Construct optimisation problem data.
     Theta = cvx.matrix(theta)
     Psi   = cvx.matrix(psi)
-    Q     = cvx.matrix(kron(eye(H), diag([0]*(N) + [1]*N)))
+    Q     = cvx.matrix(kron(eye(H), diag([0]*(N-1) + [1] + [0]*N)))
     last  = cvx.matrix([0]*(H-1)*C.shape[0] + [1]*C.shape[0])
 
     def solve(x, t):
-        u = Variable(H)
+        u = Variable(H * B.shape[1])
         y = Variable(H * C.shape[0])
         X = cvx.matrix(x)
         op = Problem(
             Minimize
-                (norm(y)), # Dist from 0
+                #(norm(y, 1)), # Distances and velocities
                 #(quad_form(y, Q)), # Kinetic energy of system
-                #(norm(Q*y)), # Dist from 0 with all states involved
+                (norm(Q*y, 1)), # Distance of last mass from 0
             SubjectTo
                 (y == Psi * X + Theta * u,
                  #transpose(last) * y == 0,
@@ -52,6 +52,6 @@ def linear(H, dt, umax, sys, *args):
                  u <= umax)
         )
         op.solve()
-        return array(u.value).transpose().tolist()[0][0]
+        return array(u.value)[0:B.shape[1], 0].reshape(B.shape[1], 1)
 
     return solve
