@@ -1,4 +1,5 @@
 from scipy.integrate import ode
+from numpy import hstack, array
 
 class Run(object):
     def __init__(self, xdot, x0, dt, tf, u):
@@ -21,4 +22,4 @@ class Run(object):
             sim.integrate(sim.t + self.dt)
             results.append(sim.y)
             inputs.append(u)
-        return (inputs, results)
+        return (array(hstack(inputs)), hstack(results))

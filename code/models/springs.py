@@ -9,11 +9,20 @@ def model(N, m, k, c, **opts):
     if 'control' in opts:
         control = opts['control']
         inputs = len(control)
-        B = matrix(zeros((2*N, inputs)))
+        Bu = matrix(zeros((2*N, inputs)))
         for i in range(inputs):
-            B[control[i], i] = 1
+            Bu[control[i], i] = 1
     else:
-        B = matrix(zeros((2*N, 1)))
+        Bu = matrix(zeros((2*N, 1)))
+
+    if 'disturb' in opts:
+        disturb = opts['disturb']
+        dists = len(disturb)
+        Bd = matrix(zeros((2*N, dists)))
+        for i in range(dists):
+            Bd[disturb[i], i] = 1
+    else:
+        Bd = None
 
     if 'observe' in opts:
         if opts['observe'] == 'all':
@@ -29,4 +38,4 @@ def model(N, m, k, c, **opts):
 
     D = matrix(0)
 
-    return (A, B, C, D)
+    return (A, Bu, Bd, C, D)

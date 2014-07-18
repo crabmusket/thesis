@@ -14,31 +14,30 @@ N = 5
 m = 0.1
 k = 1
 d = 0.1
-sys = springs.model(N, m, k, d, control=[N], observe='all')
-
-H = 20
-dt = 0.1
-controller = mpc.linear(
-    H = H,
-    dt = dt,
-    umax = 3,
-    sys = sys
+sys = springs.model(N, m, k, d,
+    control = [N],
+    disturb = [2*N-1],
+    observe = 'all'
 )
 
-def step(ts, before, after):
+def stepFn(ts, before, after):
     def inner(t, *args):
         if t < ts:
             return before
         else:
             return after
     return inner
+dist = stepFn(10, matrix([[0]]), matrix([[1]]))
+
+H = 20
+dt = 0.1
+controller = mpc.linear(H, dt,
+    sys = sys,
+    umax = 3
+)
 
 tf = 20
 x0 = matrix([1]*N + [0]*N).T
-dist = step(10,
-    zeros((2*N, 1)),
-    vstack([zeros((N, 1)), ones((N, 1))*-0.5])
-)
 s = simulation.Run(
     xdot = sysTo.xdot(sys, None),
     u = controller,
@@ -48,20 +47,18 @@ s = simulation.Run(
 )
 
 (us, xs) = s.result()
-r = hstack(xs)
-us = hstack(us)
-ts = linspace(0, tf, num = len(r[0,:]))
+ts = linspace(0, tf, num = len(xs[0,:]))
 
 try:
     figure()
     a1 = subplot(211)
     ylabel('Mass positions')
     for i in range(0, N):#[N-1, 0]:
-        plot(ts, r[i,:])
+        plot(ts, xs[i,:])
 
     a2 = subplot(212, sharex=a1)
     for i in range(len(us[:,0])):
-        plot(ts, us[i,:])
+        step(ts, us[i,:])
     ylabel('Control effort')
 
     savefig('sim.png')

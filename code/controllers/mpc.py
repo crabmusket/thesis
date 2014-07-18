@@ -1,4 +1,5 @@
 from numpy import *
+import numpy as np
 from numpy.linalg import *
 from scipy.linalg import *
 from control.matlab import *
@@ -6,28 +7,35 @@ from control.matlab import *
 import cvxopt as cvx
 from cvxpy import *
 
-def discretise(dt, (A, B, C, D)):
-    Ad = matrix(expm2(A * dt))
-    Bd = A.I * (Ad - eye(Ad.shape[0])) * B
-    return (Ad, Bd, C, D)
+def discretise(dt, (A, Bu, Bd, C, D)):
+    Adis = matrix(expm2(A * dt))
+    B = np.hstack([Bu, Bd])
+    Bdis = A.I * (Adis - eye(Adis.shape[0])) * B
+    return (Adis,
+            Bdis[:, 0           : Bu.shape[1]],
+            Bdis[:, Bu.shape[1] : Bu.shape[1] + Bd.shape[1]],
+            C, D)
 
 # DSLs for the win!
 def SubjectTo(*args):
-    return list(args)
+    return [a for a in list(args) if a is not None]
 
 def linear(H, dt, umax, sys, *args):
     # Construct predictor from discretised SS model.
-    (A, B, C, D) = discretise(dt, sys)
+    (A, Bu, Bd, C, D) = discretise(dt, sys)
     N = A.shape[0]/2
 
     # Construct the matrices that predict the state over the prediction horizon.
-    z = zeros((C*A*B).shape)
-    def builder(i, j):
-        if j > i:
-            return z
-        else:
-            return C * matrix_power(A, i-j) * B
-    theta = bmat([[builder(i, j) for j in range(0, H)] for i in range(0, H)])
+    def builder(B):
+        z = zeros((C*A*B).shape)
+        def inner(i, j):
+            if j > i:
+                return z
+            else:
+                return C * matrix_power(A, i-j) * B
+        return inner
+    b = builder(Bu)
+    theta = bmat([[b(i, j) for j in range(0, H)] for i in range(0, H)])
     psi = bmat([[C * matrix_power(A, i)] for i in range(1, H+1)])
 
     # Construct optimisation problem data.
@@ -37,7 +45,7 @@ def linear(H, dt, umax, sys, *args):
     last  = cvx.matrix([0]*(H-1)*C.shape[0] + [1]*C.shape[0])
 
     def solve(x, t):
-        u = Variable(H * B.shape[1])
+        u = Variable(H * Bu.shape[1])
         y = Variable(H * C.shape[0])
         X = cvx.matrix(x)
         op = Problem(
@@ -52,6 +60,9 @@ def linear(H, dt, umax, sys, *args):
                  u <= umax)
         )
         op.solve()
-        return array(u.value)[0:B.shape[1], 0].reshape(B.shape[1], 1)
+        if u.value is not None:
+            return array(u.value)[0:Bu.shape[1], 0].reshape(Bu.shape[1], 1)
+        else:
+            raise Exception('Optimisation failed in state {}'.format(op.status))
 
     return solve
