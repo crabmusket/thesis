@@ -20,7 +20,7 @@ def discretise(dt, (A, Bu, Bd, C, D)):
 def SubjectTo(*args):
     return [a for a in list(args) if a is not None]
 
-def linear(H, dt, umax, sys, *args):
+def linear(H, dt, umax, sys, dist, *args):
     # Construct predictor from discretised SS model.
     (A, Bu, Bd, C, D) = discretise(dt, sys)
     N = A.shape[0]/2
@@ -36,28 +36,35 @@ def linear(H, dt, umax, sys, *args):
         return inner
     b = builder(Bu)
     theta = bmat([[b(i, j) for j in range(0, H)] for i in range(0, H)])
+    b = builder(Bd)
+    theta_ = bmat([[b(i, j) for j in range(0, H)] for i in range(0, H)])
     psi = bmat([[C * matrix_power(A, i)] for i in range(1, H+1)])
 
     # Construct optimisation problem data.
-    Theta = cvx.matrix(theta)
-    Psi   = cvx.matrix(psi)
-    Q     = cvx.matrix(kron(eye(H), diag([0]*(N-1) + [1] + [0]*N)))
-    last  = cvx.matrix([0]*(H-1)*C.shape[0] + [1]*C.shape[0])
+    Theta  = cvx.matrix(theta)
+    Theta_ = cvx.matrix(theta_)
+    Psi    = cvx.matrix(psi)
+    Q = cvx.matrix(kron(eye(H), diag([0]*(N-1) + [1] + [0]*N)))
+    lastMask = cvx.matrix([0]*(H-1)*C.shape[0] + [1]*C.shape[0])
 
     def solve(x, t):
+        if dist is not None:
+            dists = [dist(tt, x) for tt in linspace(t, t+(H-1)*dt, H)]
+            d = cvx.matrix(np.vstack(dists))
+        else:
+            d = cvx.matrix([0]*Bd.shape[1]*H)
         u = Variable(H * Bu.shape[1])
         y = Variable(H * C.shape[0])
         X = cvx.matrix(x)
         op = Problem(
             Minimize
-                #(norm(y, 1)), # Distances and velocities
-                #(quad_form(y, Q)), # Kinetic energy of system
-                (norm(Q*y, 1)), # Distance of last mass from 0
+                #(norm(y)), # Distances and velocities
+                (quad_form(y, Q)), # Kinetic energy of system
+                #(norm(Q*y, 1)), # Distance of last mass from 0
             SubjectTo
-                (y == Psi * X + Theta * u,
-                 #transpose(last) * y == 0,
-                 -umax <= u,
-                 u <= umax)
+                (y == Psi * X + Theta * u + Theta_ * d,
+                 #transpose(lastMask) * y == 0,
+                 -umax <= u, u <= umax)
         )
         op.solve()
         if u.value is not None:

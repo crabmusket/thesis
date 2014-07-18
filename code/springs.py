@@ -6,6 +6,7 @@ import simulation
 from controllers import mpc
 from models import springs, sysTo
 from numpy import matrix, hstack, vstack, linspace, zeros, ones
+from operator import mul
 
 import warnings
 warnings.simplefilter('ignore', np.ComplexWarning)
@@ -27,19 +28,21 @@ def stepFn(ts, before, after):
         else:
             return after
     return inner
-dist = stepFn(10, matrix([[0]]), matrix([[1]]))
+distP = stepFn(12, matrix([[0]]), matrix([[1]]))
 
 H = 20
 dt = 0.1
 controller = mpc.linear(H, dt,
     sys = sys,
-    umax = 3
+    dist = distP,
+    umax = 5
 )
 
 tf = 20
 x0 = matrix([1]*N + [0]*N).T
+dist = stepFn(10, matrix([[0]]), matrix([[1]]))
 s = simulation.Run(
-    xdot = sysTo.xdot(sys, None),
+    xdot = sysTo.xdot(sys, dist),
     u = controller,
     x0 = x0,
     dt = dt,
@@ -61,6 +64,7 @@ try:
         step(ts, us[i,:])
     ylabel('Control effort')
 
+    axis(map(mul, [1, 1, 1.1, 1.1], axis()))
     savefig('sim.png')
 
 except Exception as e:
