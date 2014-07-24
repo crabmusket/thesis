@@ -31,8 +31,8 @@ With as few as three of these layers, they found that models could under-predict
 With complex supply and load patterns, they found that up to sixty-four layers were needed to capture the system's dynamics.
 
 \textcite{Cristofari02} formulated a stratified tank model for simulation, rather than optimisation, of SWHSs in Corsica.
-They assume that a perfect diffuser exists on the tank inputs and outputs, so that water added or removed is done so from an appropriate stratified layer - i.e. the layer whose density matches the incoming mass most closely.
-To model this effect, they use a {\it control function} that selects a binary (0 or 1) value to multiply the water entry by at each layer.
+They assume that a perfect diffuser exists on the tank inputs and outputs, so that water added or removed is done so from an appropriate stratified layer --- i.e.\ the layer whose density matches the incoming mass most closely.
+To model this effect, they use a \emph{control function} that selects a binary (0 or 1) value to multiply the water entry by at each layer.
 They also model heat transfers between each layer to represent the flow of water through the tank as it is drawn off and added in at different heights.
 
 \subsection{Mixed-tank models}
@@ -57,9 +57,9 @@ Instead, they considered a cost function which significantly penalised deviation
 
 This cost function also accounted for the energy bill, which was their desired minimisation target.
 This required manually tweaking cost weighting matrices to ensure that the tradeoffs of deviating from the reference setpoints were balanced by the desire to minimise the building's energy bill.
-They also considered the use of the $L_\infty$ norm on the input to reduce the {\it peak} electricity usage.
+They also considered the use of the $L_\infty$ norm on the input to reduce the \emph{peak} electricity usage.
 
-The authors make several practical notes on the application of MPC.
+The authors make several practical notes on the application of MPC\@.
 They opine that stability is not often a concern in building control due to the slow and naturally stable dynamics.
 They also emphasize the role that modelling building thermal mass plays in any form of HVAC control.
 Finally, they note that a full building automation system could control not just the air conditioning, but lighting and blinds as well in search of an efficient environment.
@@ -70,15 +70,15 @@ The OptiControl is a project aimed at developing autonomous building control tec
 The project focuses on using MPC to control HVAC systems in buildings.
 In its two-year progress report by \textcite{Gyalistras10}, a chapter is devoted to their findings related to MPC, authored by \textcite{Oldewurtel10}.
 
-They note that MPC is a natural way of describing control problems, which allows designers to specify {\it what} they want the overall system to achieve (i.e., the goal function), rather than {\it how} to achieve the goal.
-It is a high-level specification\footnotemark{} and lends itself to easy and even on-the-fly tuning - for example, the authors note that the user may be allowed to set a preference between minimising energy usage and minimising their energy bill (which are sometimes mutually exclusive goals).
+They note that MPC is a natural way of describing control problems, which allows designers to specify \emph{what} they want the overall system to achieve (i.e., the goal function), rather than \emph{how} to achieve the goal.
+It is a high-level specification\footnotemark{} and lends itself to easy and even on-the-fly tuning --- for example, the authors note that the user may be allowed to set a preference between minimising energy usage and minimising their energy bill (which are sometimes mutually exclusive goals).
 They also believe that a benefit of MPC is that an expert is not required to design control rules.
 
-\footnotetext{Compare this to the commonly-cited benefit of functional programming languages over their imperative counterparts: the ease with which you can describe {\it what} to compute rather than {\it how} to about computing it.}
+\footnotetext{Compare this to the commonly-cited benefit of functional programming languages over their imperative counterparts: the ease with which you can describe \emph{what} to compute rather than \emph{how} to about computing it.}
 
 The authors describe in detail the control algorithms used in the OptiControl project, which focus on robustness in the face of disturbances.
 Disturbances, in this case, are both model inaccuracies as well as inaccuracies in the weather prediction.
-Though \citeauthor{Siroky11} noted that stability is not usually a concern for building control, the OptiControl authors believe that robustness - the guarantees a system makes in the face of uncertain disturbances - is critical.
+Though \citeauthor{Siroky11} noted that stability is not usually a concern for building control, the OptiControl authors believe that robustness --- the guarantees a system makes in the face of uncertain disturbances --- is critical.
 They examine three MPC formulations that deal with this uncertainty in different ways.
 
 \begin{description}
@@ -91,7 +91,7 @@ They examine three MPC formulations that deal with this uncertainty in different
       Chance constraints formulate the constraints of an MPC problem as an inequality not on the state itself, but on the probability of the state exceeding its constraints, like so:
       $$ P(y_t \leq \bar{y}) \geq 1 - \alpha, $$
       where $\alpha$ is the desired probability that the constraints will be satisfied.
-      This form is then used to derive appropriate bounds by which to shift $\bar{y}$ - in effect, automating (or providing some mathematical basis for) the tightening described by the {\bf certainty equivalence} method.
+      This form is then used to derive appropriate bounds by which to shift $\bar{y}$ --- in effect, automating (or providing some mathematical basis for) the tightening described by the {\bf certainty equivalence} method.
       The authors found that this approach resulted in very conservative control, which they were unsatisfied with.
 
    \item[Affine disturbance feedback]
@@ -111,7 +111,7 @@ These latter two methods were developed by and for the OptiControl project.
 
 \subsection{University of California, Merced}
 
-A study of a {\it chilled} water tank took place on the campus of Berkeley university by \textcite{Ma12}.
+A study of a \emph{chilled} water tank took place on the campus of Berkeley university by \textcite{Ma12}.
 The authors designed and implemented a controller for the university's chilling plant, which cools and stores water to distribute to the various air conditioners around campus.
 This system did not directly control the air conditioning equipment; instead, its responsibility was to optimise the chilling process, usually at night before its use during the day.
 
@@ -126,9 +126,9 @@ Weather prediction was used to predict the campus load based on historical data.
 The controller included a robustness guarantee.
 Historical disturbance data for the campus was used to construct a terminal constraint set on the MPC optimisation problem to ensure that the controller would chill enough water to guarantee the campus could be cooled if actual load exceeded predicted load.
 
-In addition, the authors incorporated a binary (non-convex) control input - the mass flow rate to the chillers - by choosing to optimise not over a sequence of input values in time, but by restricting the controller to only use the chiller for one continuous period, and optimising over the start and end times of this period.
+In addition, the authors incorporated a binary (non-convex) control input --- the mass flow rate to the chillers --- by choosing to optimise not over a sequence of input values in time, but by restricting the controller to only use the chiller for one continuous period, and optimising over the start and end times of this period.
 In this way they were able to avoid the difficulties in designing an optimal binary controller.
-\todo{Verify this is what they did. It sure looked like it, but...}
+\todo{Verify this is what they did. It sure looked like it, but\ldots}
 
 \subsection{Technical University of Denmark}
 
@@ -151,7 +151,7 @@ where
 The load, importantly, involved three equal draw-offs at 7am, noon, and 7pm.
 In addition, they used real wholesale electricity prices from the Elspot market, which has a significant off-peak discount in the early morning.
 
-To discover the constants used in the model, the authors applied a maximum likelihood/maximum {\it a posteriori} parameter estimation approach.
-They discovered savings of 25-30\% of the electricity bill with the MPC controlling the tank heating element during simulation.
+To discover the constants used in the model, the authors applied a maximum likelihood/maximum \emph{a posteriori} parameter estimation approach.
+They discovered savings of 25--30\% of the electricity bill with the MPC controlling the tank heating element during simulation.
 However, over longer time horizons, they discovered that total power usage would increase even as the energy bill decreased, because the optimised heating schedule simply used power during off-peak times.
 The authors also noted that any prediction horizon longer than 24 hours did not noticeably affect the savings achieved, and nor did the accuracy of the weather forecasts.

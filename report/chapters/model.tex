@@ -2,13 +2,13 @@
 
 \section{Model structure}
 
-In this chapter, I develop several models, all based on a common structure.
+In this thesis, I develop several models, all based on a common structure.
 The models are formulated as linear time-varying systems where at time $t$, the rate of change of the state $\dot{\vec{x}}_t$ depends on the current state $\vec{x}_t$, the input $\vec{u}_t$, and the disturbance $\vec{d}_t$, combined using matrices $A$, $B_u$ and $B_d$ which may all depend on $t$:
 \begin{equation}
 	\dot{\vec{x}}_t = A_t \vec{x}_t \times B_{u, t} \vec{u}_t \times B_{d, t} \vec{d}_t.
 	\label{eq:xdot}
 \end{equation}
-This standard state-space model is discretised to a form appropriate for computer simulations assuming a zero-order hold on the input signal $\vec{u}$ between $\vec{u}_t$ and $\vec{u}_{t+1}$, resulting in new matrices $A_d, B_{du}$ and $B_{dd}$.
+This standard state-space model is discretised to a form appropriate for computer simulations assuming a zero-order hold on the input signal $\vec{u}$ between $\vec{u}_k$ and $\vec{u}_{k+1}$, resulting in new matrices $A_d, B_{du}$ and $B_{dd}$.
 To discretise the two different $B$ matrices, we treat them as a single matrix $B$ with form
 \begin{displaymath}
 	B = \left[\begin{array}{cc}

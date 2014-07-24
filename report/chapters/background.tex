@@ -5,12 +5,10 @@
 \subsection{Need and uses}
 
 As we enter the twenty-first century, sustainability, energy security, and new ways to meet our increasing energy demands are on the agendas of many governments.
-In Australia, water heating is the second-largest residential energy end use, accounting for an estimated 23\% of energy consumption, according to the Commonwealth government's Residential End-Use Monitoring Program \cite{REMP12}.
+In Australia, water heating is the second-largest residential energy end use, accounting for an estimated 23\% of energy consumption, according to the Commonwealth government's Residential End-Use Monitoring Program~\cite{REMP12}.
 This is second only to HVAC (air conditioning and space heating).
-In some nations, the number may be as high as 30\% to 50\% \cite{Lane96}.
+In some nations, the number may be as high as 30\% to 50\%~\cite{Lane96}.
 Therefore, using `free' solar energy to heat water is an obvious way to significantly reduce domestic power consumption.
-
-Solar domestic hot water (SDHW), or solar hot water systems (SHWS) are \todo{Finish this thought}.
 
 \subsection{System design}
 
@@ -22,37 +20,41 @@ The solar water heating systems we are concerned with have a number of variables
 		This means that, for example, anti-freeze chemicals can be added to the collector loop.
 		In this case, a heat exchanger must be used to transfer heat from the collector loop to the storage tank.
 	\item[Bypass] Some systems include a bypass \todo{work out the proper name for this thing} that allows water from the collector output to bypass the storage tank and be returned to the collector input for further heating.
+	\item[Hydronics] Applications are not limited to providing potable hot water for taps.
+		Hydronic systems use hot water for space heating, often on a separate loop to potable water.
+		This may be achieved using radiators, or by passing the water through pipes in floors.
+	\item[Scale] \todo{System size, tank size, collector count}
 \end{description}
 
 The common elements include the solar collector itself and collector circulation pump, the stratified storage tank, the boosting element, which may be positioned at a variable height in the tank, and the load.
 
 \subsection{Economics}
 
-Fitzmorris performed an economic analysis of the current SDHW industry in North America \cite{Fitzmorris10}.
+Fitzmorris performed an economic analysis of the current SDHW industry in North America~\cite{Fitzmorris10}.
 He found that although solar water heating is positioned to be a disruptive technology, due to its superior energy efficiency compared to traditional water heating, it was actually losing market share due to problems in supply chain and the increased up-front cost of these systems.
 He identified two important markets: construction firms who want to minimise the cost of a new house, and homeowners who need to replace a broken heating system.
 The former is sensitive to the highly increased price of the solar system (Fitzmorris estimates up to \$2000 for a solar system installation, versus \$300 for an electric heater).
-The latter market is sensitive to the increased complexity of installing a solar system - there is more design work involved in properly sizing and installing a solar water heater currently, and replacement speed is typically a deciding factor.
+The latter market is sensitive to the increased complexity of installing a solar system --- there is more design work involved in properly sizing and installing a solar water heater currently, and replacement speed is typically a deciding factor.
 
 Once a solar water heating system is running, though, the gains are found to be significant.
-Anecdotally, the University of Newcastle reported a nearly-80\% reduction in energy use (and energy bill) in a six-storey teaching and research building \cite{ApricusNewcastle}.
-Less anecdotally, members of the School of Energy and Power Engineering at the Xi'an Jiaotong University designed and studied a SHWS for a hotel in the city \cite{Cao14}.
-They considered a replacement for the hotel's current gas geyser water heater, and predicted that it would have a payback period of just 7.4 years, as well as a lower {\it total} investment over its 20 year lifetime than the {\it initial} amount spent on the gas geyser heater.
+Anecdotally, the University of Newcastle reported a nearly-80\% reduction in energy use (and energy bill) in a six-storey teaching and research building~\cite{ApricusNewcastle}.
+Less anecdotally, members of the School of Energy and Power Engineering at the Xi'an Jiaotong University designed and studied a SHWS for a hotel in the city~\cite{Cao14}.
+They considered a replacement for the hotel's current gas geyser water heater, and predicted that it would have a payback period of just 7.4 years, as well as a lower \emph{total} investment over its 20 year lifetime than the \emph{initial} amount spent on the gas geyser heater.
 This analysis included the benefits of carbon credits the hotel would receive from the government.
 
-\todo{Mention \cite{Greening14}, \cite{Chandrasekar04}.}
+\todo{Mention~\cite{Greening14},~\cite{Chandrasekar04}.}
 
 \subsection{Control}
 
 Current hot water systems typically use simple temperature-differential controllers to force water through the solar collectors and to decide when to use a secondary booster to heat the tank water.
-This approach is outlined in Sustainability Victoria's handbook for solar thermal system design \cite{LSTS}.
-The handbook points out that simple controllers such as timers or single sensors cannot adequately react to the entire system state - for example, variations in insolation across a day, or variations in the storage temperature of the tank.
+This approach is outlined in Sustainability Victoria's handbook for solar thermal system design~\cite{LSTS}.
+The handbook points out that simple controllers such as timers or single sensors cannot adequately react to the entire system state --- for example, variations in insolation across a day, or variations in the storage temperature of the tank.
 For this reason, it recommends the use of temperature differential controllers.
 
-Simply, the temperature of the water exiting the solar collectors is compared to the temperature in the tank, and the pump is activated if there is a positive difference (i.e. useful heat is available).
-The handbook goes on to detail refinements to this approach - using proportional motor speeds instead of binary control, hysterisis to avoid pump hunting (rapid on/off motor cycles), and also mentions integration with building automation systems and ``time-of-day clocks ... for applications that have a repeated daily hot water demand pattern.''
+Simply, the temperature of the water exiting the solar collectors is compared to the temperature in the tank, and the pump is activated if there is a positive difference (i.e.\ useful heat is available).
+The handbook goes on to detail refinements to this approach --- using proportional motor speeds instead of binary control, hysterisis to avoid pump hunting (rapid on/off motor cycles), and also mentions integration with building automation systems and ``time-of-day clocks \ldots for applications that have a repeated daily hot water demand pattern.''
 
-Additional insight is provided in a 1994 paper by Beckman \etal \cite{Beckman94} in which the process of designing these binary differential controllers is analysed.
+Additional insight is provided in a 1994 paper by Beckman \etal~\cite{Beckman94} in which the process of designing these binary differential controllers is analysed.
 They primarily cocern themselves with designing hysterisis bands that result in stable simulations, in order that fair and correct results may be obtained when comparing system ratings.
 They note that in practise, this instability in pump control is rarely a problem because ``solar radiation is generally increasing continuously (in the morning) and the system soon reaches a stable condition''.
 
@@ -60,7 +62,7 @@ They note that in practise, this instability in pump control is rarely a problem
 
 \subsection{Overview and comparison to PID control}
 
-As described by Camacho and Bordons in their work on the subject \cite{Camacho04}, model-predictive control (MPC) is a class of control strategies that incporate an explicit model of the system into their decision-making process.
+As described by Camacho and Bordons in their work on the subject~\cite{Camacho04}, model-predictive control (MPC) is a class of control strategies that incporate an explicit model of the system into their decision-making process.
 Note that this model may include the system's input response, disturbance response, predictions of time-varying effects, etcetera.
 The typical implementation of MPC follows this simplified flow:
 
@@ -83,19 +85,19 @@ MPC allows future conditions to be anticipated and explicitly included in the de
 
 \subsection{Mathematical background and significance}
 
-Convex optimisation refers to the class of mathematical optimisation problems where the objective and constraint functions are all convex with respect to the decision variable(s) \cite{Boyd04}.
+Convex optimisation refers to the class of mathematical optimisation problems where the objective and constraint functions are all convex with respect to the decision variable/variables~\cite{Boyd04}.
 Convexity, briefly, is the property that a function is `bowl-shaped'.
-Importantly, this implies that any local minimum of the function will also be a {\it global} minimum.
+Importantly, this implies that any local minimum of the function will also be a \emph{global} minimum.
 The particular shape of convex optimisation problems admits the use of very efficient algorithms to compute globally optimum solutions.
 
 Since the core of model-predictive control algorithms involves optimising the choice of cost function over the future control sequence, convex optimisation problems play an important role in its implementation.
 
 \subsection{Disciplined convex programming}
 
-While the theoretical advantages of using convex optimisation are widely known \cite{Luo06}, in practise these rewards may be difficult to reap.
+While the theoretical advantages of using convex optimisation are widely known~\cite{Luo06}, in practise these rewards may be difficult to reap.
 While there exist general-purpose solvers for non-smooth convex optimisation problems which have attractive theoretical properties, they may in practise be slower than transforming a non-smooth problem into a smooth problem of higher dimension, and using an efficient solver for the new problem class.
-Grant and Boyd opine in \cite{Grant08} that this process is difficult and error-prone, even for experts in the field.
-They propose a method called {\it disciplined convex programming} (DCP) \cite{Grant06} which aims to express convex optimisation problems in such a way that transformation to an efficiently-solvable representation can be automated, removing this ``expertise barrier'', as they put it.
+Grant and Boyd opine in~\cite{Grant08} that this process is difficult and error-prone, even for experts in the field.
+They propose a method called \emph{disciplined convex programming} (DCP)~\cite{Grant06} which aims to express convex optimisation problems in such a way that transformation to an efficiently-solvable representation can be automated, removing this ``expertise barrier'', as they put it.
 
-Recent DCP software such as CVX for MATLAB \cite{CVX} and CVXPY \cite{CVXPY} implements this paradigm to provide a simple user interface without sacrificing the efficiency of specialised solvers for subclasses of convex problems.
-\opinion{It has yet to be seen whether the same gains discovered in \cite{Wang10} in the area of MPC can be achieved by this general software.}
+Recent DCP software such as CVX for MATLAB~\cite{CVX} and CVXPY~\cite{CVXPY} implements this paradigm to provide a simple user interface without sacrificing the efficiency of specialised solvers for subclasses of convex problems.
+\opinion{It has yet to be seen whether the same gains discovered in~\cite{Wang10} in the area of MPC can be achieved by this general software.}

@@ -1,21 +1,17 @@
 \usepackage{todonotes}
+\usepackage[hidelinks]{hyperref}
 
 % An \opinion command for when I make stuff up.
 \usepackage{color}
 \newcommand{\opinion}[1]{{\color{red}#1}}
 
-% Rename 'Bibliography' to 'References'.
-\usepackage[nottoc,notlof,notlot]{tocbibind}
-\renewcommand\bibname{References}
-
 % More convenient reference. \refer{Section}{sec:x}
-\newcommand{\refer}[2]{\hyperref[#2]{#1 \ref*{#2}}}
+\newcommand{\refer}[2]{\hyperref[#2]{#1~\ref*{#2}}}
 
 % Because I need this so often.
 \newcommand{\etal}{\emph{et al}}
 
 % Bibliography using Biblatex.
-\usepackage[hidelinks]{hyperref}
 \usepackage[
 	firstinits=true,
 	backend=bibtex,
@@ -26,7 +22,11 @@
 	maxcitenames=1
 ]{biblatex}
 
-\DefineBibliographyStrings{english}{
+% Rename 'Bibliography' to 'References'.
+\usepackage[nottoc, notlof, notlot]{tocbibind}
+\renewcommand\bibname{References}
+
+\DefineBibliographyStrings{english}{%
   bibliography = {References},
   backrefpage = {see page},
   backrefpages = {see pages},

@@ -1,6 +1,7 @@
 cd /vagrant/vm
 
 ## Tools
+echo "============== INSTALLING TOOLS"
 apt-get update > /dev/null
 apt-get install \
 	git \
@@ -9,13 +10,13 @@ apt-get install \
 	-y
 
 # TexLive
+echo "============== INSTALLING TEXLIVE"
 add-apt-repository ppa:texlive-backports/ppa -y
 apt-get update > /dev/null
 apt-get install \
 	texlive \
 	texlive-base \
-	texlive-common \
-	texlive-full \
+	#texlive-full \
 	texlive-latex-extra \
 	texlive-bibtex-extra \
 	pgf \
