@@ -19,18 +19,22 @@ The solar water heating systems we are concerned with have a number of variables
 		In a closed-loop system, by contrast, the collector has its own circuit and liquid is not passed from it to the user.
 		This means that, for example, anti-freeze chemicals can be added to the collector loop.
 		In this case, a heat exchanger must be used to transfer heat from the collector loop to the storage tank.
+
 	\item[Bypass] Some systems include a bypass \todo{work out the proper name for this thing} that allows water from the collector output to bypass the storage tank and be returned to the collector input for further heating.
+
 	\item[Hydronics] Applications are not limited to providing potable hot water for taps.
 		Hydronic systems use hot water for space heating, often on a separate loop to potable water.
 		This may be achieved using radiators, or by passing the water through pipes in floors.
+
 	\item[Scale] \todo{System size, tank size, collector count}
 \end{description}
 
 The common elements include the solar collector itself and collector circulation pump, the stratified storage tank, the boosting element, which may be positioned at a variable height in the tank, and the load.
+\todo{Diagram of system}
 
 \subsection{Economics}
 
-Fitzmorris performed an economic analysis of the current SDHW industry in North America~\cite{Fitzmorris10}.
+\textcite{Fitzmorris10} performed an economic analysis of the current SDHW industry in North America.
 He found that although solar water heating is positioned to be a disruptive technology, due to its superior energy efficiency compared to traditional water heating, it was actually losing market share due to problems in supply chain and the increased up-front cost of these systems.
 He identified two important markets: construction firms who want to minimise the cost of a new house, and homeowners who need to replace a broken heating system.
 The former is sensitive to the highly increased price of the solar system (Fitzmorris estimates up to \$2000 for a solar system installation, versus \$300 for an electric heater).
@@ -54,7 +58,7 @@ For this reason, it recommends the use of temperature differential controllers.
 Simply, the temperature of the water exiting the solar collectors is compared to the temperature in the tank, and the pump is activated if there is a positive difference (i.e.\ useful heat is available).
 The handbook goes on to detail refinements to this approach --- using proportional motor speeds instead of binary control, hysterisis to avoid pump hunting (rapid on/off motor cycles), and also mentions integration with building automation systems and ``time-of-day clocks \ldots for applications that have a repeated daily hot water demand pattern.''
 
-Additional insight is provided in a 1994 paper by Beckman \etal~\cite{Beckman94} in which the process of designing these binary differential controllers is analysed.
+Additional insight is provided in a 1994 paper by~\textcite{Beckman94} in which the process of designing these binary differential controllers is analysed.
 They primarily cocern themselves with designing hysterisis bands that result in stable simulations, in order that fair and correct results may be obtained when comparing system ratings.
 They note that in practise, this instability in pump control is rarely a problem because ``solar radiation is generally increasing continuously (in the morning) and the system soon reaches a stable condition''.
 
@@ -62,7 +66,7 @@ They note that in practise, this instability in pump control is rarely a problem
 
 \subsection{Overview and comparison to PID control}
 
-As described by Camacho and Bordons in their work on the subject~\cite{Camacho04}, model-predictive control (MPC) is a class of control strategies that incporate an explicit model of the system into their decision-making process.
+As described by \textcite{Camacho04} in their work on the subject, model-predictive control (MPC) is a class of control strategies that incporate an explicit model of the system into their decision-making process.
 Note that this model may include the system's input response, disturbance response, predictions of time-varying effects, etcetera.
 The typical implementation of MPC follows this simplified flow:
 
@@ -77,7 +81,7 @@ In this way, feedback control is achieved by repeatedly measuring the system sta
 Note that although a plan of inputs is generated over a time horizon, the entire plan is not usually used.
 This strategy has a natural analogy in pathfinding; it is necessary to plan the entire path to determine which direction to move in first.
 
-Camacho and Bordons compare MPC to PID by likening PID to driving a car by only looking in the rear-view mirror.
+\authors{Camacho04} compare MPC to PID by likening PID to driving a car by only looking in the rear-view mirror.
 In this situation, the driver can only respond to past errors, as PID does.
 MPC allows future conditions to be anticipated and explicitly included in the decision-making process.
 

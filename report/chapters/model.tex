@@ -1,6 +1,8 @@
-\chapter{Model}
+\chapter{Models}
 
-\section{Model structure}
+\section{Controller models}
+
+\subsection{Discrete-time state space model}
 
 In this thesis, I develop several models, all based on a common structure.
 The models are formulated as linear time-varying systems where at time $t$, the rate of change of the state $\dot{\vec{x}}_t$ depends on the current state $\vec{x}_t$, the input $\vec{u}_t$, and the disturbance $\vec{d}_t$, combined using matrices $A$, $B_u$ and $B_d$ which may all depend on $t$:
@@ -11,8 +13,8 @@ The models are formulated as linear time-varying systems where at time $t$, the 
 This standard state-space model is discretised to a form appropriate for computer simulations assuming a zero-order hold on the input signal $\vec{u}$ between $\vec{u}_k$ and $\vec{u}_{k+1}$, resulting in new matrices $A_d, B_{du}$ and $B_{dd}$.
 To discretise the two different $B$ matrices, we treat them as a single matrix $B$ with form
 \begin{displaymath}
-	B = \left[\begin{array}{cc}
-		B_u & B_d
+	B_t = \left[\begin{array}{cc}
+		B_{u, t} & B_{d, t}
 	\end{array}\right]
 \end{displaymath}
 and then use the usual method of discretising state-space systems with a period of $\delta t$,
@@ -20,9 +22,9 @@ and then use the usual method of discretising state-space systems with a period 
 	A_{d, t} &=& e^{A_t \delta t}, \\
 	B_{d, t} &=& A_t^{-1} (A_{d, t} - I) B_t.
 \end{eqnarray}
-We can then reconstruct the new $B_{ud, t}$ and $B_{dd, t}$ matrices from the appropriate columns of $B_d$.
+We can then reconstruct the new $B_{ud, t}$ and $B_{dd, t}$ matrices from the appropriate columns of $B_{d, t}$.
 
-\subsection{Control form}
+\subsection{Control problem}
 
 \todo{Diagram of $\hvec{y}, \hvec{u}$ over planning horizon.}
 MPC controllers solve an optimisation problem at every instant in time to determine the next control input.
@@ -51,7 +53,7 @@ We first define the output, input and disturbance vectors used in the planning p
 		\vec{u}_H
 	\end{array}\right],
 	&
-	\text{and}\quad \hvec{d} = \left[\begin{array}{c}
+	\text{and} \quad \hvec{d} = \left[\begin{array}{c}
 		\vec{d}_0 \\
 		\vdots \\
 		\vec{d}_H
@@ -79,7 +81,7 @@ We can now define the matrices $\Psi$ and $\Theta$:
 	\end{array}\right]
 \end{eqnarray}
 
-\section{Halvgaard mixed-tank model}
+\subsection{Halvgaard mixed-tank model}
 \label{sec:model:halvgaard}
 
-
+\section{Simulator models}

@@ -78,12 +78,12 @@ They also believe that a benefit of MPC is that an expert is not required to des
 
 The authors describe in detail the control algorithms used in the OptiControl project, which focus on robustness in the face of disturbances.
 Disturbances, in this case, are both model inaccuracies as well as inaccuracies in the weather prediction.
-Though \citeauthor{Siroky11} noted that stability is not usually a concern for building control, the OptiControl authors believe that robustness --- the guarantees a system makes in the face of uncertain disturbances --- is critical.
+Though \authors{Siroky11} noted that stability is not usually a concern for building control, the OptiControl authors believe that robustness --- the guarantees a system makes in the face of uncertain disturbances --- is critical.
 They examine three MPC formulations that deal with this uncertainty in different ways.
 
 \begin{description}
    \item[Certainty equivalence]
-      This is, according to Oldewurtel and colleagues, the most common MPC approach, and is the approach used by \citeauthor{Siroky11}.
+      This is, according to Oldewurtel and colleagues, the most common MPC approach, and is the approach used by \authors{Siroky11}.
       This formulation of MPC assumes that the disturbances will exactly equal their mean (or expected) value during the execution of the plan.
       This is optimistic at best, and though the authors find it an unreasonable approach, they note that it can be made robust by tightening constraints to alleviate the effects of potential disturbances.
 
@@ -147,7 +147,7 @@ where
 	\item $U A$ is the product of heat transmission and surface area of the tank.
 \end{itemize}
 
-\citeauthor{Halvgaard12} used simulated load and weather predictions to evaluate the MPC controller they designed.
+\authors{Halvgaard12} used simulated load and weather predictions to evaluate the MPC controller they designed.
 The load, importantly, involved three equal draw-offs at 7am, noon, and 7pm.
 In addition, they used real wholesale electricity prices from the Elspot market, which has a significant off-peak discount in the early morning.
 
