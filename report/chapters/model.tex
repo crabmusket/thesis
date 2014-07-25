@@ -22,6 +22,63 @@ and then use the usual method of discretising state-space systems with a period 
 \end{eqnarray}
 We can then reconstruct the new $B_{ud, t}$ and $B_{dd, t}$ matrices from the appropriate columns of $B_d$.
 
+\subsection{Control form}
+
+\todo{Diagram of $\hvec{y}, \hvec{u}$ over planning horizon.}
+MPC controllers solve an optimisation problem at every instant in time to determine the next control input.
+The form of this optimisation problem is, in general,
+\begin{equation}
+	\label{eq:mpc-opt}
+	\optimise
+		{minimise}{\hvec{u}}
+		{f(\hvec{y}, \hvec{u})}
+		{\hvec{y} = \Psi \vec{x}_0 + \Theta_u \hvec{u} + \Theta_d \hvec{d}}
+\end{equation}
+The controller attempts to minimise some objective function $f$ which usually processes the vector of outputs $\hvec{y}$ and inputs $\hvec{u}$ over the time horizon.
+This time horizon, $H$, is a unitless integer that determines how many time steps into the future the planning problem will consider.
+We first define the output, input and disturbance vectors used in the planning problem, in terms of the time horizon:
+\begin{eqnarray}
+	\label{eq:mpc-vectors}
+	\hvec{y} = \left[\begin{array}{c}
+		\vec{y}_0 \\
+		\vdots \\
+		\vec{y}_H
+	\end{array}\right],
+	&
+	\hvec{u} = \left[\begin{array}{c}
+		\vec{u}_0 \\
+		\vdots \\
+		\vec{u}_H
+	\end{array}\right],
+	&
+	\text{and}\quad \hvec{d} = \left[\begin{array}{c}
+		\vec{d}_0 \\
+		\vdots \\
+		\vec{d}_H
+	\end{array}\right].
+\end{eqnarray}
+We can now define the matrices $\Psi$ and $\Theta$:
+\begin{eqnarray}
+	\label{eq:mpc-psi}
+	\Psi &=& \left[\begin{array}{c}
+		CA \\ CA^2 \\ \vdots \\ CA^H
+	\end{array}\right]
+	\\\label{eq:mpc-theta-u}
+	\Theta_u &=& \left[\begin{array}{cccc}
+		CB_u & 0 & 0 & 0 \\
+		CAB_u & \ddots & 0 & 0 \\
+		\vdots & \ddots & \ddots & 0 \\
+		CA^{H-1}B_u & \cdots & CAB_u & CB_u
+	\end{array}\right]
+	\\\label{eq:mpc-theta-d}
+	\Theta_d &=& \left[\begin{array}{cccc}
+		CB_d & 0 & 0 & 0 \\
+		CAB_d & \ddots & 0 & 0 \\
+		\vdots & \ddots & \ddots & 0 \\
+		CA^{H-1}B_d & \cdots & CAB_d & CB_d
+	\end{array}\right]
+\end{eqnarray}
+
 \section{Halvgaard mixed-tank model}
 \label{sec:model:halvgaard}
 

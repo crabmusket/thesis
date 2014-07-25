@@ -1,4 +1,5 @@
 \usepackage{todonotes}
+\usepackage{amssymb,amsmath}
 \usepackage[hidelinks]{hyperref}
 
 % An \opinion command for when I make stuff up.
@@ -34,3 +35,16 @@
 
 % Vectors should be bold and non-italic.
 \renewcommand{\vec}[1]{\mathbf{#1}}
+\newcommand{\hvec}[1]{\hat{\vec{#1}}}
+
+% Optimisation problem command.
+\usepackage{xparse}
+\NewDocumentCommand%
+	{\optimise}
+	{m m m >{\SplitList{;}}m}
+	{\begin{aligned}
+			& \underset{#2}{\text{#1}} && #3 \\
+			& \text{subject to} && \ProcessList{#4}{\optimiseConstraint}.
+	\end{aligned}}
+\newcommand\optimiseConstraint[1]{#1\let\optimiseConstraint\optimiseConstraintA}
+\newcommand\optimiseConstraintA[1]{, \\ &&& #1}
