@@ -5,7 +5,7 @@ Model predictive control for solar hot water systems.
 ## Setup
 
 Download [Vagrant][] and [VirtualBox][], then run `vagrant up` in this directory.
-It will take some time.
+It will take some time (over an hour on my desktop).
 I recommend using [vagrant-cachier][] to speed up subsequent provisions.
 
 [Vagrant]: http://vagrantup.com
