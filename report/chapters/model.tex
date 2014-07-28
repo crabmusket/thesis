@@ -52,8 +52,8 @@ We first define the output, input and disturbance vectors used in the planning p
 		\vdots \\
 		\vec{u}_H
 	\end{array}\right],
-	&
-	\text{and} \quad \hvec{d} = \left[\begin{array}{c}
+	& \text{and} \quad
+	\hvec{d} = \left[\begin{array}{c}
 		\vec{d}_0 \\
 		\vdots \\
 		\vec{d}_H
@@ -85,3 +85,14 @@ We can now define the matrices $\Psi$ and $\Theta$:
 \label{sec:model:halvgaard}
 
 \section{Simulator models}
+
+\subsection{Stratified tank model}
+
+Model the water tank as a perfect cylinder of height $h$ and radius $r$.
+Divide the tank into $N$ vertical slices with an equal fixed height (and therefore fixed volume $V = \pi r^2 \frac{h}{N}$).
+Define $T_1 .. T_N$ as the temperatures of each slice.
+Define $\dot{m}_c$ and $\dot{m}_l$ as the mass flows through the collector and load circuits respectively.
+The mass flows are `positive clockwise' as viewed on the diagram (collector flow enters at top, load flow at bottom).
+Define $\dot{m}_{m, i}$ as the mass flow through each node (positive downwards) which takes into account the mass flow through node $i$ given the behavior of the collector and load functions.
+$$ \dot{m}_{m, i} = \dot{m}_c \sum _{j=1} ^{i-1} B^j_c - \dot{m}_l \sum _{j=i+1} ^N B^j_l $$
+
