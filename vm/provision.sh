@@ -16,7 +16,6 @@ apt-get update > /dev/null
 apt-get install \
 	texlive \
 	texlive-base \
-	#texlive-full \
 	texlive-latex-extra \
 	texlive-bibtex-extra \
 	pgf \
