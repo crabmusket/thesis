@@ -348,7 +348,76 @@
    model.
  * Natural convection is applied as a 'post-processing' step after the state-space
    model is applied at each timestep.
+ * Validated from real measurements of a tank going through heating cycles.
 
-### Load modelling
+### Population modelling
+
+ * Probability distribution of tank sizes.
+ * Minimum and maximum draw boundaries for each category of heater. Actual draw
+   is a uniform distribution between these bounds.
+ * Thermostat deadband and thermal loss coefficient come from uniform distributions
+   (identical over all categories, it appears).
+ * Model draws by choosing random start timne, duration, and rate from an existing
+   probability distribution.
+ * Choose a maximum number per day and multiply it over the probability each hour.
+ * Water draws may be short or long. More likely to be long at peak times.
+ * Flow rate comes from a normal distribution.
+
+### State of charge
+
+ * SOC is typically applied to batteries. EWHs store energy as well so we can
+   define an SOC measurement for them as well.
+ * Three different ideas developed:
+    * Based on user perception or heating element: uses _T* - Tmin / Tmax - Tmin_
+      where _T*_ is either the temperature at the element or at the point of use.
+    * Based on temperature distribution: sums all temperatures relative to
+      setpoints in each layer of the tank. Can result in SOC > 1, but not < 0.
 
 ### Control schemes
+
+ * Four scenarios/strategies.
+ * Control scenarios differ in two ways: degree of information known about each
+   device, and degree to which the central controller can change each device's
+   duty cycle.
+
+ * C1 Stochastic blocking
+    * Controller knows global population parameters (total load, desired setpoint,
+      and maximum power demand) and calculates a percentage of the population to
+      'block'.
+    * Controller ignores internal control if blocked, but can choose whether to
+      heat or not if not blocked.
+    * Performed well in terms of number of switches and RMSE. However, almost 40%
+      of devices spent half an hour of the day unable to match warm water demand.
+    * Had periods of high tracking error on the real LFC signal.
+
+ * C2 Direct temperature feedback
+    * Controller knows on/off state and temperature (SOC?) of each EWH.
+    * Divide controllers into sets of too cold, too hot, and _just right_, then
+      decide on some control actions to take to turn them on and off.
+    * Ranks EWHs based on difference between setpoint and average power of
+      population.
+    * Can override internal control signals.
+    * Performs better when using SOC based on temperature distribution.
+    * All performed okay, but with lots of switching, except variant _d_, which
+      had very low switching and RMSE, but also low comfort properties.
+
+ * C3 Indirect temperature feedback
+    * The controller only knows when heaters' temperatures have crossed the
+      setband limits, not their precise temperature.
+    * Less communication overhead if events are sent when they happen.
+    * Uses MPC? Estimates temperature based on historical data and model.
+    * Respects internal controller?
+    * Tracking quality isn't great.
+
+ * Aggregate power feedback
+    * Controller receives only aggregate power and setpoint information.
+    * SOC limits are sent to all controllers, each of which uses this information
+      to modify their internal control.
+    * Resulted in very few switching actions.
+    * Lower RMSE than C3 because it had smoother tracking without spikes.
+    * Very good comfort properties.
+
+ * Authors note that C2 is quite suitable. C1 no way, C3 and C4 for applications
+   without strict tracking requirements (load shifting).
+ * C4 has 'more acceptable overall performance' with the tradeoff of extra work
+   (MPC) in the controller.
