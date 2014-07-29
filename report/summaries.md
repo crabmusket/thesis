@@ -333,3 +333,22 @@
       controller (PID or whatever).
     * Include low-level controller model in MPC problem and generate inputs
       at the planning stage.
+
+## Vrettos12
+
+### EWH modelling
+
+ * First time an explicit detailed stratified model is developed _for use in
+   load frequency control applications._
+ * Trades some accuracy for reduced complexity.
+ * Splits the tank into disks.
+ * Accounts for internal heat generation at every particular location (i.e., the
+   heat function is _Q(x, t)_).
+ * One-dimensional PDE for heat flow in tank, reduced to a linear state-space
+   model.
+ * Natural convection is applied as a 'post-processing' step after the state-space
+   model is applied at each timestep.
+
+### Load modelling
+
+### Control schemes
