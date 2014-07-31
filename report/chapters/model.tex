@@ -1,28 +1,53 @@
 \chapter{Models}
 
+\section{Simulation models}
+
+A hot water tank is a complex nonlinear system when stratification is considered.
+It is desirable to develop an accurate simulation of the system in order to test the validity of controllers designed with simplified models.
+
 \section{Controller models}
 
 \subsection{Discrete-time state space model}
 
-In this thesis, I develop several models, all based on a common structure.
-The models are formulated as linear time-varying systems where at time $t$, the rate of change of the state $\dot{\vec{x}}_t$ depends on the current state $\vec{x}_t$, the input $\vec{u}_t$, and the disturbance $\vec{d}_t$, combined using matrices $A$, $B_u$ and $B_d$ which may all depend on $t$:
-\begin{equation}
-	\dot{\vec{x}}_t = A_t \vec{x}_t \times B_{u, t} \vec{u}_t \times B_{d, t} \vec{d}_t.
-	\label{eq:xdot}
-\end{equation}
-This standard state-space model is discretised to a form appropriate for computer simulations assuming a zero-order hold on the input signal $\vec{u}$ between $\vec{u}_k$ and $\vec{u}_{k+1}$, resulting in new matrices $A_d, B_{du}$ and $B_{dd}$.
-To discretise the two different $B$ matrices, we treat them as a single matrix $B$ with form
-\begin{displaymath}
-	B_t = \left[\begin{array}{cc}
-		B_{u, t} & B_{d, t}
-	\end{array}\right]
-\end{displaymath}
-and then use the usual method of discretising state-space systems with a period of $\delta t$,
+This is how we make a state-space model, consider the system as linear time-varying, but say it in a way that doesn't exclude the possibility that I might come up with other models, for example based on step response.
+\todo{Fix these words.}
 \begin{eqnarray}
-	A_{d, t} &=& e^{A_t \delta t}, \\
-	B_{d, t} &=& A_t^{-1} (A_{d, t} - I) B_t.
+	\label{eq:continuous-xdot}
+	\dvec{x}(\vec{x}, \vec{u}, t) &=& A(t) \vec{x} + B(t) \vec{u}, \\
+	\label{eq:continuous-y}
+	\vec{y}(\vec{x}, t) &=& C(t) \vec{x}
 \end{eqnarray}
-We can then reconstruct the new $B_{ud, t}$ and $B_{dd, t}$ matrices from the appropriate columns of $B_{d, t}$.
+where $\vec{x}$ represents the state vector, $\vec{u}$ the input vector, $\vec{y}$ the output vector, and $t$ the current time.
+From now, all $t$ arguments will be dropped for clarity; is it understood that all matrices may vary in time, and that $\dvec{x}$ and $\vec{y}$ are functions of time.
+We discretise this system in the usual manner for linear state-space systems, assuming a zero-order hold on input signals between each time step, forming a new set of discrete-time equations
+\begin{eqnarray}
+	\label{eq:discretise-A}
+	A_d &=& e^{A \delta t}, \\
+	\label{eq:discretise-B}
+	B_d &=& A^{-1} (A_d - I) B, \\
+	\label{eq:discrete-xdot}
+	\vec{x}_{t + \delta t}(\vec{x}, \vec{u}) &=& A_d \vec{x} + B_d \vec{u}, \\
+\end{eqnarray}
+though \refer{Equation}{eq:continuous-y} is unchanged.
+
+\subsection{Treating disturbances}
+
+In this simple model, we will include an explicit handling of `disturbance' inputs.
+These refer to any system inputs which we do not have direct control over.
+In the case of a water heating tank, disturbances include heat loss to the environment, heat contribution from solar collector, and the user load schedule.
+Our only non-disturbance input is, of course, the electric heating element's state.
+
+To make this distinction between disturbance and non-disturbance inputs, we decompose $B$ and $\vec{u}$ into
+\begin{eqnarray}
+	B &=& \left[\begin{array}{cc}
+		B_u & B_d
+	\end{array}\right], \\
+	\vec{u} &=& \left[\begin{array}{c}
+		\vec{u}_e \\ \vec{u}_d
+	\end{array}\right]
+\end{eqnarray}
+where $\vec{u}_e$ represents our \emph{explicit} control signal to the system.
+When $B$ is discretised according to \refer{Equation}{eq:discretise-B}, we can simply reconstruct the discretised $B_{u, d}$ and $B_{d, d}$ from the appropriate columns of $B_d$.
 
 \subsection{Control problem}
 
@@ -34,7 +59,7 @@ The form of this optimisation problem is, in general,
 	\optimise
 		{minimise}{\hvec{u}}
 		{f(\hvec{y}, \hvec{u})}
-		{\hvec{y} = \Psi \vec{x}_0 + \Theta_u \hvec{u} + \Theta_d \hvec{d}}
+		{\hvec{y} = \Psi \vec{x}_0 + \Theta \hvec{u}}
 \end{equation}
 The controller attempts to minimise some objective function $f$ which usually processes the vector of outputs $\hvec{y}$ and inputs $\hvec{u}$ over the time horizon.
 This time horizon, $H$, is a unitless integer that determines how many time steps into the future the planning problem will consider.
@@ -79,20 +104,23 @@ We can now define the matrices $\Psi$ and $\Theta$:
 		\vdots & \ddots & \ddots & 0 \\
 		CA^{H-1}B_d & \cdots & CAB_d & CB_d
 	\end{array}\right]
+	\\\label{eq:mpc-theta}
+	\Theta &=& \left[\begin{array}{cc}
+		\Theta_u & \Theta_d
+	\end{array}\right]
 \end{eqnarray}
 
 \subsection{Halvgaard mixed-tank model}
 \label{sec:model:halvgaard}
 
-\section{Simulator models}
-
 \subsection{Stratified tank model}
 
 Model the water tank as a perfect cylinder of height $h$ and radius $r$.
-Divide the tank into $N$ vertical slices with an equal fixed height (and therefore fixed volume $V = \pi r^2 \frac{h}{N}$).
-Define $T_1 .. T_N$ as the temperatures of each slice.
+Divide the tank into $N$ vertical slices, where slice 1 is at the top and slice $N$ is at the bottom, with an equal fixed height (and therefore fixed volume $V = \pi r^2 \frac{h}{N}$).
+Define $T_1 \dots T_N$ as the temperatures of each slice.
 Define $\dot{m}_c$ and $\dot{m}_l$ as the mass flows through the collector and load circuits respectively.
 The mass flows are `positive clockwise' as viewed on the diagram (collector flow enters at top, load flow at bottom).
 Define $\dot{m}_{m, i}$ as the mass flow through each node (positive downwards) which takes into account the mass flow through node $i$ given the behavior of the collector and load functions.
 $$ \dot{m}_{m, i} = \dot{m}_c \sum _{j=1} ^{i-1} B^j_c - \dot{m}_l \sum _{j=i+1} ^N B^j_l $$
-
+Therefore the head flow in a node $i$ is:
+$$ \dot{Q} = m C \dot{T}_i $$
