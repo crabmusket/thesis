@@ -421,3 +421,38 @@
    without strict tracking requirements (load shifting).
  * C4 has 'more acceptable overall performance' with the tradeoff of extra work
    (MPC) in the controller.
+
+## Kondoh11
+
+### Intro
+
+ * Demand-side management is the least-studied and least-exploited response
+   method for regulation.
+ * DSM programs' telemetry requirements are blocking adoption.
+ * Difficult to maintain user comfort if the 'load-shedding period is longer than
+   the period for which the TCAs are capable of coasting' i.e. providing comfort
+   without additional power expenditure.
+ * Tariff control has a very complicated relationship with demand and may cause
+   oscillations.
+ * Since EWHs are storage, they can shift their demand rather than just reduce it.
+
+### Tank model
+
+ * Two fixed-volume layers with zero-width mixing layer.
+ * Two heating elements, one for each layer.
+ * Lower element heats both layers iff their temperatures are equal.
+ * Do not understand the relationship between _Lused_ and the temperatures.
+
+### Control and outcomes
+
+ * 10,000 member population controlled.
+ * For comfort, only the lower heating element was subjected to external control.
+ * Two switches allowed the lower controller to be turned off completely, or
+   subjected to a different thermostat.
+ * Controller receives info on the states of all the water heaters' switches,
+   and computes the amount of power it is able to increase or decrease demand by.
+ * 5 minute hysterisis is explicitly included to ameliorate ocsillation.
+ * Calculates the number of switches to change to achieve the desired increase/
+   decrease in load.
+ * Compared with no regulation, double the number of switches and 75% increase
+   in number of discomforted users.
