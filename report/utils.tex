@@ -2,6 +2,12 @@
 \usepackage{amssymb,amsmath}
 \usepackage[hidelinks]{hyperref}
 
+% Source code listings with my favourite colours.
+\usepackage{listings}
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
 % An \opinion command for when I make stuff up.
 \usepackage{color}
 \newcommand{\opinion}[1]{{\color{red}#1}}
@@ -50,3 +56,6 @@
 	\end{aligned}}
 \newcommand\optimiseConstraint[1]{#1\let\optimiseConstraint\optimiseConstraintA}
 \newcommand\optimiseConstraintA[1]{, \\ &&& #1}
+
+% For defining heat flows in the model chapter.
+\newcommand{\flow}[1]{(\dot{T}_i)_{\;\text{#1}}}
