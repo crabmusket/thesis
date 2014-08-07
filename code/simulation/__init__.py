@@ -1,8 +1,8 @@
 from scipy.integrate import ode
-from numpy import hstack, array
+from numpy import hstack, array, matrix
 
 class Run(object):
-    def __init__(self, xdot, x0, dt, tf, u):
+    def __init__(self, xdot, x0, dt, tf, u = None):
         self.model = xdot
         self.x0 = x0
         self.tf = tf
@@ -17,7 +17,7 @@ class Run(object):
         results = []
         inputs = []
         while sim.successful() and sim.t < self.tf:
-            u = self.u(sim.y, sim.t) if self.u else 0
+            u = self.u(sim.y, sim.t) if self.u else matrix([[0]])
             sim.set_f_params(u)
             sim.integrate(sim.t + self.dt)
             results.append(sim.y)
