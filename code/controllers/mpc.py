@@ -8,7 +8,7 @@ import cvxopt as cvx
 from cvxpy import *
 
 def discretise(dt, (A, Bu, Bd, C, D)):
-    Adis = matrix(expm2(A * dt))
+    Adis = array(expm2(A * dt))
     B = np.hstack([Bu, Bd])
     Bdis = A.I * (Adis - eye(Adis.shape[0])) * B
     return (Adis,
@@ -68,7 +68,7 @@ def linear(H, dt, umax, sys, dist, *args):
         )
         op.solve()
         if u.value is not None:
-            return array(u.value)[0:Bu.shape[1], 0].reshape(Bu.shape[1], 1)
+            return array(u.value)[0:Bu.shape[1]].flatten()
         else:
             raise Exception('Optimisation failed in state {}'.format(op.status))
 

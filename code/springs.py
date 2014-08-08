@@ -1,3 +1,4 @@
+print 'Initialising'
 import matplotlib
 matplotlib.use('agg')
 from matplotlib.pyplot import * # Grab MATLAB plotting functions
@@ -5,11 +6,12 @@ from matplotlib.pyplot import * # Grab MATLAB plotting functions
 import simulation
 from controllers import mpc
 from models import springs, sysTo
-from numpy import matrix, hstack, vstack, linspace, zeros, ones
+from numpy import array, linspace
 from operator import mul
 
 import warnings
 warnings.simplefilter('ignore', np.ComplexWarning)
+print 'Beginning simulation'
 
 N = 5
 m = 0.1
@@ -28,7 +30,7 @@ def stepFn(ts, before, after):
         else:
             return after
     return inner
-distP = stepFn(12, matrix([[0]]), matrix([[1]]))
+distP = stepFn(12, array([0]), array([1]))
 
 H = 20
 dt = 0.1
@@ -39,8 +41,8 @@ controller = mpc.linear(H, dt,
 )
 
 tf = 20
-x0 = matrix([1]*N + [0]*N).T
-dist = stepFn(10, matrix([[0]]), matrix([[1]]))
+x0 = array([1]*N + [0]*N).T
+dist = stepFn(10, array([0]), array([1]))
 s = simulation.Run(
     xdot = sysTo.xdot(sys, dist),
     u = controller,
@@ -50,13 +52,14 @@ s = simulation.Run(
 )
 
 (us, xs) = s.result()
+print xs.shape, us.shape
 ts = linspace(0, tf, num = len(xs[0,:]))
 
 try:
     figure()
     a1 = subplot(211)
     ylabel('Mass positions')
-    for i in range(0, N):#[N-1, 0]:
+    for i in range(N):
         plot(ts, xs[i,:])
 
     a2 = subplot(212, sharex=a1)
