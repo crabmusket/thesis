@@ -1,5 +1,5 @@
 from scipy.integrate import ode
-from numpy import hstack, array, matrix
+from numpy import hstack, array
 
 class Run(object):
     def __init__(self, xdot, x0, dt, tf, u = None):
@@ -17,9 +17,9 @@ class Run(object):
         results = []
         inputs = []
         while sim.successful() and sim.t < self.tf:
-            u = self.u(sim.y, sim.t) if self.u else matrix([[0]])
+            u = self.u(sim.y, sim.t) if self.u else array([0])
             sim.set_f_params(u)
             sim.integrate(sim.t + self.dt)
             results.append(sim.y)
             inputs.append(u)
-        return (array(hstack(inputs)), hstack(results))
+        return (array(inputs).T, array(results).T)
