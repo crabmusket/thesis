@@ -1,3 +1,4 @@
+print 'Loading modules'
 import matplotlib
 matplotlib.use('agg')
 from matplotlib.pyplot import * # Grab MATLAB plotting functions
@@ -10,8 +11,9 @@ from operator import mul
 
 import warnings
 warnings.simplefilter('ignore', np.ComplexWarning)
+print 'Beginning simulation'
 
-def constMat(val):
+def constArray(val):
     def inner(*args):
         return array(val)
     return inner
@@ -23,16 +25,16 @@ tankModel = tank.model(
     h = h, r = r, N = N,
     heat = [N/4],
     P = 1200,
-    getAmbient = constMat([24]),
-    getLoad = constMat([0])
+    getAmbient = constArray([24]),
+    getLoad = constArray([0])
 )
 
-dt = 60
-tf = 60*60*24
+dt = 5*60
+tf = 5*60*60*24
 x0 = array([45] * N).T
 s = simulation.Run(
     xdot = tankModel,
-    u = constMat([0]),
+    u = constArray([0]),
     x0 = x0,
     dt = dt,
     tf = tf
