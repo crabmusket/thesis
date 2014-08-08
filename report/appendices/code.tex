@@ -1,20 +1,21 @@
 \chapter{Source code listings}
 
 \lstset{
+    language = Python,
+    texcl = true, % Parse comments as TeX
     backgroundcolor = \color{white},
     basicstyle = \footnotesize,
     commentstyle = \color{mygreen},
     keywordstyle = \color{blue},
     stringstyle = \color{mymauve},
     numberstyle = \tiny\color{mygray},
-    breaklines = false,
-	 language = Python,
     numbers = left, % possible values are (none, left, right)
     numbersep = 5pt, % how far the line-numbers are from the code
     rulecolor = \color{black},
     stepnumber = 1, % the step between two line-numbers
     showstringspaces = false, % underline spaces within strings?
     literate = {~} {$\sim$}{1}, % make ~ nice
+    breaklines = false,
     prebreak = \raisebox{0ex}[0ex][0ex]
         {\color{red}\ensuremath{\space\rhookswarrow}},
     postbreak = \raisebox{0ex}[0ex][0ex]
