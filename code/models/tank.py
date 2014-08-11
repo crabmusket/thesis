@@ -23,7 +23,7 @@ def model(h, r, N, P, heat, getAmbient, getLoad):
     A2Umc = (A2 * U) / (m * c) # Rate of temperature something else
     kpcd2 = k / (rho * c * d**2) # Rate of temperature something or other
 
-    # Buoyancy factor
+    # Buoyancy factor (\autoref{eq:epsilon})
     Kdl2 = (K * 2*r)**2
     gb = g * beta
     def epsilon(x, i):

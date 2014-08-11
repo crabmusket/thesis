@@ -32,12 +32,18 @@ The heat flows to and from the exterior caused by the heating element and losses
 
 The heat exchange through natural buoyancy and diffusion are
 \begin{eqnarray}
-	\label{eq:flow-mix}
-	\flow{mix} &=& \flow{in above} + \flow{in below}, \nonumber\\
-	           &=& \left(\frac{k}{\rho c d^2} + \epsilon_t\right)(T_{i+1} - T_i)
-				    + \left(\frac{k}{\rho c d^2} + \epsilon_t\right)(T_{i-1} - T_i), \nonumber\\
-				  &=& \left(\frac{k}{\rho c d^2} + \epsilon_t\right)(T_{i+1} - 2 T_i + T_{i-1}).
+   \label{eq:flow-mix}
+   \flow{mix} &=& \flow[i+1]{out} + \flow[i-1]{out} - 2 \flow{out}, \\
+   \label{eq:flow-mix-out}
+   \flow{out} &=& \left(\frac{k}{\rho c d^2} + \epsilon_{t, i}\right)T_i
 \end{eqnarray}
+Note special cases for nodes 0 and $N-1$ in the implementation (code listing in \autoref{app:code:models:tank}).
+Buoyancy factor:
+\begin{equation}
+   \label{eq:epsilon}
+   \epsilon_{t, i} = (K \delta l)^2 \sqrt{g \beta \max \left\{ 0, \frac{\partial T}{\partial z}\right\}}
+\end{equation}
+Explain $\frac{\partial T}{\partial z}$.
 
 Finally, the heat flow caused by water being forced through the tank is given by
 \begin{eqnarray}
