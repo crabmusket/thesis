@@ -17,17 +17,17 @@ The tank is split into $N$ identical horizontal disks as illustrated in \autoref
 One of these disks is detailed in \autoref{fig:models:discretised-disk}.
 Each element is subjected to several heat flows that affect its temperature:
 \begin{equation}
-	\label{eq:flow-total}
-	\flow{tot} = \flow{ext} + \flow{mix} + \flow{mflow},
+   \label{eq:flow-total}
+   \flow{tot} = \flow{ext} + \flow{mix} + \flow{mflow},
 \end{equation}
 where $\flow{tot}$ is the final rate of change of the temperature of disk $i$.
 
 The heat flows to and from the exterior caused by the heating element and losses to the tank wall, given by $\flow{ext}$, are
 \begin{eqnarray}
-	\label{eq:flow-ext}
-	\flow{ext} &=& \flow{el} - \flow{loss}, \nonumber\\
-	           &=& \left(\frac{P_{\text{el}}}{m_i c n_{\text{el}}}\right) u
-	             + \left(\frac{A_{\text{wall}, i} U}{m_i c}\right) (T_i - T_{\text{amb}}).
+   \label{eq:flow-ext}
+   \flow{ext} &=& \flow{el} - \flow{loss}, \nonumber\\
+              &=& \left(\frac{P_{\text{el}}}{m_i c n_{\text{el}}}\right) u
+                + \left(\frac{A_{\text{wall}, i} U}{m_i c}\right) (T_i - T_{\text{amb}}).
 \end{eqnarray}
 
 The heat exchange through natural buoyancy and diffusion are
@@ -47,8 +47,8 @@ Explain $\frac{\partial T}{\partial z}$.
 
 Finally, the heat flow caused by water being forced through the tank is given by
 \begin{eqnarray}
-	\label{eq:flow-mflow}
-	\flow{mflow} &=& \frac{\dot{m}}{m_i} (T_{i-1} - T_i).
+   \label{eq:flow-mflow}
+   \flow{mflow} &=& \frac{\dot{m}}{m_i} (T_{i-1} - T_i).
 \end{eqnarray}
 
 \subsection{Solar hot water input}
@@ -62,21 +62,21 @@ Finally, the heat flow caused by water being forced through the tank is given by
 This is how we make a state-space model, consider the system as linear time-varying, but say it in a way that doesn't exclude the possibility that I might come up with other models, for example based on step response.
 \todo{Fix these words.}
 \begin{eqnarray}
-	\label{eq:continuous-xdot}
-	\dvec{x} &=& A(t) \vec{x} + B(t) \vec{u}, \\
-	\label{eq:continuous-y}
-	\vec{y} &=& C(t) \vec{x}
+   \label{eq:continuous-xdot}
+   \dvec{x} &=& A(t) \vec{x} + B(t) \vec{u}, \\
+   \label{eq:continuous-y}
+   \vec{y} &=& C(t) \vec{x}
 \end{eqnarray}
 where $\vec{x}$ represents the state vector, $\vec{u}$ the input vector, $\vec{y}$ the output vector, and $t$ the current time.
 From now, all $t$ arguments will be dropped for clarity; is it understood that all matrices may vary in time, and that $\dvec{x}$ and $\vec{y}$ are functions of time.
 We discretise this system in the usual manner for linear state-space systems, assuming a zero-order hold on input signals between each time step, forming a new set of discrete-time equations
 \begin{eqnarray}
-	\label{eq:discretise-A}
-	A_d &=& e^{A \delta t}, \\
-	\label{eq:discretise-B}
-	B_d &=& A^{-1} (A_d - I) B, \\
-	\label{eq:discrete-xdot}
-	\vec{x}_{t + \delta t} &=& A_d \vec{x} + B_d \vec{u}, \\
+   \label{eq:discretise-A}
+   A_d &=& e^{A \delta t}, \\
+   \label{eq:discretise-B}
+   B_d &=& A^{-1} (A_d - I) B, \\
+   \label{eq:discrete-xdot}
+   \vec{x}_{t + \delta t} &=& A_d \vec{x} + B_d \vec{u}, \\
 \end{eqnarray}
 though \autoref{eq:continuous-y} is unchanged.
 
@@ -89,12 +89,12 @@ Our only non-disturbance input is, of course, the electric heating element's sta
 
 To make this distinction between disturbance and non-disturbance inputs, we decompose $B$ and $\vec{u}$ into
 \begin{eqnarray}
-	B &=& \left[\begin{array}{cc}
-		B_u & B_d
-	\end{array}\right], \\
-	\vec{u} &=& \left[\begin{array}{c}
-		\vec{u}_e \\ \vec{u}_d
-	\end{array}\right]
+   B &=& \left[\begin{array}{cc}
+      B_u & B_d
+   \end{array}\right], \\
+   \vec{u} &=& \left[\begin{array}{c}
+      \vec{u}_e \\ \vec{u}_d
+   \end{array}\right]
 \end{eqnarray}
 where $\vec{u}_e$ represents our \emph{explicit} control signal to the system.
 When $B$ is discretised according to \autoref{eq:discretise-B}, we can simply reconstruct the discretised $B_{u, d}$ and $B_{d, d}$ from the appropriate columns of $B_d$.
@@ -105,59 +105,59 @@ When $B$ is discretised according to \autoref{eq:discretise-B}, we can simply re
 MPC controllers solve an optimisation problem at every instant in time to determine the next control input.
 The form of this optimisation problem is, in general,
 \begin{equation}
-	\label{eq:mpc-opt}
-	\optimise
-		{minimise}{\hvec{u}}
-		{f(\hvec{y}, \hvec{u})}
-		{\hvec{y} = \Psi \vec{x}_0 + \Theta \hvec{u}}
+   \label{eq:mpc-opt}
+   \optimise
+      {minimise}{\hvec{u}}
+      {f(\hvec{y}, \hvec{u})}
+      {\hvec{y} = \Psi \vec{x}_0 + \Theta \hvec{u}}
 \end{equation}
 The controller attempts to minimise some objective function $f$ which usually processes the vector of outputs $\hvec{y}$ and inputs $\hvec{u}$ over the time horizon.
 This time horizon, $H$, is a unitless integer that determines how many time steps into the future the planning problem will consider.
 We first define the output, input and disturbance vectors used in the planning problem, in terms of the time horizon:
 \begin{eqnarray}
-	\label{eq:mpc-vectors}
-	\hvec{y} = \left[\begin{array}{c}
-		\vec{y}_0 \\
-		\vdots \\
-		\vec{y}_H
-	\end{array}\right],
-	&
-	\hvec{u} = \left[\begin{array}{c}
-		\vec{u}_0 \\
-		\vdots \\
-		\vec{u}_H
-	\end{array}\right],
-	& \text{and} \quad
-	\hvec{d} = \left[\begin{array}{c}
-		\vec{d}_0 \\
-		\vdots \\
-		\vec{d}_H
-	\end{array}\right].
+   \label{eq:mpc-vectors}
+   \hvec{y} = \left[\begin{array}{c}
+      \vec{y}_0 \\
+      \vdots \\
+      \vec{y}_H
+   \end{array}\right],
+   &
+   \hvec{u} = \left[\begin{array}{c}
+      \vec{u}_0 \\
+      \vdots \\
+      \vec{u}_H
+   \end{array}\right],
+   & \text{and} \quad
+   \hvec{d} = \left[\begin{array}{c}
+      \vec{d}_0 \\
+      \vdots \\
+      \vec{d}_H
+   \end{array}\right].
 \end{eqnarray}
 We can now define the matrices $\Psi$ and $\Theta$:
 \begin{eqnarray}
-	\label{eq:mpc-psi}
-	\Psi &=& \left[\begin{array}{c}
-		CA \\ CA^2 \\ \vdots \\ CA^H
-	\end{array}\right]
-	\\\label{eq:mpc-theta-u}
-	\Theta_u &=& \left[\begin{array}{cccc}
-		CB_u & 0 & 0 & 0 \\
-		CAB_u & \ddots & 0 & 0 \\
-		\vdots & \ddots & \ddots & 0 \\
-		CA^{H-1}B_u & \cdots & CAB_u & CB_u
-	\end{array}\right]
-	\\\label{eq:mpc-theta-d}
-	\Theta_d &=& \left[\begin{array}{cccc}
-		CB_d & 0 & 0 & 0 \\
-		CAB_d & \ddots & 0 & 0 \\
-		\vdots & \ddots & \ddots & 0 \\
-		CA^{H-1}B_d & \cdots & CAB_d & CB_d
-	\end{array}\right]
-	\\\label{eq:mpc-theta}
-	\Theta &=& \left[\begin{array}{cc}
-		\Theta_u & \Theta_d
-	\end{array}\right]
+   \label{eq:mpc-psi}
+   \Psi &=& \left[\begin{array}{c}
+      CA \\ CA^2 \\ \vdots \\ CA^H
+   \end{array}\right]
+   \\\label{eq:mpc-theta-u}
+   \Theta_u &=& \left[\begin{array}{cccc}
+      CB_u & 0 & 0 & 0 \\
+      CAB_u & \ddots & 0 & 0 \\
+      \vdots & \ddots & \ddots & 0 \\
+      CA^{H-1}B_u & \cdots & CAB_u & CB_u
+   \end{array}\right]
+   \\\label{eq:mpc-theta-d}
+   \Theta_d &=& \left[\begin{array}{cccc}
+      CB_d & 0 & 0 & 0 \\
+      CAB_d & \ddots & 0 & 0 \\
+      \vdots & \ddots & \ddots & 0 \\
+      CA^{H-1}B_d & \cdots & CAB_d & CB_d
+   \end{array}\right]
+   \\\label{eq:mpc-theta}
+   \Theta &=& \left[\begin{array}{cc}
+      \Theta_u & \Theta_d
+   \end{array}\right]
 \end{eqnarray}
 
 \subsection{Halvgaard mixed-tank model}

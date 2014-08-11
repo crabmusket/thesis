@@ -15,18 +15,18 @@ Therefore, using `free' solar energy to heat water is an obvious way to signific
 The solar water heating systems we are concerned with have a number of variables in their design.
 
 \begin{description}
-	\item[Loop openness] An open-loop system is one in which the water circulating through the collectors is potable and is passed directly to the load.
-		In a closed-loop system, by contrast, the collector has its own circuit and liquid is not passed from it to the user.
-		This means that, for example, anti-freeze chemicals can be added to the collector loop.
-		In this case, a heat exchanger must be used to transfer heat from the collector loop to the storage tank.
+   \item[Loop openness] An open-loop system is one in which the water circulating through the collectors is potable and is passed directly to the load.
+      In a closed-loop system, by contrast, the collector has its own circuit and liquid is not passed from it to the user.
+      This means that, for example, anti-freeze chemicals can be added to the collector loop.
+      In this case, a heat exchanger must be used to transfer heat from the collector loop to the storage tank.
 
-	\item[Bypass] Some systems include a bypass \todo{work out the proper name for this thing} that allows water from the collector output to bypass the storage tank and be returned to the collector input for further heating.
+   \item[Bypass] Some systems include a bypass \todo{work out the proper name for this thing} that allows water from the collector output to bypass the storage tank and be returned to the collector input for further heating.
 
-	\item[Hydronics] Applications are not limited to providing potable hot water for taps.
-		Hydronic systems use hot water for space heating, often on a separate loop to potable water.
-		This may be achieved using radiators, or by passing the water through pipes in floors.
+   \item[Hydronics] Applications are not limited to providing potable hot water for taps.
+      Hydronic systems use hot water for space heating, often on a separate loop to potable water.
+      This may be achieved using radiators, or by passing the water through pipes in floors.
 
-	\item[Scale] \todo{System size, tank size, collector count}
+   \item[Scale] \todo{System size, tank size, collector count}
 \end{description}
 
 The common elements include the solar collector itself and collector circulation pump, the stratified storage tank, the boosting element, which may be positioned at a variable height in the tank, and the load.
@@ -71,10 +71,10 @@ Note that this model may include the system's input response, disturbance respon
 The typical implementation of MPC follows this simplified flow:
 
 \begin{enumerate}
-	\item Measure or estimate current state and predict disturbances.
-	\item Optimise sequence of control inputs over some finite time horizon.
-	\item Apply the first input to the system.
-	\item Repeat at next time interval.
+   \item Measure or estimate current state and predict disturbances.
+   \item Optimise sequence of control inputs over some finite time horizon.
+   \item Apply the first input to the system.
+   \item Repeat at next time interval.
 \end{enumerate}
 
 In this way, feedback control is achieved by repeatedly measuring the system state.
