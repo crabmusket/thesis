@@ -14,34 +14,77 @@ The authors implemented an algorithm that solved the problem with time complexit
 
 \section{Hot water system modelling}
 
-Camacho and Bordons estimate that one of the key differences in MPC control is the significant up-front modelling effort, as the system model is very important to the overall control achieved.
+\authors{Camacho04} estimate that one of the key differences in MPC control is the significant up-front modelling effort, as the system model is very important to the overall control achieved.
 Therefore we take care to study various efforts in modelling hot water tanks.
+In \autoref{chap:models} a model is developed following the work presented in this section, in order to evaluate the controllers designed in \autoref{chap:control}.
+The model must be adequately able to capture the subtleties of the domestic hot water tank in order to better evaluate the effect of different control strategies.
+Some of the details outlined here will also be used to derive a simplified tank model used in the controllers themselves, as control of the full nonlinear model is beyond the scope of this thesis.
+
+\textcite{Vrettos12} note that many current publications use ``single-point'' or zero-dimensional models of domestic water heaters, where the entire tank is represented by a single value (temperature or energy).
+We refer to these models as mixed-tank models, as they treat the entire tank as a single uniformly-mixed body of water.
+The alternative is a one-dimensional model, in which the tank is considered to be at uniform conditions across every horizontal section, but may vary at different depths.
+This type of model is able to capture the effect of stratification, described in \autoref{sec:review:stratified-tank-models}, which is an important factor in predicting the performance of hot water devices.
+
+\subsection{Mixed-tank models}
+\label{sec:review:mixed-tank}
+
+\todo{DuffBradnum, Ayompe, Hollands?}
+
+\textcite{Halvgaard12} made use of a mixed-tank model in order to perform economic model-predictive control of the heating elements.
+Their model involves a single heat balance equation,
+$$ C \dot{T} = Q_h + Q_s - Q_l - U A (T - T_a) $$
+where
+\begin{itemize}
+   \item $C$ is the heat vapacity of water,
+   \item $T$ is the temperature of the tank,
+   \item $T_a$ is the ambient temperature,
+   \item $Q_h$ is the temperature added to the tank by the electric heating element,
+   \item $Q_s$ is the heat added by the solar collector,
+   \item $Q_l$ is the heat removed by the load, and
+   \item $U A$ is the product of heat transmission and surface area of the tank.
+\end{itemize}
+The heat gained from the element is a constrained input, the solar heat gain is a function of the instantaneous insolation, the load is based on predicted user activity and the loss is a simple physical equation based on the ambient temperature.
+Their model was verified by measuring the temperature in a large water tank at eight different vertical locations and averaging these readings to calulate the approximate energy in the tank.
+In a practical experiment they found that even with this simplified model of the tank, their controller was able to reduce the operating power bill by up to 30\%.
+This is further discussed in \autoref{sec:review:mpc:halvgaard}.
+
+\textcite{Cao14} also used a mixed-tank model when designing a large-scale solar water heating system for a hotel.
+Their publication does not include a practical experiment, just simulation of the system design.
 
 \subsection{Stratified models}
 \label{sec:review:stratified-tank-models}
 
 Stratification is the natural tendency of water to form layers of uniform temperature, between which there is relatively little heat flow.
-\textcite{Hollands89} review the benefits of maintaining stratification in a
-hot water storage tank in their 1989 paper.
+\textcite{Hollands89} review the benefits of maintaining stratification in a hot water storage tank in their 1989 paper.
 At this point, stratified tanks were just beginning to become the preferred paradigm for storage in domestic hot water systems.
 Their review points out that systems that maintain tank stratification (usually by designing for low flow rates, but potentially by using good diffusers inside the tank) can improve performance by nearly 40\% in some circumstances.
-\todo{Make sure I understand how.}
+\todo{Make sure I understand how. Also, what is `performance'?}
 
-The authors review mathematical models for stratified tanks and relate that it was usual to model the tank as several fixed-volume, variable-temperature layers.
-With as few as three of these layers, they found that models could under-predict system performance by 10\%.
+The authors review mathematical models for stratified tanks and note that it was usual to model the tank as several fixed-volume, variable-temperature layers.
+\textcite{Kleinbach93} refer to this approach as the \emph{multinode} model, which they contrast to the \emph{plug flow} model, in which there are a variable number of layers, each with variable volume and temperature.
+With as few as three of these \emph{multinode} layers, \authors{Hollands89} found that models could under-predict system performance by 10\%.
 With complex supply and load patterns, they found that up to sixty-four layers were needed to capture the system's dynamics.
 
 \textcite{Cristofari02} formulated a stratified tank model for simulation, rather than optimisation, of SWHSs in Corsica.
 They assume that a perfect diffuser exists on the tank inputs and outputs, so that water added or removed is done so from an appropriate stratified layer --- i.e.\ the layer whose density matches the incoming mass most closely.
-To model this effect, they use a \emph{control function} that selects a binary (0 or 1) value to multiply the water entry by at each layer.
-They also model heat transfers between each layer to represent the flow of water through the tank as it is drawn off and added in at different heights.
+To model this effect, they use a \emph{control function} $B_c^i$ that selects a binary (0 or 1) value to multiply the water entry by at each layer,
+$$ B_c^i = \left\{ \begin{array}{ll}
+   1 & \text{if}\ T_{i-1} \geq T_c > T_i \\
+   0 & \text{otherwise},
+\end{array} \right. $$
+where $T_c$ is the temperature of water incoming from the solar collector.
+There is an analogous control function for cold water incoming from the load.
+The model includes heat flow between nodes due to the net movement of water in the tank (accounting for water incoming at different nodes from the collector and load, and water being drawn off at the top and bottom of the tank), but not diffusion between layers.
+It does not account for any energy added internal to the tank --- for example, heating elements.
+This could be accounted for by introducing another mass in/outflow pair in the same fashion as the solar collector, which simply added a constant amount of energy to the water instead of an amount determined by the solar conditions.
 
-\todo{\cite{Kerkeni00}}
-
-\subsection{Mixed-tank models}
-\label{sec:review:mixed-tank}
-
-\todo{DuffBradnum, Ayompe, Cao, Hollands, Halvgaard}
+\textcite{Pfeiffer11} describes a model of the stratified tank that does not include external hot water supply, but does include internal heat supply (i.e. electric heating elements).
+This model also accounts for diffusion between adjacent nodes due to buoyancy, as well as due to the overall mass flow effect of the load.
+The buoyancy effect is a function of several liquid constants and the derivative of the temperature gradient in the tank, given in \textcite{Hawlader88} as
+$$ \epsilon_t = \left\{ \begin{array}{ll}
+   (K \delta l)^2 \sqrt{g \beta \frac{\partial T}{\partial z}} & \text{if}\ \frac{\partial T}{\partial z} > 0 \\
+   0 & \text{otherwise}.
+\end{array} \right. $$
 
 \section{Building automation}
 
@@ -134,27 +177,17 @@ In this way they were able to avoid the difficulties in designing an optimal bin
 \todo{Verify this is what they did. It sure looked like it, but\ldots}
 
 \subsection{Technical University of Denmark}
+\label{sec:review:mpc:halvgaard}
 
-\textcite{Halvgaard12} used their mixed-tank model to perform what they term `economic MPC', by which they mean that their objective function measured the monetary cost to the operator of the water tank.
-They treated the tank as a single thermal mass with mixed temperature as described in \autoref{sec:review:mixed-tank}.
-Additionally, they simplified all inputs and disturbances to rates of heat flow (for example, a certain rate of energy was drawn by the load at particular times).
-This resulted in a single-dimensional system governed by the differential equation
-$$ C \dot{T} = Q_h + Q_s - Q_l - U A (T - T_a) $$
-where
-\begin{itemize}
-   \item $T$ is the temperature of the tank,
-   \item $T_a$ is the ambient temperature,
-   \item $Q_h$ is the temperature added to the tank by the electric heating element,
-   \item $Q_s$ is the heat added by the solar collector,
-   \item $Q_l$ is the heat removed by the load, and
-   \item $U A$ is the product of heat transmission and surface area of the tank.
-\end{itemize}
-
-\authors{Halvgaard12} used simulated load and weather predictions to evaluate the MPC controller they designed.
+\textcite{Halvgaard12} used their mixed-tank model (descibed in \autoref{sec:review:mixed-tank}) to perform what they term `economic MPC', by which they mean that their objective function measured the monetary cost to the operator of the water tank.
+They used simulated load and weather predictions to evaluate the MPC controller they designed.
 The load, importantly, involved three equal draw-offs at 7am, noon, and 7pm.
 In addition, they used real wholesale electricity prices from the Elspot market, which has a significant off-peak discount in the early morning.
 
-To discover the constants used in the model, the authors applied a maximum likelihood/maximum \emph{a posteriori} parameter estimation approach.
-They discovered savings of 25--30\% of the electricity bill with the MPC controlling the tank heating element during simulation.
-However, over longer time horizons, they discovered that total power usage would increase even as the energy bill decreased, because the optimised heating schedule simply used power during off-peak times.
+\authors{Halvgaard12} discovered savings of 25--30\% of the electricity bill with the MPC controlling the tank heating element during simulation.
+This was achieved mainly by shifting the heating schedule to perform most of its work at night, when the spot price of electricy was cheaper.
+The large tank (over 700 litres) may have contributed to these results against standard domestic consumption and solar production, allowing a night-time boost to provide adequate heat in the tank for an entire day of usage.
+Smaller tanks may require more detailed controle regimes, for which the mixed-tank assumption may not prove adequate.
+
+Over longer time horizons, the authors discovered that total power usage would increase even as the energy bill decreased, because the controller was considering only the energy bill, and consuming more cheap off-peak power.
 The authors also noted that any prediction horizon longer than 24 hours did not noticeably affect the savings achieved, and nor did the accuracy of the weather forecasts.
