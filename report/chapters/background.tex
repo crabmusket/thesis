@@ -1,4 +1,5 @@
 \chapter{Background}
+\label{ch:background}
 
 \section{Solar water heating systems}
 
@@ -15,7 +16,7 @@ Therefore, using `free' solar energy to heat water is an obvious way to signific
 The solar water heating systems we are concerned with have a number of variables in their design.
 
 \begin{description}
-   \item[Loop openness] An open-loop system is one in which the water circulating through the collectors is potable and is passed directly to the load.
+   \item[Water loop] An open-loop system is one in which the water circulating through the collectors is potable and is passed directly to the load.
       In a closed-loop system, by contrast, the collector has its own circuit and liquid is not passed from it to the user.
       This means that, for example, anti-freeze chemicals can be added to the collector loop.
       In this case, a heat exchanger must be used to transfer heat from the collector loop to the storage tank.
@@ -103,5 +104,6 @@ While there exist general-purpose solvers for non-smooth convex optimisation pro
 Grant and Boyd opine in~\cite{Grant08} that this process is difficult and error-prone, even for experts in the field.
 They propose a method called \emph{disciplined convex programming} (DCP)~\cite{Grant06} which aims to express convex optimisation problems in such a way that transformation to an efficiently-solvable representation can be automated, removing this ``expertise barrier'', as they put it.
 
-Recent DCP software such as CVX for MATLAB~\cite{CVX} and CVXPY~\cite{CVXPY} implements this paradigm to provide a simple user interface without sacrificing the efficiency of specialised solvers for subclasses of convex problems.
-\opinion{It has yet to be seen whether the same gains discovered in~\cite{Wang10} in the area of MPC can be achieved by this general software.}
+Recent DCP software such as CVX for MATLAB~\cite{CVX} and CVXPY in Python~\cite{CVXPY} implements this paradigm to provide a simple user interface without sacrificing the efficiency of specialised solvers for subclasses of convex problems.
+\opinion{It has yet to be seen whether the same gains discovered by \textcite{Wang10} in the area of MPC can be achieved by this general software.}
+\todo{Mention \textcite{Vukov12} and \textcite{Houska11}}
