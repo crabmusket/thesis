@@ -53,3 +53,32 @@
 
 % For defining heat flows in the model chapter.
 \newcommand{\flow}[2][i]{(\dot{T}_{#1})_{\;\text{#2}}}
+
+% Autoref command for capitalisation.
+% http://www.latex-community.org/forum/viewtopic.php?f=5&t=2539#p9976
+\let\orgautoref\autoref
+\providecommand{\Autoref}
+        {\def\equationautorefname{Equation}%
+         \def\figureautorefname{Figure}%
+         \def\subfigureautorefname{Figure}%
+         \def\Itemautorefname{Item}%
+         \def\tableautorefname{Table}%
+         \def\sectionautorefname{Section}%
+         \def\subsectionautorefname{Section}%
+         \def\subsubsectionautorefname{Section}%
+         \def\chapterautorefname{Section}%
+         \def\partautorefname{Part}%
+         \orgautoref}
+
+\renewcommand{\autoref}
+        {\def\equationautorefname{equation}%
+         \def\figureautorefname{figure}%
+         \def\subfigureautorefname{figure}%
+         \def\Itemautorefname{item}%
+         \def\tableautorefname{table}%
+         \def\sectionautorefname{section}%
+         \def\subsectionautorefname{section}%
+         \def\subsubsectionautorefname{section}%
+         \def\chapterautorefname{section}%
+         \def\partautorefname{part}%
+         \orgautoref}
