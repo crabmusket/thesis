@@ -1,3 +1,47 @@
 \chapter{Introduction}
 
+\section{Aim}
 
+The objective of this thesis is to produce a controller for the heating element of a domestic hot water tank connected to a solar collector which is able to reduce the weekly energy use required to satisfy the users' comfort requirements, as compared to a thermostat controller or custom boosting schedule.
+
+\section{Motivation}
+
+\section{Scope}
+
+\begin{itemize}
+	\item Evaluate current common controller designs
+	\item Evaluate literature on control of SDHW systems
+	\item Implement simulation of hot water tank with solar collector and booster (validation?)
+	\item Implement simple controller
+	\item Implement smart controller
+	\begin{itemize}
+		\item Mixed-tank simplification
+		\item Stratified simplification?
+		\item Linearisation
+		\item Nonlinear MPC?
+	\end{itemize}
+	\item Evaluate differences
+	\begin{itemize}
+		\item Energy use
+		\item Bill
+		\item Comfort
+	\end{itemize}
+	\item Evaluate robustness
+	\begin{itemize}
+		\item Prediction accuracy
+		\item System scale
+	\end{itemize}
+\end{itemize}
+
+\section{Approach and structure}
+
+In \autoref{ch:background}, I will discuss the broad situation of domestic solar water heating with a particular focus on the Australian industry, the current state-of-the-art in their control, and the mathematical background of optimisation methods I will use in my controller.
+In \autoref{ch:review}, I will outline relevant research, both historical and current as necessary.
+I will also include potential applications and future directions of the theory and implementation of this thesis.
+\todo{Awful phrasing. Learn 2 english}
+
+\Autoref{ch:models} introduces the mathematical models that I use for water tank simulation and for the predictive controller.
+It outlines their derivation, suitability for this task, and gives some details about their implementation in source code.
+Then, \autoref{ch:control} outlines the control algorithm chosen, and the various stages of development it underwent over the course of this thesis.
+
+In \autoref{ch:results} I will present the results of the simulations, and evaluate the performance of the model-predictive controller in comparison to the standard baseline controller.

@@ -1,27 +1,31 @@
-\documentclass{report}
+\documentclass[oneside]{book}
 
 \input{utils}
 
 \addbibresource{library.bib}
 
-\title{MPC for solar domestic hot water}
+\title{Model-predictive control of the heating element in a domestic hot water tank with solar collector}
 \author{Daniel Buckmaster}
-\date{\today}
+\date{October 2014}
 
 \begin{document}
 
-\maketitle
-\tableofcontents
+\frontmatter
+   \maketitle
+   \input{abstract}
+   \input{acknowledgements}
+   \tableofcontents
+   \listoffigures
+   \listoftodos
 
-\input{chapters/intro}
-\input{chapters/background}
-\input{chapters/review}
-\input{chapters/model}
-
-\printbibliography[heading=bibintoc]
+\mainmatter
+   \input{chapters/intro}
+   \input{chapters/background}
+   \input{chapters/review}
+   \input{chapters/model}
+   \printbibliography[heading=bibintoc]
 
 \appendix
-
-\input{appendices/code}
+   \input{appendices/code}
 
 \end{document}
