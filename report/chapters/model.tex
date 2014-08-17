@@ -14,43 +14,29 @@ Note that this approach assumes stratification baffle devices are present on the
 
 \subsection{Discretised tank model}
 
-The tank is split into $N$ identical horizontal disks as illustrated in \autoref{fig:models:discretised-tank}.
+The tank is split into $N$ identical horizontal disks as illustrated in \autoref{fig:models:discretised-tank}, numbered $0$ (bottom) to $N-1$ (top).
 One of these disks is detailed in \autoref{fig:models:discretised-disk}.
-Each element is subjected to several heat flows that affect its temperature:
+
 \begin{equation}
-   \label{eq:flow-total}
-   \flow{tot} = \flow{ext} + \flow{mix} + \flow{mflow},
+	\label{eq:node-dT}
+	\rho_i C_i v_i \dot{T}_i = U_{amb} + U_{input} + u_{mflow}
 \end{equation}
-where $\flow{tot}$ is the final rate of change of the temperature of disk $i$.
 
-The heat flows to and from the exterior caused by the heating element and losses to the tank wall, given by $\flow{ext}$, are
-\begin{eqnarray}
-   \label{eq:flow-ext}
-   \flow{ext} &=& \flow{el} - \flow{loss}, \nonumber\\
-              &=& \left(\frac{P_{\text{el}}}{m_i c n_{\text{el}}}\right) u
-                + \left(\frac{A_{\text{wall}, i} U}{m_i c}\right) (T_i - T_{\text{amb}}).
-\end{eqnarray}
-
-The heat exchange through natural buoyancy and diffusion are
-\begin{eqnarray}
-   \label{eq:flow-mix}
-   \flow{mix} &=& \flow[i+1]{out} + \flow[i-1]{out} - 2 \flow{out}, \\
-   \label{eq:flow-mix-out}
-   \flow{out} &=& \left(\frac{k}{\rho c d^2} + \epsilon_{t, i}\right)T_i
-\end{eqnarray}
-Note special cases for nodes 0 and $N-1$ in the implementation (code listing in \autoref{app:code:models:tank}).
-Buoyancy factor:
 \begin{equation}
-   \label{eq:epsilon}
-   \epsilon_{t, i} = (K \delta l)^2 \sqrt{g \beta \max \left\{ 0, \frac{\partial T}{\partial z}\right\}}
+	U_{amb} = U_s (T_a - T_i)
 \end{equation}
-Explain $\frac{\partial T}{\partial z}$.
 
-Finally, the heat flow caused by water being forced through the tank is given by
-\begin{eqnarray}
-   \label{eq:flow-mflow}
-   \flow{mflow} &=& \frac{\dot{m}}{m_i} (T_{i-1} - T_i).
-\end{eqnarray}
+\begin{equation}
+	U_{input} = B^c_i \dot{m}_c (T_c - T_i) + B^l_i \dot{m}_l (T_l - T_i)
+\end{equation}
+
+\begin{equation}
+	U_{mflow} = \dot{m}_i C_i (T_{i-1} - T_i) (\dot{m}_i > 0) + \dot{m}_{i+1} C_i (T_i - T_{i+1}) (\dot{m}_{i+1} < 0)
+\end{equation}
+
+\begin{equation}
+	\dot{m}_i = \dot{m}_l \sum_{j=1}^{i-1} B^l_j - \dot{m}_l \sum_{j=i+1}^{N-1} B^c_j
+\end{equation}
 
 \subsection{Solar hot water input}
 

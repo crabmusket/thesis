@@ -79,9 +79,11 @@ The model includes heat flow between nodes due to the net movement of water in t
 It does not account for any energy added internal to the tank --- for example, heating elements.
 This could be accounted for by introducing another mass in/outflow pair in the same fashion as the solar collector, which simply added a constant amount of energy to the water instead of an amount determined by the solar conditions.
 
-\textcite{Pfeiffer11} describes a model of the stratified tank that does not include external hot water supply, but does include internal heat supply (i.e. electric heating elements).
-This model also accounts for diffusion between adjacent nodes due to buoyancy, as well as due to the overall mass flow effect of the load.
-The buoyancy effect is a function of several liquid constants and the derivative of the temperature gradient in the tank, given in \textcite{Hawlader88} as
+\textcite{Pfeiffer11} describes a model of the stratified tank that does not include external hot water supply, but does include direct heat supply (i.e. an electric heating element).
+The model describes the rate of change of temperature of each node as three separate factors:
+$$ \flow{tot} = \flow{ext} + \flow{mix} + \flow{mflow}, $$
+the changes in temperature due to external factors (heat loss to ambient, and a heating element), mixing (convection and conduction), and overall mass flow (i.e. the action of pumping water through the load circuit).
+The mixing effect is a nonlinear function of several liquid constants and the derivative of the temperature gradient in the tank, given in \textcite{Hawlader88} as
 $$ \epsilon_t = \left\{ \begin{array}{ll}
    (K \delta l)^2 \sqrt{g \beta \frac{\partial T}{\partial z}} & \text{if}\ \frac{\partial T}{\partial z} > 0 \\
    0 & \text{otherwise}.
