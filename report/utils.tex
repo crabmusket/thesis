@@ -1,12 +1,13 @@
+\usepackage{graphicx}
 \usepackage{todonotes}
-\usepackage{amssymb,amsmath}
+\usepackage{amssymb, amsmath}
 \usepackage[hidelinks]{hyperref}
 
 % Source code listings with my favourite colours.
 \usepackage{listings}
-\definecolor{mygreen}{rgb}{0,0.6,0}
-\definecolor{mygray}{rgb}{0.5,0.5,0.5}
-\definecolor{mymauve}{rgb}{0.58,0,0.82}
+\definecolor{mygreen}{rgb}{0, 0.6, 0}
+\definecolor{mygray}{rgb}{0.5, 0.5, 0.5}
+\definecolor{mymauve}{rgb}{0.58, 0, 0.82}
 
 % An \opinion command for when I make stuff up.
 \usepackage{color}
@@ -14,13 +15,13 @@
 
 % Bibliography using Biblatex.
 \usepackage[
-   firstinits=true,
-   backend=bibtex,
-   isbn=false,
-   doi=false,
-   backref=true,
-   maxbibnames=100,
-   maxcitenames=2
+   firstinits = true,
+   backend = bibtex,
+   isbn = false,
+   doi = false,
+   backref = true,
+   maxbibnames = 100,
+   maxcitenames = 2
 ]{biblatex}
 \newcommand{\authors}[1]{\citeauthor{#1}}
 
@@ -41,12 +42,12 @@
 % Optimisation problem command.
 \usepackage{xparse}
 \NewDocumentCommand%
-	{\optimise}
-	{m m m >{\SplitList{;}}m}
-	{\begin{aligned}
-			& \underset{#2}{\text{#1}} && #3 \\
-			& \text{subject to} && \ProcessList{#4}{\optimiseConstraint}.
-	\end{aligned}}
+   {\optimise}
+   {m m m >{\SplitList{;}}m}
+   {\begin{aligned}
+         & \underset{#2}{\text{#1}} && #3 \\
+         & \text{subject to} && \ProcessList{#4}{\optimiseConstraint}.
+   \end{aligned}}
 \newcommand\optimiseConstraint[1]{#1\let\optimiseConstraint\optimiseConstraintA}
 \newcommand\optimiseConstraintA[1]{, \\ &&& #1}
 
@@ -57,27 +58,27 @@
 % http://www.latex-community.org/forum/viewtopic.php?f=5&t=2539#p9976
 \let\orgautoref\autoref
 \providecommand{\Autoref}
-        {\def\equationautorefname{Equation}%
-         \def\figureautorefname{Figure}%
-         \def\subfigureautorefname{Figure}%
-         \def\Itemautorefname{Item}%
-         \def\tableautorefname{Table}%
-         \def\sectionautorefname{Section}%
-         \def\subsectionautorefname{Section}%
-         \def\subsubsectionautorefname{Section}%
-         \def\chapterautorefname{Section}%
-         \def\partautorefname{Part}%
-         \orgautoref}
+   {\def\equationautorefname{Equation}%
+    \def\figureautorefname{Figure}%
+    \def\subfigureautorefname{Figure}%
+    \def\Itemautorefname{Item}%
+    \def\tableautorefname{Table}%
+    \def\sectionautorefname{Section}%
+    \def\subsectionautorefname{Section}%
+    \def\subsubsectionautorefname{Section}%
+    \def\chapterautorefname{Section}%
+    \def\partautorefname{Part}%
+    \orgautoref}
 
 \renewcommand{\autoref}
-        {\def\equationautorefname{equation}%
-         \def\figureautorefname{figure}%
-         \def\subfigureautorefname{figure}%
-         \def\Itemautorefname{item}%
-         \def\tableautorefname{table}%
-         \def\sectionautorefname{section}%
-         \def\subsectionautorefname{section}%
-         \def\subsubsectionautorefname{section}%
-         \def\chapterautorefname{section}%
-         \def\partautorefname{part}%
-         \orgautoref}
+   {\def\equationautorefname{equation}%
+    \def\figureautorefname{figure}%
+    \def\subfigureautorefname{figure}%
+    \def\Itemautorefname{item}%
+    \def\tableautorefname{table}%
+    \def\sectionautorefname{section}%
+    \def\subsectionautorefname{section}%
+    \def\subsubsectionautorefname{section}%
+    \def\chapterautorefname{section}%
+    \def\partautorefname{part}%
+    \orgautoref}
