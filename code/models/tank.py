@@ -16,7 +16,8 @@ def model(h, r, N, P, heat, getAmbient, getLoad):
     d = float(h) / N # Depth of each segment
     v = pi * r * r * d # Volume of each segment
     m = v * rho # Mass of each segment
-    Pmcn = P / (m * c * len(heat)) # Rate of temperature something
+    if len(heat):
+        Pmcn = P / (m * c * len(heat)) # Rate of temperature something
     A1 = 2 * pi * r * d # Wall area of middle segment
     A2 = A1 + pi * r * r # Wall area of end segment
     A1Umc = (A1 * U) / (m * c) # Rate of temperature something
@@ -28,8 +29,8 @@ def model(h, r, N, P, heat, getAmbient, getLoad):
     gb = g * beta
     def epsilon(x, i):
         # Linear approximation of temperature gradient
-        dTi = x[1] - x[0] if i is 0 else x[i] - x[i-1] / d
-        return Kdl2 * sqrt(gb * max(0, -dTi))
+        dTdx = (x[0] - x[1] if i is 0 else x[i-1] - x[i]) / d
+        return Kdl2 * sqrt(gb * max(0, dTdx))
 
     # Rate of change
     def xdot(t, x, u):
