@@ -1,0 +1,140 @@
+\documentclass{article}
+
+\input{../report/utils}
+\addbibresource{../report/library.bib}
+
+\title{Stratified hot water tank models}
+\date{\today}
+\author{Daniel Buckmaster \\ dan.buckmaster@gmail.com \\ 310227488}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+\subsection{Hot water tanks}
+
+The hardware we consider is illustrated in \autoref{fig:system} (taken from \textcite{Cristofari02}).
+The storage tank has a cold water inlet at the bottom and a hot water outlet at the top (which comprise the load loop), and a cold water outlet at the bottom and hot water inlet at the top (which comprise the collector loop).
+Not shown are internal electric heating elements (because the paper this diagram is taken from did not model them).
+Also not shown is an external boiler, which would be connected to the tank via another own cold water outlet and hot water inlet pair (the booster loop).
+
+\begin{figure}
+   \centering
+   \includegraphics[width=\textwidth]{system}
+   \caption{Solar water heating system}
+   \label{fig:system}
+\end{figure}
+
+Since the late 80s~\cite{Hollands89} stratification has been noted as an important factor to consider when modelling and designing hot water storage.
+It is the natural tendency of water to form into vertical layers of similar temperature, as seen in the left-hand side of \autoref{fig:tank} (taken from \textcite{Pfeiffer11}).
+There is often a steep `thermocline', or region of water with a steep temperature gradient, separating relatively uniform regions of hot and cold water.
+
+\begin{figure}
+   \centering
+   \includegraphics[width=\textwidth]{tank}
+   \caption{Discretised water tank}
+   \label{fig:tank}
+\end{figure}
+
+This stratification means we cannot model hot water tanks as a mixed vessel with a single temperature.
+To do so would incorrectly predict the outlet and inlet temperatures of the tank, even though the overall energy balance may be retained.
+It may also underpredict the efficiency of a solar collector serving the tank, since these devices operate more effectively with a larget difference between inlet and outlet temperature.
+Critically, a predictive controller attempting to operate on a mixed tank model loses insight into the real state of the tank.
+This may prevent optimisations in cases where the entire tank does not need to be heated to the user's desired outlet temperature.
+
+\subsection{Models}
+
+I have studied two models: one from ETH in Zurich, described by \textcite{Pfeiffer11}, and the other developed by \textcite{Cristofari02}.
+Both models treat the hot water tank as a vertical stack of slices.
+Each slice is a layer of water with uniform temperature and pressure as illustrated in the right-hand side of \autoref{fig:tank}.
+Both models account for the flow of mass through the tank caused by 
+
+The ETH model does not deal explicitly with a solar water heating system, but studies the case of a regular hot water tank with two internal electric heating elements (labeled `a' in \autoref{fig:tank}).
+It also takes into account the effect of water buoyancy and mixing between layers.
+While \textcite{Hollands89} indicates that the degradation of stratification through conduction between layers can take days, and may be effectively ignored, the effect of buoyancy is important and is considered explicitly in the ETH model.
+It concerns the movement of water through the tank, rather than passive heat transfer between layers.
+
+The Cristofari model deals with a system that has no internal heating elements, but does have a collector loop.
+This model does not explicitly account for water buoyancy, instead modelling heat flows caused only by fluid flow.
+In effect, as cold water enters the bottom of the tank and hot water exits at the top (due to load), there will be a net cooling effect on all nodes.
+Similarly, as hot water enters from the collector and cold water is drawn off, tthere will be a net downward flow and heating effect.
+
+I extended this model myself to include a booster loop, which is handled identically to the collector loop.
+Instead of calculating its output temperature based on solar insolation and collector efficiency, the electrical power of the booster is used to determine the heat gain on the flow of liquid through it.
+
+\subsection{Parameters}
+
+All models treat the mass flow through both the collector and load loops as an uncontrollable factor.
+The flow through the load loop is determined only by the user, to whom we may assign some arbitrary schedule of hot water use.
+The flow through the collector loop is determined by some low-level controller, and we may treat the amount of energy we are able to extract from the sun as some fixed function of the current solar insolation.
+
+\section{ETH model}
+
+\subsection{Description}
+
+The ETH tank model is derived from this PDE governing the heat flow in the tank, presented in \textcite{Vrettos12}:
+\begin{equation} \label{eq:eth-pde}
+   \frac{\partial T}{\partial t} + V \frac{\partial T}{\partial x}
+   = a \epsilon_{\text{eff}} \frac{\partial^2 T}{\partial x^2}
+   - k(T - T_a)
+   + Q(x, t).
+\end{equation}
+Here $x$ represents the vertical position in the tank, $T$ the temperature at any given height $x$, $a\epsilon$ is a mixing factor, $k$ is the coefficient of heat loss to the ambient, and $Q$ represents the amount of energy added by internal heating at position $x$ and time $t$.
+
+This is simplified somewhat in \textcite{Pfeiffer11}, whose description I derived my code from.
+Pfeiffer's disk model is summarised in \autoref{fig:eth-disk}.
+Note that some of the factors in the diagram are named differently in the equations below.
+The element is subjected to several heat flows that affect its temperature, namely external factors, mixing, and mass flow:
+\begin{equation}
+   \label{eq:flow-total}
+   \flow{tot} = \flow{ext} + \flow{mix} + \flow{mflow},
+\end{equation}
+where $\flow{tot}$ is the final rate of change of the temperature of disk $i$.
+The factors that comprise this final result are:
+\begin{eqnarray}
+   \label{eq:flow-ext}
+   \flow{ext} &=& \flow{el} - \flow{loss} \nonumber\\
+              &=& \left(\frac{P_{\text{el}}}{m_i c n_{\text{el}}}\right) u
+                - \left(\frac{A_{\text{wall}, i} U}{m_i c}\right) (T_i - T_{\text{amb}}), \\
+   \label{eq:flow-mix}
+   \flow{mix} &=& \flow[i+1]{out} + \flow[i-1]{out} - 2 \flow{out}, \\
+   \label{eq:flow-mix-out}
+   \flow{out} &=& \left(\frac{k}{\rho c d^2} + \epsilon_{t, i}\right)T_i, \\
+   \label{eq:epsilon}
+   \epsilon_{t, i} &=& (K \delta l)^2 \sqrt{g \beta \max \left\{ 0, \frac{\partial T}{\partial z}\right\}}, \\
+   \label{eq:flow-mflow}
+   \flow{mflow} &=& \frac{\dot{m}}{m_i} (T_{i-1} - T_i).
+\end{eqnarray}
+
+These equations for $\flow{tot}$ can be used with an ODE solver to simulate the system's behavior over time.
+
+\begin{figure}
+   \centering
+   \includegraphics[width=0.7\textwidth]{eth-disk}
+   \caption{A single disk in the ETH model}
+   \label{fig:eth-disk}
+\end{figure}
+
+\subsection{Results}
+
+The current implementation of these equations produces \autoref{fig:eth-sim1}, in which the temperature of the top-most node falls dramatically, while that of the second-topmost node rises nearly symmetrically.
+The other nodes' temperatures fall slightly, seemingly due only to ambient losses.
+This simulation was performed with an initial uniform starting temperature of 45 degrees in all layers, and an exterior temperature of 24 degrees, with no power input.
+
+\begin{figure}
+   \centering
+   \includegraphics[width=\textwidth]{eth-sim2}
+   \caption{A single disk in the ETH model}
+   \label{fig:eth-sim1}
+\end{figure}
+
+\section{Cristofari model}
+
+\cite{Cristofari02}
+
+\clearpage
+\printbibliography[heading = bibintoc]
+
+\end{document}
