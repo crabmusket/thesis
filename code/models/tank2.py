@@ -2,6 +2,7 @@ from numpy import zeros
 from numpy.linalg import norm
 from math import pi, sqrt
 
+# Implement the hot water tank model of \textcite{Cristofari02}.
 def model(h, r, N, P, heat, getAmbient, getLoad):
     # Water and tank constants
     rho = 1000 # Water density
@@ -32,8 +33,9 @@ def model(h, r, N, P, heat, getAmbient, getLoad):
         else:
             return 1 if T[i+1] >= T_c > T[i] else 0
 
-    def mflow(t, T, i):
-        return 0
+    def mflow(t, T, u, i):
+        return getLoad(t)[0] * sum() -
+               u[0]          * sum()
 
     # Rate of change
     def xdot(t, T, u):

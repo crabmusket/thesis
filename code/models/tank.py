@@ -2,6 +2,7 @@ from numpy import zeros
 from numpy.linalg import norm
 from math import pi, sqrt
 
+# Implement the hot water tank model of \textcite{Pfeiffer11}.
 def model(h, r, N, P, heat, getAmbient, getLoad):
     # Water and tank constants
     rho = 1000 # Water density
@@ -28,6 +29,7 @@ def model(h, r, N, P, heat, getAmbient, getLoad):
     Kdl2 = (K * 2*r)**2
     gb = g * beta
     def epsilon(x, i):
+        return 0
         # Linear approximation of temperature gradient
         dTdx = (x[0] - x[1] if i is 0 else x[i-1] - x[i]) / d
         return Kdl2 * sqrt(gb * max(0, dTdx))
@@ -43,8 +45,7 @@ def model(h, r, N, P, heat, getAmbient, getLoad):
                 dt_ext += Pmcn * u[0]
 
             # Mixing between layers (\autoref{eq:flow-mix})
-            eps = epsilon(x, i)
-            dt_mix_out = (kpcd2 + eps) * x[i]
+            dt_mix_out = (kpcd2 + epsilon(x, i)) * x[i]
             if i is 0:
                 dt_mix_above = (kpcd2 + epsilon(x, i+1)) * x[i+1]
                 dt_mix = dt_mix_above - dt_mix_out
@@ -55,13 +56,13 @@ def model(h, r, N, P, heat, getAmbient, getLoad):
                 dt_mix_above = (kpcd2 + epsilon(x, i+1)) * x[i+1]
                 dt_mix_below = (kpcd2 + epsilon(x, i-1)) * x[i-1]
                 dt_mix = dt_mix_above + dt_mix_below - 2 * dt_mix_out
+                if i is 11:
+                    print kpcd2, dt_mix_above, dt_mix_below
 
             # Mass flow (\autoref{eq:flow-mflow})
             dt_mflow = 0
 
             # Final temperature change (\autoref{eq:flow-total})
             dx[i] = dt_ext + dt_mix + dt_mflow
-            if i is N-1 and False:
-                print dt_mix
         return dx
     return xdot

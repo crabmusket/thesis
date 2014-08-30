@@ -23,8 +23,8 @@ r = 0.4
 h = 1.3
 tankModel = tank.model(
     h = h, r = r, N = N,
-    heat = [],
-    P = 000,
+    heat = [N/2],
+    P = 5000,
     getAmbient = constArray([24]),
     getLoad = constArray([0])
 )
@@ -49,7 +49,8 @@ try:
     ylabel('Tank temperatures')
     xlabel('Time (s)')
     hs = [plot(ts, xs[i,:])[0] for i in range(N)]
-    legend(hs, map(str, range(N)), fontsize=10)
+    ls = [str(i) for i in range(N)]
+    legend(hs, ls, fontsize=10)
 
     #a2 = subplot(212, sharex=a1)
     #for i in range(len(us[:,0])):
