@@ -4,8 +4,10 @@
 \addbibresource{../report/library.bib}
 
 \title{Stratified hot water tank models}
-\date{\today}
-\author{Daniel Buckmaster \\ dan.buckmaster@gmail.com \\ 310227488}
+\date{August 2014}
+\author{Daniel Buckmaster \\
+        \href{mailto:daniel.buckmaster@sydney.edu.au}{daniel.buckmaster@sydney.edu.au} \\
+        310227488}
 
 \begin{document}
 
@@ -18,7 +20,7 @@
 The hardware we consider is illustrated in \autoref{fig:system} (taken from \textcite{Cristofari02}).
 The storage tank has a cold water inlet at the bottom and a hot water outlet at the top (which comprise the load loop), and a cold water outlet at the bottom and hot water inlet at the top (which comprise the collector loop).
 Not shown are internal electric heating elements (because the paper this diagram is taken from did not model them).
-Also not shown is an external boiler, which would be connected to the tank via another own cold water outlet and hot water inlet pair (the booster loop).
+Also not shown is an external boiler, which would be connected to the tank via another cold water outlet and hot water inlet pair (the booster loop).
 
 \begin{figure}
    \centering
@@ -49,7 +51,7 @@ This may prevent optimisations in cases where the entire tank does not need to b
 I have studied two models: one from ETH in Zurich, described by \textcite{Pfeiffer11}, and the other developed by \textcite{Cristofari02}.
 Both models treat the hot water tank as a vertical stack of slices.
 Each slice is a layer of water with uniform temperature and pressure as illustrated in the right-hand side of \autoref{fig:tank}.
-Both models account for the flow of mass through the tank caused by 
+Both models account for the flow of mass through the tank due to the load loop.
 
 The ETH model does not deal explicitly with a solar water heating system, but studies the case of a regular hot water tank with two internal electric heating elements (labeled `a' in \autoref{fig:tank}).
 It also takes into account the effect of water buoyancy and mixing between layers.
@@ -59,9 +61,9 @@ It concerns the movement of water through the tank, rather than passive heat tra
 The Cristofari model deals with a system that has no internal heating elements, but does have a collector loop.
 This model does not explicitly account for water buoyancy, instead modelling heat flows caused only by fluid flow.
 In effect, as cold water enters the bottom of the tank and hot water exits at the top (due to load), there will be a net cooling effect on all nodes.
-Similarly, as hot water enters from the collector and cold water is drawn off, tthere will be a net downward flow and heating effect.
+Similarly, as hot water enters from the collector and cold water is drawn off, there will be a net downward flow and heating effect.
 
-I extended this model myself to include a booster loop, which is handled identically to the collector loop.
+I intend to modify this model to include a booster loop, which is handled identically to the collector loop.
 Instead of calculating its output temperature based on solar insolation and collector efficiency, the electrical power of the booster is used to determine the heat gain on the flow of liquid through it.
 
 \subsection{Parameters}
@@ -109,6 +111,8 @@ The factors that comprise this final result are:
 \end{eqnarray}
 
 These equations for $\flow{tot}$ can be used with an ODE solver to simulate the system's behavior over time.
+Note that $\epsilon_t$ is the only nonlinear factor in this model.
+Pfeiffer notes that when modelling an entire population of water heaters, this factor was not implemented, and simply set to 0.
 
 \begin{figure}
    \centering
@@ -123,16 +127,71 @@ The current implementation of these equations produces \autoref{fig:eth-sim1}, i
 The other nodes' temperatures fall slightly, seemingly due only to ambient losses.
 This simulation was performed with an initial uniform starting temperature of 45 degrees in all layers, and an exterior temperature of 24 degrees, with no power input.
 
+Under identical initial conditions, \autoref{fig:eth-sim2} was produced if $\epsilon_t$ was held at 0 at all times, as Pfeiffer did in large-scale population experiments.
+The temperatures of the bottom-most and top-most nodes drop more rapidly than those of inner nodes, as expected, since these end-nodes have a larger surface area.
+The problem withn this model is demonstrated in \autoref{fig:eth-sim3} where heat is input into node 10, whose temperature grows without any mixing with adjacent nodes.
+Output indicates that some mixing is taking place, and the temperature of node 11 is indeed rising, but the factor $k / \rho c d^2$ is too small for the effect to be noticable on the same timescale as the heater.
+This is consistent with the findings by \authors{Hollands89} that conduction alone would only affect stratification over a period of days.
+I surmise that this effect would be mitigated if there were regular mass flows through the tank as well as internal heating, as this would outweigh the effect of conduction and buyoancy, but all these trials were performed without any mass flow.
+
 \begin{figure}
    \centering
-   \includegraphics[width=\textwidth]{eth-sim2}
-   \caption{A single disk in the ETH model}
+   \includegraphics[width=0.8\textwidth]{eth-sim1}
+   \caption{Simulation of ETH model with buoyancy}
    \label{fig:eth-sim1}
+\end{figure}
+
+\begin{figure}
+   \centering
+   \includegraphics[width=0.8\textwidth]{eth-sim2}
+   \caption{Simulation of ETH model without buoyancy}
+   \label{fig:eth-sim2}
+\end{figure}
+
+\begin{figure}
+   \centering
+   \includegraphics[width=0.8\textwidth]{eth-sim3}
+   \caption{Simulation of ETH model with heat input}
+   \label{fig:eth-sim3}
 \end{figure}
 
 \section{Cristofari model}
 
-\cite{Cristofari02}
+Cristofari's model~\cite{Cristofari02} places emphasis on the mass flow through the tank, since conduction is ignored and there is no internal heat source.
+At each timestep, the \emph{control function} for each inlet (collector and load) determines into which layer the mass flow enters the tank.
+This simulates the use of a stratification device which is intended to allow water to travel vertically through the tank and exit at an appropriate density level without disturbing the stratification outside the device.
+These devices are typically a narrow vertical tube of permeable fabric, or vented plastic.
+
+The equation governing the temperature change in each node in the Cristofari model is:
+\begin{equation}
+   \rho_i C_i v_i \frac{dT_i}{dt} = U_{\text{loss}} + U_{\text{collector inlet}} + U_{\text{load inlet}} + U_{\text{mflow}}.
+\end{equation}
+The two inlet heat flows apply only to one node each, as determined by the control function $B$ (see below).
+The mflow heat flow applies to all nodes, and includes the net flow of water through the tank due to the collector and load loops.
+\begin{eqnarray}
+   U_{\text{loss}} &=& U_s\ (T_a - T_i), \\
+   U_{\text{collector inlet}} &=& B^c_i\ \dot{m}_c\ C_i\ (T_c - T_i), \\
+   U_{\text{load inlet}} &=& B^l_i\ \dot{m}_l\ C_i\ (T_l - T_i), \\
+   U_{\text{mflow}} &=& \left\{ \begin{array}{ll}
+      \dot{m}_i C_i (T_{i-1} - T_i) & \dot{m}_i > 0 \\
+      \dot{m}_{i+1} C_i (T_i - T_{i+1}) & \dot{m}_{i+1} < 0
+   \end{array} \right..
+\end{eqnarray}
+The control functions are branching functions that determine which node receives the water flowing in at each inlet.
+The collector functions are evaluated at each node, but are only valued 1 at a single node.
+The collector control function $B^c$ for node $i$ selects the node whose temperature is greater than the collector inlet temperature $T_c$, and where the temperature of the node above is greater than the collector inlet temperature.
+\begin{equation}
+   B^c_i = \left\{ \begin{array}{ll}
+      1 & T_c > T_i, i = N-1 \\
+      1 & T_{i+1} \ge T_c > T_i, i \ne N-1 \\
+      0 & \text{otherwise}
+   \end{array} \right.
+\end{equation}
+There is an analogous load control function $B^l$ which works similarly, though the load inlet is cold and enters from the bottom.
+The net heat change due to mass flow is calculated by summing the contributions of the control functions for all nodes above or below a given node.
+\begin{equation}
+   \dot{m}_i = \dot{m}_l \sum_{j=1}^{i-1} B^l_j - \dot{m}_c \sum_{j=i+1}^{N-1} B^c_j
+\end{equation}
 
 \clearpage
 \printbibliography[heading = bibintoc]
