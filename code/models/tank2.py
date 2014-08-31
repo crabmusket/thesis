@@ -17,7 +17,7 @@ def model(h, r, N, P, getAmbient, getLoad, getCollector):
     d = float(h) / N # Depth of each segment
     v = pi * r * r * d # Volume of each segment
     A_int = 2 * pi * r * d # Wall area of interior segment
-    A_end = A1 + pi * r * r # Wall area of end segment
+    A_end = A_int + pi * r * r # Wall area of end segment
     U_s_int = A_int * U # Rate of temperature something
     U_s_end = A_end * U # Rate of temperature something else
 
@@ -33,29 +33,36 @@ def model(h, r, N, P, getAmbient, getLoad, getCollector):
         else:
             return 1 if T[i+1] >= T_c > T[i] else 0
 
-    def mflow(t, T, u, i):
-        load = getLoad(t)
-        coll = getCollector(t)
-        return load[0] * sum([BLoad(load[1], T, j) for j in range(0, i)])
-             - coll[0] * sum([BColl(coll[1], T, j) for j in range(i+1, N)])
+    # Net mass flow into node i from node i+1, i.e. in the direction of the
+    # collector loop (downwards).
+    def mflow(T, u, i, load, coll):
+        return coll[0] * sum([BColl(coll[1], T, j) for j in range(i+1, N)]) \
+             - load[0] * sum([BLoad(load[1], T, j) for j in range(0, i)])
 
     # Rate of change
     def xdot(t, T, u):
         dT = zeros(T.shape)
+        load = getLoad(t)
+        coll = getCollector(t)
         for i in range(N):
             # Ambient temperature loss
-            U_amb = (U_s_end if i in [0, N-1] else U_s_int) * (getAmbient(t)[0] - x[i])
-            U_inlet = 
+            U_amb = (U_s_end if i in [0, N-1] else U_s_int) * (getAmbient(t)[0] - T[i])
+
+            # Temperature flow from collector/load inlets.
+            U_inlet = BLoad(load[1], T, i) * load[0] * C * (load[1] - T[i]) \
+                    + BColl(coll[1], T, i) * coll[0] * C * (coll[1] - T[i])
+
+            # Mass flow.
             U_mflow = 0
             if i is 0:
-                U_mflow = min(0, mflow(t, T, u, i+1)) * C * (T[i] - T[i+1])
+                U_mflow = max(0, mflow(T, u, i, load, coll))   * C * (T[i+1] - T[i])
             elif i is N-1:
-                U_mflow = max(0, mflow(t, T, u, i))   * C * (T[i-1] - T[i])
+                U_mflow = min(0, mflow(T, u, i-1, load, coll)) * C * (T[i] - T[i-1])
             else:
-                U_mflow = max(0, mflow(t, T, u, i))   * C * (T[i-1] - T[i])
-                        + min(0, mflow(t, T, u, i+1)) * C * (T[i] - T[i+1])
+                U_mflow = max(0, mflow(T, u, i, load, coll))   * C * (T[i+1] - T[i]) \
+                        + min(0, mflow(T, u, i-1, load, coll)) * C * (T[i] - T[i-1])
 
             # Final temperature change (\autoref{eq:node-dT})
-            dT[i] = (U_amb + U_input + U_mflow) / (rho * C * v)
+            dT[i] = (U_amb + U_inlet + U_mflow) / (rho * C * v)
         return dT
     return xdot
