@@ -3,7 +3,7 @@ from numpy.linalg import norm
 from math import pi, sqrt
 
 # Implement the hot water tank model of \textcite{Cristofari02}.
-def model(h, r, N, P, heat, getAmbient, getLoad):
+def model(h, r, N, P, getAmbient, getLoad, getCollector):
     # Water and tank constants
     rho = 1000 # Water density
     C = 2400 # Specific heat capacity
@@ -21,21 +21,23 @@ def model(h, r, N, P, heat, getAmbient, getLoad):
     U_s_int = A_int * U # Rate of temperature something
     U_s_end = A_end * U # Rate of temperature something else
 
-    def controlBot(T_l, T, i):
+    def BLoad(T_l, T, i):
         if i is 0:
             return 1 if T_l < T[i] else 0
         else:
             return 1 if T[i-1] <= T_l < T[i] else 0
 
-    def controlTop(T_c, T, i):
+    def BColl(T_c, T, i):
         if i is N-1:
             return 1 if T_c > T[i] else 0
         else:
             return 1 if T[i+1] >= T_c > T[i] else 0
 
     def mflow(t, T, u, i):
-        return getLoad(t)[0] * sum() -
-               u[0]          * sum()
+        load = getLoad(t)
+        coll = getCollector(t)
+        return load[0] * sum([BLoad(load[1], T, j) for j in range(0, i)])
+             - coll[0] * sum([BColl(coll[1], T, j) for j in range(i+1, N)])
 
     # Rate of change
     def xdot(t, T, u):
@@ -43,8 +45,15 @@ def model(h, r, N, P, heat, getAmbient, getLoad):
         for i in range(N):
             # Ambient temperature loss
             U_amb = (U_s_end if i in [0, N-1] else U_s_int) * (getAmbient(t)[0] - x[i])
-            U_input = 0
+            U_inlet = 
             U_mflow = 0
+            if i is 0:
+                U_mflow = min(0, mflow(t, T, u, i+1)) * C * (T[i] - T[i+1])
+            elif i is N-1:
+                U_mflow = max(0, mflow(t, T, u, i))   * C * (T[i-1] - T[i])
+            else:
+                U_mflow = max(0, mflow(t, T, u, i))   * C * (T[i-1] - T[i])
+                        + min(0, mflow(t, T, u, i+1)) * C * (T[i] - T[i+1])
 
             # Final temperature change (\autoref{eq:node-dT})
             dT[i] = (U_amb + U_input + U_mflow) / (rho * C * v)
