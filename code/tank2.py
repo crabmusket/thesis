@@ -14,11 +14,6 @@ import warnings
 warnings.simplefilter('ignore', np.ComplexWarning)
 print 'Beginning simulation'
 
-def constArray(val):
-    def inner(*args):
-        return array(val)
-    return inner
-
 # One hour change.
 collector = Interval(array) \
     .const([0.1, 60], 60*60) \
@@ -36,9 +31,9 @@ h = 1.3
 tankModel = tank.model(
     h = h, r = r, N = N,
     P = 5000,
-    getAmbient = constArray([24]),
-    getLoad = constArray([0.05, 24]),
-    getCollector = constArray([0.1, 60])
+    getAmbient = Interval(array).const([24]),
+    getLoad = Interval(array).const([0.1, 24]),
+    getCollector = Interval(array).const([0, 60])
 )
 
 dt = 5
@@ -46,7 +41,7 @@ tf = 60 * 60 * 1
 x0 = array([45] * N).T
 s = simulation.Run(
     xdot = tankModel,
-    u = constArray([0]),
+    u = lambda *args: array([0]),
     x0 = x0,
     dt = dt,
     tf = tf

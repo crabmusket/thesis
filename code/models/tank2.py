@@ -54,13 +54,10 @@ def model(h, r, N, P, getAmbient, getLoad, getCollector):
 
             # Mass flow.
             U_mflow = 0
-            if i is 0:
-                U_mflow = max(0, mflow(T, u, i, load, coll))   * C * (T[i+1] - T[i])
-            elif i is N-1:
-                U_mflow = min(0, mflow(T, u, i-1, load, coll)) * C * (T[i] - T[i-1])
-            else:
-                U_mflow = max(0, mflow(T, u, i, load, coll))   * C * (T[i+1] - T[i]) \
-                        + min(0, mflow(T, u, i-1, load, coll)) * C * (T[i] - T[i-1])
+            if i > 0:
+                U_mflow += min(0, mflow(T, u, i-1, load, coll)) * C * (T[i] - T[i-1])
+            if i < N-1:
+                U_mflow += max(0, mflow(T, u, i,   load, coll)) * C * (T[i+1] - T[i])
 
             # Final temperature change (\autoref{eq:node-dT})
             dT[i] = (U_amb + U_inlet + U_mflow) / (rho * C * v)
