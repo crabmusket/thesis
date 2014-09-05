@@ -14,14 +14,16 @@ import warnings
 warnings.simplefilter('ignore', np.ComplexWarning)
 print 'Beginning simulation'
 
-# One hour change.
+# Charges at hour 0 and hour 6.
 collector = Interval(array) \
     .const([0.1, 60], 60*60) \
+    .const([0, 0], 60*60*5) \
+    .const([0.05, 60], 60*60*2) \
     .const([0, 0])
 
-# Five hour delay, then 15 minute draw.
+# 15 minute draw at hour 4.
 load = Interval(array) \
-    .const([0, 0],    60*60*5) \
+    .const([0, 0],    60*60*4) \
     .const([0.2, 24], 60*15) \
     .const([0, 0])
 
@@ -32,12 +34,12 @@ tankModel = tank.model(
     h = h, r = r, N = N,
     P = 5000,
     getAmbient = Interval(array).const([24]),
-    getLoad = Interval(array).const([0.1, 24]),
-    getCollector = Interval(array).const([0, 60])
+    getLoad = load,
+    getCollector = collector
 )
 
 dt = 5
-tf = 60 * 60 * 1
+tf = 60 * 60 * 12
 x0 = array([45] * N).T
 s = simulation.Run(
     xdot = tankModel,

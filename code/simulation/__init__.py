@@ -12,7 +12,10 @@ class Run(object):
     def result(self):
         t0 = 0
         sim = (ode(self.model)
-                .set_integrator('zvode', method='bdf', with_jacobian=False)
+                .set_integrator('zvode',
+                    method = 'bdf',
+                    with_jacobian = False,
+                    max_step = self.dt)
                 .set_initial_value(self.x0, t0))
         results = []
         inputs = []
