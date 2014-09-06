@@ -32,18 +32,19 @@ r = 0.4
 h = 1.3
 tankModel = tank.model(
     h = h, r = r, N = N,
-    P = 5000,
+    P = 1000,
+    auxOutlet = N/2,
     getAmbient = Interval(array).const([24]),
-    getLoad = load,
-    getCollector = collector
+    getLoad = Interval(array).const([0, 24]),
+    getCollector = Interval(array).const([0, 60])
 )
 
 dt = 5
-tf = 60 * 60 * 12
+tf = 60 * 60 * 3
 x0 = array([45] * N).T
 s = simulation.Run(
     xdot = tankModel,
-    u = lambda *args: array([0]),
+    u = lambda *args: array([0.01]),
     x0 = x0,
     dt = dt,
     tf = tf

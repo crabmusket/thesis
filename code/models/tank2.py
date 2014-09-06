@@ -3,7 +3,7 @@ from numpy.linalg import norm
 from math import pi, sqrt
 
 # Implement the hot water tank model of \textcite{Cristofari02}.
-def model(h, r, N, P, getAmbient, getLoad, getCollector):
+def model(h, r, N, P, auxOutlet, getAmbient, getLoad, getCollector):
     # Water and tank constants
     rho = 1000 # Water density
     C = 2400 # Specific heat capacity
@@ -37,26 +37,40 @@ def model(h, r, N, P, getAmbient, getLoad, getCollector):
 
     # Net mass flow into node i from node i+1, i.e. in the direction of the
     # collector loop (downwards).
-    def mflow(T, u, i, load, coll):
-        return coll[0] * sum([BColl(coll[1], T, j) for j in [N-1] + range(i+1, N-1)]) \
-             - load[0] * sum([BLoad(load[1], T, j) for j in [0] + range(1, i-1)])
+    def mflow(T, u, i, load, coll, aux):
+        return coll[0] * sum([ctrlHot (coll[1], T, j) for j in [N-1] + range(i+1, N-1)]) \
+             - load[0] * sum([ctrlCold(load[1], T, j) for j in [0] + range(1, i-1)]) \
+             + aux[0]  * (int(i >= auxOutlet) - \
+                          sum([ctrlHot(aux[1],  T, j) for j in [0] + range(1, i+1)]))
 
     # Rate of change
     def xdot(t, T, u):
         dT = zeros(T.shape)
+
+        # Get current load and disturbance conditions.
         load = getLoad(t)
         coll = getCollector(t)
-        m  = lambda i: mflow(T, u, i, load, coll)
+        T_amb = getAmbient(t)[0]
+
+        # Calculate the water temperature the aux heater will achieve, given its
+        # inlet temperature, flow, and power rating.
+        m_aux = max(0, u[0])
+        T_aux = T[auxOutlet] + (P / (m_aux * C) if m_aux > 0 else 0)
+
+        # Convenience functions.
+        m  = lambda i: mflow(T, u, i, load, coll, [m_aux, T_aux])
         Bl = lambda i: ctrlCold(load[1], T, i)
         Bc = lambda i: ctrlHot (coll[1], T, i)
+        Bu = lambda i: ctrlHot (T_aux,   T, i)
 
         for i in range(0, N):
             # Ambient temperature loss
-            U_amb = (U_s_end if i in [0, N-1] else U_s_int) * (getAmbient(t)[0] - T[i])
+            U_amb = (U_s_end if i in [0, N-1] else U_s_int) * (T_amb - T[i])
 
             # Temperature flow from collector/load inlets.
             U_inlet = Bl(i) * load[0] * C * (load[1] - T[i]) \
-                    + Bc(i) * coll[0] * C * (coll[1] - T[i])
+                    + Bc(i) * coll[0] * C * (coll[1] - T[i]) \
+                    + Bu(i) * m_aux   * C * (T_aux   - T[i])
 
             # Mass flow.
             U_mflow = (min(0, m(i-1)) * C * (T[i] - T[i-1]) if i > 0 else 0) \
