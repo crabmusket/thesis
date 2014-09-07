@@ -5,7 +5,7 @@ from matplotlib.pyplot import * # Grab MATLAB plotting functions
 
 import simulation
 from simulation.interval import Interval
-from controllers import mpc
+from controllers.thermostat import thermostat
 from models import tank2 as tank
 from numpy import array, linspace
 from operator import add
@@ -30,21 +30,22 @@ load = Interval(array) \
 N = 20
 r = 0.4
 h = 1.3
+auxOutlet = N/2
 tankModel = tank.model(
     h = h, r = r, N = N,
-    P = 1000,
-    auxOutlet = N/2,
+    P = 2000,
+    auxOutlet = auxOutlet,
     getAmbient = Interval(array).const([24]),
     getLoad = Interval(array).const([0, 24]),
     getCollector = Interval(array).const([0, 60])
 )
 
 dt = 5
-tf = 60 * 60 * 3
-x0 = array([45] * N).T
+tf = 60 * 60 * 5
+x0 = array([24] * N).T
 s = simulation.Run(
     xdot = tankModel,
-    u = lambda *args: array([0.01]),
+    u = thermostat(auxOutlet, 0.03, 60, 5),
     x0 = x0,
     dt = dt,
     tf = tf
@@ -54,23 +55,24 @@ s = simulation.Run(
 ts = linspace(0, tf, num = len(xs[0,:]))
 
 toHours = lambda ts: map(lambda t: t / (60*60), ts)
+th = toHours(ts)
 
 try:
     figure()
-    #a1 = subplot(211)
+    a1 = subplot(211)
     ylabel('Tank temperatures')
     xlabel('Time (h)')
-    hs = [plot(toHours(ts), xs[i,:])[0] for i in range(N)]
+    hs = [plot(th, xs[i,:])[0] for i in range(N)]
     ls = [str(i) for i in range(N)]
-    legend(reversed(hs), reversed(ls), fontsize=10)
-
-    #a2 = subplot(212, sharex=a1)
-    #for i in range(len(us[:,0])):
-    #    step(ts, us[i,:])
-    #ylabel('Control effort')
-    #xlabel('Time (s)')
-
     axis(map(add, [0, 0, -2, 2], axis()))
+    legend(reversed(hs), reversed(ls), fontsize=6)
+
+    a2 = subplot(212, sharex=a1)
+    for i in range(len(us[:,0])):
+        step(th, us[i,:])
+    ylabel('Control effort')
+    xlabel('Time (s)')
+
     savefig('sim.png')
 
 except Exception as e:
