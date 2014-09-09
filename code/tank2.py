@@ -3,15 +3,18 @@ import matplotlib
 matplotlib.use('agg')
 from matplotlib.pyplot import * # Grab MATLAB plotting functions
 
+import warnings
+warnings.simplefilter('ignore', np.ComplexWarning)
+
 import simulation
 from simulation.interval import Interval
 from controllers.thermostat import thermostat
 from models import tank2 as tank
 from numpy import array, linspace
 from operator import add
+from datetime import timedelta, datetime
+import prediction.ambient
 
-import warnings
-warnings.simplefilter('ignore', np.ComplexWarning)
 print 'Beginning simulation'
 
 # Charges at hour 0 and hour 6.
@@ -26,6 +29,9 @@ load = Interval(array) \
     .const([0, 0],    60*60*4) \
     .const([0.2, 24], 60*15) \
     .const([0, 0])
+
+startTime = datetime(2014, 9, 9, 04, 00, 00)
+ambient = prediction.ambient.make(start = startTime)
 
 N = 20
 r = 0.4

@@ -6,7 +6,7 @@ from ..utils import iterate, take
 def predictedFrom(time, over, interval):
     steps = ceil(over.total_seconds() / interval.total_seconds())
     times = take(steps, iterate(lambda t: t + interval, time))
-    values = map(lambda t: predictedAt(t), times)
+    values = map(predictedAt, times)
     return (times, values)
 
 directPeak   = 10
