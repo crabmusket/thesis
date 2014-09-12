@@ -1,6 +1,6 @@
 \usepackage{graphicx}
 \usepackage{todonotes}
-\usepackage{amssymb, amsmath}
+\usepackage{amssymb, amsmath, mathtools}
 \usepackage[hidelinks]{hyperref}
 
 % Source code listings with my favourite colours.
@@ -53,6 +53,8 @@
 
 % For defining heat flows in the model chapter.
 \newcommand{\flow}[2][i]{(\dot{T}_{#1})_{\;\text{#2}}}
+\newcommand{\Q}[2][i]{Q_{\text{#2}, #1}}
+\newcommand{\B}[2][i]{\mathrm{B}_{\text{#2}, #1}}
 
 % Autoref command for capitalisation.
 % http://www.latex-community.org/forum/viewtopic.php?f=5&t=2539#p9976

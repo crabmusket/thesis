@@ -6,39 +6,87 @@
 A hot water tank is a complex nonlinear system when stratification is considered.
 It is desirable to develop an accurate simulation of the system in order to test the validity of controllers designed with simplified models.
 
-A popular tank model, as discussed in \autoref{sec:review:stratified-tank-models}, treats the tank as a stack of identical vertical disks with their own heat flow equations.
-I will reproduce this model, relying on the description in \textcite{Pfeiffer11} of \textcite{Koch11}, which this author has not been able to base work off first-hand.
-\todo{Is that ok?}
-The solar hot water input will be handled in a similar fashion to that of \textcite{Cristofari02}, who also used a discretised hot water tank, but had no electric heaters, only dealing with flows of hot and cold water into and out of the tank.
+The popular multinode tank model, as discussed in \autoref{sec:review:stratified-tank-models}, treats the tank as a stack of identical vertical disks with their own heat flow equations.
+I will reproduce this model, relying on the description in \textcite{Cristofari02} with my own augmentation to handle the auxiliary heater, which was not present in that work.
 Note that this approach assumes stratification baffle devices are present on the solar and mains inputs into the tank, and that these devices work perfectly.
 
 \subsection{Discretised tank model}
 
 The tank is split into $N$ identical horizontal disks as illustrated in \autoref{fig:models:discretised-tank}, numbered $0$ (bottom) to $N-1$ (top).
 One of these disks is detailed in \autoref{fig:models:discretised-disk}.
-
+The heat flows on this diagram are governed by the equation:
 \begin{equation}
    \label{eq:node-dT}
-   \rho_i C_i v_i \dot{T}_i = U_{amb} + U_{input} + u_{mflow}
+   \rho_i C_i v_i \dot{T}_i = \Q{amb} + \Q{mflow} + \Q{inlet}
+\end{equation}
+That is, the total energy flow through the node can be broken into three parts: ambient losses, changes from the mass flow through the tank while charging/drawing, and input from the three heat/cold inlet: the collector inlet, mains inlet, and auxiliary inlet.
+
+The ambient term is a simple equation accounting for the surface area of an element and its current temperature relative to the exterior ambient temperature.
+The parameter $U_{s, i}$ accounts for the different surface areas of the nodes at each end of the tank.
+\begin{equation}
+   \Q{amb} = U_{s, i} (T_a - T_i)
+\end{equation}
+The mflow energy flow accounts for the heat that enters and exits each node carried by the actual volume of water that flows through it.
+As water is physically flowing through the tank during charging (hot water entering from the solar collector) and drawing (hot water exiting to the load), the composition of each node changes.
+The factor $\dot{m}_i$, defined below, refers to the amount of water entering node $i$ from node $i+1$, the node above it, and is therefore positive when water is flowing downwards through the tank (in the direction of drawing).
+\begin{equation}
+   \Q{mflow} = \max \left\{ 0, \dot{m}_i \right\}     C_i (T_{i+1} - T_i)
+             + \min \left\{ 0, \dot{m}_{i-1} \right\} C_i (T_i - T_{i-1})
+\end{equation}
+Finally, the heat flow from each inlet is calculated in terms of its current mass flow and temperature.
+$\Q{aux}$ represents the head gained due to the auxiliary input, which will be covered below.
+\begin{equation}
+   \label{eq:Q-inlet}
+   \Q{inlet} = \B{col} \dot{m}_c (T_c - T_i)
+             + \B{load} \dot{m}_l (T_l - T_i)
+             + \Q{aux}
+\end{equation}
+Note that special cases are necessary for the end nodes, as functions on indices $N$ and $-1$ are not defined.
+
+In \autoref{eq:Q-inlet} we introduced the two \emph{control functions} $\B{col}$ and $\B{load}$ defined by \authors{Cristofari02}, which are binary indicator functions that determine which nodes receive hot and cold water flows from the inlets.
+These control functions simulate the hot and cold water from the collector and load passing through stratification devices as they enter the tank, so that they are distributed to the water layer which most appropriately matches their temperature.
+They only ever return 1 for a single node in the tank.
+They are defined as follows:
+\begin{eqnarray}
+   \B{col} &=& \begin{dcases*}
+      1 & if $T_c > T_i$ and $i = N-1$ \\
+      1 & if $T_{i+1} \ge T_c > T_i$ and $i < N-1$ \\
+      0 & otherwise
+   \end{dcases*}
+   \\
+   \B{load} &=& \begin{dcases*}
+      1 & if $T_l < T_i$ and $i = 0$ \\
+      1 & if $T_{i-1} \le T_l < T_i$ and $i > 0$ \\
+      0 & otherwise
+   \end{dcases*}
+\end{eqnarray}
+The mass flow through each node is defined by \authors{Cristofari02} using sums of these collector functions to express the presence of an inlet above/below the current node being examined.
+\begin{equation}
+   \dot{m}_i = \dot{m}_l \sum_{j=1}^{i-1} \B{load}
+             - \dot{m}_c \sum_{j=i+1}^{N-1} \B{col}
+             + \dot{m}_{i, \text{aux}}
+\end{equation}
+Note again that the flow is positive in the direction of the load loop (downwards).
+
+\subsection{Auxiliary input}
+
+\begin{equation}
+   T_x = 
 \end{equation}
 
 \begin{equation}
-   U_{amb} = U_s (T_a - T_i)
+   \label{eq:Q-aux}
+   \Q{aux} = 
 \end{equation}
 
 \begin{equation}
-   U_{input} = B^c_i \dot{m}_c (T_c - T_i) + B^l_i \dot{m}_l (T_l - T_i)
+   \label{eq:B-aux}
+   \B{aux} = \begin{dcases*}
+      1 & if $T_x > T_i$ and $i = N-1$ \\
+      1 & if $T_{i+1} \ge T_x > T_i$ and $i < N-1$ \\
+      0 & otherwise
+   \end{dcases*}
 \end{equation}
-
-\begin{equation}
-   U_{mflow} = \dot{m}_i C_i (T_{i-1} - T_i) (\dot{m}_i > 0) + \dot{m}_{i+1} C_i (T_i - T_{i+1}) (\dot{m}_{i+1} < 0)
-\end{equation}
-
-\begin{equation}
-   \dot{m}_i = \dot{m}_l \sum_{j=1}^{i-1} B^l_j - \dot{m}_c \sum_{j=i+1}^{N-1} B^c_j
-\end{equation}
-
-\subsection{Solar hot water input}
 
 \subsection{Model validity}
 
