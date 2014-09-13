@@ -28,11 +28,12 @@ The parameter $U_{s, i}$ accounts for the different surface areas of the nodes a
 \end{equation}
 The mflow energy flow accounts for the heat that enters and exits each node carried by the actual volume of water that flows through it.
 As water is physically flowing through the tank during charging (hot water entering from the solar collector) and drawing (hot water exiting to the load), the composition of each node changes.
-The factor $\dot{m}_i$, defined below, refers to the amount of water entering node $i$ from node $i+1$, the node above it, and is therefore positive when water is flowing downwards through the tank (in the direction of drawing).
+The factor $\dot{m}_i$, defined in \autoref{eq:mdot}, refers to the amount of water entering node $i$ from node $i+1$, the node above it, and is therefore positive when water is flowing downwards through the tank (in the direction of drawing).
 \begin{equation}
    \Q{mflow} = \max \left\{ 0, \dot{m}_i \right\}     C_i (T_{i+1} - T_i)
              + \min \left\{ 0, \dot{m}_{i-1} \right\} C_i (T_i - T_{i-1})
 \end{equation}
+We additionally define $\dot{m}_{N-1} = \dot{m}_{-1} = 0$ to handle the end cases.
 Finally, the heat flow from each inlet is calculated in terms of its current mass flow and temperature.
 $\Q{aux}$ represents the head gained due to the auxiliary input, which will be covered below.
 \begin{equation}
@@ -41,9 +42,9 @@ $\Q{aux}$ represents the head gained due to the auxiliary input, which will be c
              + \B{load} \dot{m}_l (T_l - T_i)
              + \Q{aux}
 \end{equation}
-Note that special cases are necessary for the end nodes, as functions on indices $N$ and $-1$ are not defined.
+where $\Q{aux}$ is the heat from the auxiliary input, defined below in \autoref{eq:Q-aux}.
 
-In \autoref{eq:Q-inlet} we introduced the two \emph{control functions} $\B{col}$ and $\B{load}$ defined by \authors{Cristofari02}, which are binary indicator functions that determine which nodes receive hot and cold water flows from the inlets.
+\Autoref{eq:Q-inlet} introduced the two \emph{control functions} $\B{col}$ and $\B{load}$ used by \authors{Cristofari02}, which are binary indicator functions that determine which nodes receive hot and cold water flows from the inlets.
 These control functions simulate the hot and cold water from the collector and load passing through stratification devices as they enter the tank, so that they are distributed to the water layer which most appropriately matches their temperature.
 They only ever return 1 for a single node in the tank.
 They are defined as follows:
@@ -60,39 +61,72 @@ They are defined as follows:
       0 & otherwise
    \end{dcases*}
 \end{eqnarray}
-The mass flow through each node is defined by \authors{Cristofari02} using sums of these collector functions to express the presence of an inlet above/below the current node being examined.
+The mass flow through each node is defined by \authors{Cristofari02} using sums of these collector functions to express the presence of an inlet above/below the current node being examined as
 \begin{equation}
+	\label{eq:mdot}
    \dot{m}_i = \dot{m}_l \sum_{j=1}^{i-1} \B{load}
              - \dot{m}_c \sum_{j=i+1}^{N-1} \B{col}
-             + \dot{m}_{i, \text{aux}}
+             + \dot{m}_{\text{aux}, i}.
 \end{equation}
+$\dot{m}_{\text{aux}, i}$ represents the mass flow due to the auxiliary heating loop described in \autoref{eq:mdot-aux}.
 Note again that the flow is positive in the direction of the load loop (downwards).
 
 \subsection{Auxiliary input}
 
+In addition to the solar collector providing hot water to the tank, we wish to simulate an auxiliary heater, which in an actual system may be a gas burner, or an electric element connected to mains power.
+For the purposes of our simulation we will treat this auxiliary heat as a second collector loop which draws water from the node $i = O$ (for outlet), heats it directly, and re-introduces it into the tank using the usual stratification mechanism.
+The heating element has a fixed power rating $P$, but we are able to control the mass flow through the auxiliary water loop, $\dot{m}_x$.
+The temperature of the water re-entering the tank after being heated is denoted by $T_x$.
+It is calculated by assuming that the water drawn out of node $O$, $T_O$, is constant across the time interval we simulate over, and calculating the temperature gain given the heater's power rating:
 \begin{equation}
-   T_x = 
+	\label{eq:T-aux}
+	T_x = T_O + \frac{P}{m_x * C_i}.
 \end{equation}
-
+Of course, this equation is only defined for $m_x \ne 0$.
+In cases of zero flow through the auxiliary loop, this calculation is not performed.
+The heat entering each node due to the auxiliary heater is given by
 \begin{equation}
    \label{eq:Q-aux}
-   \Q{aux} = 
+	\Q{aux} = \B{aux} \dot{m}_x (T_x - T_i),
 \end{equation}
-
+where $\B{aux}$, the auxiliary inlet's control function, is defined similarly to that of the collector (since both are treated as `hot' water):
 \begin{equation}
    \label{eq:B-aux}
    \B{aux} = \begin{dcases*}
+		0 & if $i < O$ \\
       1 & if $T_x > T_i$ and $i = N-1$ \\
       1 & if $T_{i+1} \ge T_x > T_i$ and $i < N-1$ \\
-      0 & otherwise
+      0 & otherwise.
    \end{dcases*}
 \end{equation}
+Finally, we must define the mass flow through a node due to the operation of the auxiliary loop.
+It is slightly more complex than the mass flows caused by the collector and load loops, because their outlets are fixed at the bottom and top of the tank respectively.
+It is given by
+\begin{equation}
+   \label{eq:mdot-aux}
+	\dot{m}_{\text{aux}, i} = \dot{m}_l \left( o_i - \sum_{j=1}^{i-1} \B{aux} \right)
+\end{equation}
+where $o_i$ is a binary factor that selects nodes above the auxiliary outlet:
+$$
+	o_i = \begin{dcases*}
+		1 & if $i \ge O$ \\
+		0 & otherwise.
+   \end{dcases*}
+$$
+
+The Python source code implementing this tank model is found in \autoref{app:code:models:tank2}.
 
 \subsection{Model validity}
 
+My implementation of the model was not verified against empirical data.
+As this work focuses on comparing control strategies on the system, efforts were not made to ensure that physical parameters were realistic, only plausible.
+
+\section{Weather and load pattern models}
+
+
 \section{Controller models}
 
-\subsection{Discrete-time state space model}
+\subsection{Linear state space model}
 
 This is how we make a state-space model, consider the system as linear time-varying, but say it in a way that doesn't exclude the possibility that I might come up with other models, for example based on step response.
 \todo{Fix these words.}
@@ -103,7 +137,7 @@ This is how we make a state-space model, consider the system as linear time-vary
    \vec{y} &=& C(t) \vec{x}
 \end{eqnarray}
 where $\vec{x}$ represents the state vector, $\vec{u}$ the input vector, $\vec{y}$ the output vector, and $t$ the current time.
-From now, all $t$ arguments will be dropped for clarity; is it understood that all matrices may vary in time, and that $\dvec{x}$ and $\vec{y}$ are functions of time.
+From now, all $t$ arguments will be dropped for clarity; it is understood that all matrices may vary in time, and that $\dvec{x}$ and $\vec{y}$ are functions of time.
 We discretise this system in the usual manner for linear state-space systems, assuming a zero-order hold on input signals between each time step, forming a new set of discrete-time equations
 \begin{eqnarray}
    \label{eq:discretise-A}
