@@ -3,12 +3,17 @@ class Interval(object):
         self.intervals = []
         self.fn = f
 
-    def const(self, v, t=0):
+    def const_for(self, v, t=0):
         v0 = self.fn(v) if self.fn is not None else v
         tf = t
         if len(self.intervals) > 0:
             tf = t + self.intervals[-1][0]
         self.intervals.append((tf, v0))
+        return self
+
+    def const_til(self, v, t):
+        v0 = self.fn(v) if self.fn is not None else v
+        self.intervals.append((t, v0))
         return self
 
     def __call__(self, t):

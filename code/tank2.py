@@ -14,6 +14,7 @@ from numpy import array, linspace
 from operator import add
 from datetime import timedelta, datetime
 import prediction.ambient
+import prediction.load
 
 print 'Beginning simulation'
 
@@ -32,6 +33,7 @@ load = Interval(array) \
 
 startTime = datetime(2014, 9, 9, 04, 00, 00)
 ambient = prediction.ambient.make(start = startTime)
+load = prediction.load.make(start = startTime, mainsTemp = ambient)
 
 N = 20
 r = 0.4
@@ -41,13 +43,13 @@ tankModel = tank.model(
     h = h, r = r, N = N,
     P = 2000,
     auxOutlet = auxOutlet,
-    getAmbient = Interval(array).const([24]),
-    getLoad = Interval(array).const([0, 24]),
+    getAmbient = ambient,
+    getLoad = load,
     getCollector = Interval(array).const([0, 60])
 )
 
-dt = 5
-tf = 60 * 60 * 5
+dt = 30
+tf = 60 * 60 * 24
 x0 = array([24] * N).T
 s = simulation.Run(
     xdot = tankModel,
@@ -65,19 +67,25 @@ th = toHours(ts)
 
 try:
     figure()
-    a1 = subplot(211)
+    a1 = subplot(311)
     ylabel('Tank temperatures')
     xlabel('Time (h)')
     hs = [plot(th, xs[i,:])[0] for i in range(N)]
     ls = [str(i) for i in range(N)]
-    axis(map(add, [0, 0, -2, 2], axis()))
-    legend(reversed(hs), reversed(ls), fontsize=6)
+    axis(map(add, [0, 0, -1, 1], axis()))
 
-    a2 = subplot(212, sharex=a1)
+    a2 = subplot(312, sharex=a1)
     for i in range(len(us[:,0])):
         step(th, us[i,:])
     ylabel('Control effort')
-    xlabel('Time (s)')
+    xlabel('Time (h)')
+    axis(map(add, [0, 0, -0.01, 0.01], axis()))
+
+    a3 = subplot(313, sharex=a1)
+    step(th, map(lambda t: float(load(t*60*60)[0]), th))
+    ylabel('Load flow')
+    xlabel('Time (h)')
+    axis(map(add, [0, 0, -0.01, 0.01], axis()))
 
     savefig('sim.png')
 
