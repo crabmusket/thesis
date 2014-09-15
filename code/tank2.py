@@ -7,7 +7,7 @@ import warnings
 warnings.simplefilter('ignore', np.ComplexWarning)
 
 import simulation
-from simulation.interval import Interval
+from utils.interval import Interval
 from controllers.thermostat import thermostat
 from models import tank2 as tank
 from numpy import array, linspace
@@ -15,25 +15,14 @@ from operator import add
 from datetime import timedelta, datetime
 import prediction.ambient
 import prediction.load
+import prediction.collector
 
 print 'Beginning simulation'
 
-# Charges at hour 0 and hour 6.
-collector = Interval(array) \
-    .const([0.1, 60], 60*60) \
-    .const([0, 0], 60*60*5) \
-    .const([0.05, 60], 60*60*2) \
-    .const([0, 0])
-
-# 15 minute draw at hour 4.
-load = Interval(array) \
-    .const([0, 0],    60*60*4) \
-    .const([0.2, 24], 60*15) \
-    .const([0, 0])
-
-startTime = datetime(2014, 9, 9, 04, 00, 00)
+startTime = datetime(2014, 9, 9, 00, 00, 00)
 ambient = prediction.ambient.make(start = startTime)
 load = prediction.load.make(start = startTime, mainsTemp = ambient)
+collector = prediction.collector.make(start = startTime)
 
 N = 20
 r = 0.4
@@ -45,7 +34,7 @@ tankModel = tank.model(
     auxOutlet = auxOutlet,
     getAmbient = ambient,
     getLoad = load,
-    getCollector = Interval(array).const([0, 60])
+    getCollector = collector
 )
 
 dt = 30
@@ -53,7 +42,12 @@ tf = 60 * 60 * 24
 x0 = array([24] * N).T
 s = simulation.Run(
     xdot = tankModel,
-    u = thermostat(auxOutlet, 0.03, 60, 5),
+    u = thermostat(
+        measure = N-1,
+        flow = 0.03,
+        setpoint = 60,
+        deadband = 5
+    ),
     x0 = x0,
     dt = dt,
     tf = tf
@@ -61,31 +55,34 @@ s = simulation.Run(
 
 (us, xs) = s.result()
 ts = linspace(0, tf, num = len(xs[0,:]))
-
-toHours = lambda ts: map(lambda t: t / (60*60), ts)
-th = toHours(ts)
+th = map(lambda t: t / (60.0*60), ts)
 
 try:
-    figure()
-    a1 = subplot(311)
+    figure(figsize=(6, 8), dpi=80)
+
+    a1 = subplot(411)
     ylabel('Tank temperatures')
-    xlabel('Time (h)')
     hs = [plot(th, xs[i,:])[0] for i in range(N)]
     ls = [str(i) for i in range(N)]
     axis(map(add, [0, 0, -1, 1], axis()))
 
-    a2 = subplot(312, sharex=a1)
+    a2 = subplot(412, sharex=a1)
+    ylabel('Control effort')
     for i in range(len(us[:,0])):
         step(th, us[i,:])
-    ylabel('Control effort')
-    xlabel('Time (h)')
+    axis(map(add, [0, 0, -0.002, 0.01], axis()))
+
+    a3 = subplot(413, sharex=a1)
+    ylabel('Load flow')
+    step(th, map(lambda t: float(load(t*60*60)[0]), th))
     axis(map(add, [0, 0, -0.01, 0.01], axis()))
 
-    a3 = subplot(313, sharex=a1)
-    step(th, map(lambda t: float(load(t*60*60)[0]), th))
-    ylabel('Load flow')
-    xlabel('Time (h)')
-    axis(map(add, [0, 0, -0.01, 0.01], axis()))
+    a4 = subplot(414, sharex=a1)
+    ylabel('Collector temperature')
+    step(th, map(lambda t: float(collector(t*60*60)[1]), th))
+    axis(map(add, [0, 0, -1, 1], axis()))
+
+    xlabel('Simulation time (h)')
 
     savefig('sim.png')
 
