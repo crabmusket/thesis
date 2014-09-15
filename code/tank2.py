@@ -6,16 +6,17 @@ from matplotlib.pyplot import * # Grab MATLAB plotting functions
 import warnings
 warnings.simplefilter('ignore', np.ComplexWarning)
 
-import simulation
 from utils.interval import Interval
-from controllers.thermostat import thermostat
-from models import tank2 as tank
 from numpy import array, linspace
 from operator import add
-from datetime import timedelta, datetime
+from datetime import datetime
+
+from models import tank2 as tank
+from controllers.thermostat import thermostat
 import prediction.ambient
 import prediction.load
 import prediction.collector
+import simulation.nonlinear as simulation
 
 print 'Beginning simulation'
 
