@@ -1,5 +1,7 @@
 cd /vagrant/vm
 
+cp .bash_profile ~
+
 ## Tools
 echo "============== INSTALLING TOOLS"
 apt-get update > /dev/null
