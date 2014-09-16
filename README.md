@@ -1,4 +1,4 @@
-# Thesis
+# Thesis [![PDF Status](https://www.sharelatex.com/github/repos/eightyeight/thesis/builds/latest/badge.svg)](https://www.sharelatex.com/github/repos/eightyeight/thesis/builds/latest/output.pdf)
 
 Model predictive control for solar hot water systems.
 
