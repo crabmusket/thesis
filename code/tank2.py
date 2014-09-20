@@ -39,7 +39,7 @@ tankModel = tank.model(
 )
 
 dt = 30
-tf = 60 * 60 * 24
+tf = 60 * 60 * 24 * 7
 x0 = array([24] * N).T
 s = simulation.Run(
     xdot = tankModel,
@@ -59,7 +59,7 @@ ts = linspace(0, tf, num = len(xs[0,:]))
 th = map(lambda t: t / (60.0*60), ts)
 
 try:
-    figure(figsize=(6, 8), dpi=80)
+    figure(figsize=(15, 20), dpi=80)
 
     a1 = subplot(411)
     ylabel('Tank temperatures')
