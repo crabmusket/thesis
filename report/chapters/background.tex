@@ -89,16 +89,40 @@ This strategy has a natural analogy in pathfinding; it is necessary to plan the 
 In this situation, the driver can only respond to past errors, as PID does.
 MPC allows future conditions to be anticipated and explicitly included in the decision-making process.
 
+\subsection{Linear systems}
+
+MPC controllers solve an optimisation problem at every instant in time to determine the next control input.
+When controlling a system whose dynamics can be modeled linearly, the form of this optimisation problem is, in general,
+\begin{equation}
+   \label{eq:mpc-opt}
+   \optimise
+      {minimise}{\vec{u}}
+      {f(\hvec{y}, \vec{u})}
+      {
+         \hvec{y} = \Psi \vec{x}_0 + \Theta \vec{u};
+         \vec{u}_{\text{min}} \le \vec{u} \le \vec{u}_{\text{max}};
+         \hvec{y}_{\text{min}} \le \hvec{y} \le \hvec{y}_{\text{max}}
+      }.
+\end{equation}
+The controller attempts to minimise the chosen objective function $f$ while satisfying the system dynamic constraints.
+$\Phi$ and $\Theta$ encode these linear dynamic constraints on the output $\hvec{y}$ given the input $\vec{u}$, over some time horizon usually referred to as $H$.
+Note that there may be other types of constraint that are omitted in this short example, since constraining the absolute ranges of input and state are common.
+
 \section{Convex optimisation}
 
 \subsection{Mathematical background and significance}
 
 Convex optimisation refers to the class of mathematical optimisation problems where the objective and constraint functions are all convex with respect to the decision variable/variables~\cite{Boyd04}.
 Convexity, briefly, is the property that a function is `bowl-shaped'.
+\todo{Diagram of convex function}
+\begin{equation}
+   f(\theta x + (1-\theta)y) \le \theta f(x) + (1-\theta) f(y)
+\end{equation}
 Importantly, this implies that any local minimum of the function will also be a \emph{global} minimum.
 The particular shape of convex optimisation problems admits the use of very efficient algorithms to compute globally optimum solutions.
 
 Since the core of model-predictive control algorithms involves optimising the choice of cost function over the future control sequence, convex optimisation problems play an important role in its implementation.
+Note that if a system is linear and its objective function convex, the optimisation problem governing its control can be convex, and hence efficiently solved.
 
 \subsection{Disciplined convex programming}
 
