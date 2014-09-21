@@ -1,7 +1,13 @@
 \chapter{Models}
 \label{ch:models}
 
+This chapter introduces the various models used in both simulation of the system, and control.
+\Autoref{sec:models:simulation} introduces the full nonlinear tank model which is used when running simulations.
+\Autoref{sec:models:disturbances} introduces the method of generating predicted weather and user load profiles.
+\Autoref{sec:models:control} outlines the linear state-space model for MPC, and then describes the simplifying assumptions made to express the nonlinear simulation model as a linear model.
+
 \section{Simulation models}
+\label{sec:models:simulation}
 
 A hot water tank is a complex nonlinear system when stratification is considered.
 It is desirable to develop an accurate simulation of the system in order to test the validity of controllers designed with simplified models.
@@ -24,12 +30,14 @@ That is, the total energy flow through the node can be broken into three parts: 
 The ambient term is a simple equation accounting for the surface area of an element and its current temperature relative to the exterior ambient temperature.
 The parameter $U_{s, i}$ accounts for the different surface areas of the nodes at each end of the tank.
 \begin{equation}
+   \label{eq:Q-amb}
    \Q{amb} = U_{s, i} (T_a - T_i)
 \end{equation}
 The mflow energy flow accounts for the heat that enters and exits each node carried by the actual volume of water that flows through it.
 As water is physically flowing through the tank during charging (hot water entering from the solar collector) and drawing (hot water exiting to the load), the composition of each node changes.
 The factor $\dot{m}_i$, defined in \autoref{eq:mdot}, refers to the amount of water entering node $i$ from node $i+1$, the node above it, and is therefore positive when water is flowing downwards through the tank (in the direction of drawing).
 \begin{equation}
+   \label{eq:Q-mflow}
    \Q{mflow} = \max \left\{ 0, \dot{m}_i \right\}     C_i (T_{i+1} - T_i)
              + \min \left\{ 0, \dot{m}_{i-1} \right\} C_i (T_i - T_{i-1})
 \end{equation}
@@ -49,12 +57,14 @@ These control functions simulate the hot and cold water from the collector and l
 They only ever return 1 for a single node in the tank.
 They are defined as follows:
 \begin{eqnarray}
+   \label{eq:B-col}
    \B{col} &=& \begin{dcases*}
       1 & if $T_c > T_i$ and $i = N-1$ \\
       1 & if $T_{i+1} \ge T_c > T_i$ and $i < N-1$ \\
       0 & otherwise
    \end{dcases*}
    \\
+   \label{eq:B-load}
    \B{load} &=& \begin{dcases*}
       1 & if $T_l < T_i$ and $i = 0$ \\
       1 & if $T_{i-1} \le T_l < T_i$ and $i > 0$ \\
@@ -64,12 +74,12 @@ They are defined as follows:
 The mass flow through each node is defined by \authors{Cristofari02} using sums of these collector functions to express the presence of an inlet above/below the current node being examined as
 \begin{equation}
 	\label{eq:mdot}
-   \dot{m}_i = \dot{m}_l \sum_{j=1}^{i-1} \B{load}
-             - \dot{m}_c \sum_{j=i+1}^{N-1} \B{col}
+   \dot{m}_i = \dot{m}_c \sum_{j=i+1}^{N-1} \B{col}
+             - \dot{m}_l \sum_{j=1}^{i-1} \B{load}
              + \dot{m}_{\text{aux}, i}.
 \end{equation}
 $\dot{m}_{\text{aux}, i}$ represents the mass flow due to the auxiliary heating loop described in \autoref{eq:mdot-aux}.
-Note again that the flow is positive in the direction of the load loop (downwards).
+Note again that the flow is positive in the direction of the collector loop (downwards).
 
 \subsection{Auxiliary input}
 
@@ -122,9 +132,45 @@ My implementation of the model was not verified against empirical data.
 As this work focuses on comparing control strategies on the system, efforts were not made to ensure that physical parameters were realistic, only plausible.
 
 \section{Weather and load pattern models}
-
+\label{sec:models:disturbances}
 
 \section{Controller models}
+\label{sec:models:control}
+
+\subsection{Simplifying assumptions}
+
+When controlling a nonlinear system, it is possible to work with the full nonlinear model using software such as the ACADO control toolkit \textcite{ACADO}.
+Such control algorithms may produce globally suboptimal control, depending on the problem.
+However, ACADO in particular only works with smooth nonlinear functions.
+The system model presented in \autoref{sec:models:simulation} is not smooth because of its use of binary indicator control functions (e.g. \autoref{eq:B-col}), and therefore is unsuitable for control by ACADO.
+Therefore I have two options - revising the system model to be smoothly nonlinear, or revising it to be linear.
+
+I chose to introduce simplifying assumptions to make the system linear by removing the necessity for the control functions $\B{*}$.
+The control functions are responsible for selecting the position in the tank where entering water is deposited, and simulate the action of stratification devices as described in \autoref{sec:background:stratifiers}.
+To eliminate these functions, it must be assumed that all water entry happens at fixed locations in the tank.
+So, we will replace equations \ref{eq:B-col}, \ref{eq:B-load} and \ref{eq:B-aux} with
+\begin{eqnarray}
+   \label{eq:B-col'}  \B{col}'  =& 1 \text{ if } i = N-1, & 0 \text{ otherwise} \\
+   \label{eq:B-load'} \B{load}' =& 1 \text{ if } i = 0,   & 0 \text{ otherwise} \\
+   \label{eq:B-aux'}  \B{aux}'  =& 1 \text{ if } i = N-1, & 0 \text{ otherwise}
+\end{eqnarray}
+which mean that the hot inputs from the collector and auxiliary heater are fixed to enter at the top layer, and the cold water from the mains input will always enter at the bottom of the tank.
+
+One further nonlinearity exists in \autoref{eq:Q-mflow}, where the min and max functions are used to express conditionality.
+If net flow through a node is downwards, then it receives a temperature contribution from the node above it, and vice versa.
+However, due to the changes introduced in the functions $\B{*}'$, we can simplify both the mass flow calculation and this heat calculation to remove any nonlinearity.
+First, note that due to fixing the inlet positions, the total mass flow through the tank is now uniform:
+\begin{equation}
+   \label{eq:mdot'}
+   \dot{m}_i' = \dot{m}_c - \dot{m}_l + \dot{m}_{\text{aux}},
+\end{equation}
+which shows that the total mass flow through all nodes is now uniform, since there is no dependence on $i$ (except, of course, for node $N-1$, whose mass flow is still 0 by definition).
+Now, with the constraint that $\dot{m}_c, \dot{m}_l, \dot{m}_{\text{aux}} > 0$ since these are all physical pump rates that cannot be reversed, \autoref{eq:Q-mflow} can be rewritten:
+\begin{equation}
+   \Q{mflow}' =  (\dot{m}_c + \dot{m}_{\text{aux}}) C_i (T_{i+1} - T_i)
+               +  \dot{m}_l                         C_i (T_i - T_{i-1})
+\end{equation}
+with obvious corrections at the top and bottom nodes.
 
 \subsection{Linear state space model}
 
@@ -138,7 +184,7 @@ This is how we make a state-space model, consider the system as linear time-vary
 \end{eqnarray}
 where $\vec{x}$ represents the state vector, $\vec{u}$ the input vector, $\vec{y}$ the output vector, and $t$ the current time.
 From now, all $t$ arguments will be dropped for clarity; it is understood that all matrices may vary in time, and that $\dvec{x}$ and $\vec{y}$ are functions of time.
-We discretise this system in the usual manner for linear state-space systems, assuming a zero-order hold on input signals between each time step, forming a new set of discrete-time equations
+This system is discretised in the usual manner for linear state-space systems, assuming a zero-order hold on input signals between each time step, forming a new set of discrete-time equations
 \begin{eqnarray}
    \label{eq:discretise-A}
    A_d &=& e^{A \delta t}, \\
