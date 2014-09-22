@@ -1,3 +1,4 @@
+# LaTeX
 *.aux
 *.bbl
 *.blg
@@ -7,13 +8,19 @@
 *.make
 *.fls
 *.synctex.gz
+*.xml
+*blx.bib
+*.tdo
+report/_out_/*
 
+# Vagrant
 .vagrant/
-node_modules/
+vm/acado/
 
+# Python
 *.pyc
 
+# cpp
 *.d
 *.out
-
-report/_out_/*
+cpp/build/

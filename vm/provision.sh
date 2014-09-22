@@ -1,6 +1,6 @@
 cd /vagrant/vm
 
-cp .bash_profile ~
+cp .bash_profile ~/.bash_profile
 
 ## Tools
 echo "============== INSTALLING TOOLS"
@@ -26,7 +26,7 @@ apt-get upgrade -y > /dev/null
 
 # Components
 ./setup-python.sh
-./setup-node.sh
+./setup-acado.sh
 
 # Startup script
 cp ./thesis-viewer.conf /etc/init/thesis-viewer.conf
