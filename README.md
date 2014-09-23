@@ -26,3 +26,13 @@ And, of course, [matplotlib][] handles the output.
 [matplotlib]: http://matplotlib.org/
 [ShareLaTeX]: https://www.sharelatex.com
 [CI builds]: https://www.sharelatex.com/github/repos/eightyeight/thesis
+
+## License
+
+All source code in the `code/` directory is licensed under the [GPL license][] as it uses cvxpy.
+All source code in the `cpp` directory is licensed under the [LGPL license][] as it uses ACADO.
+All other content and sources are licensed under the [MIT license][].
+
+[GPL license]: code/LICENSE
+[LGPL license]: cpp/LICENSE
+[MIT license]: report/LICENSE
