@@ -6,6 +6,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR})
 find_package(ACADO REQUIRED)
 
 include_directories(. ${ACADO_INCLUDE_DIRS})
-add_executable(thesis test.cpp)
-target_link_libraries(thesis ${ACADO_SHARED_LIBRARIES})
-set_target_properties(thesis PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Test integrator
+add_executable(test test.cpp)
+target_link_libraries(test ${ACADO_SHARED_LIBRARIES})
