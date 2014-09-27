@@ -24,3 +24,6 @@ vm/acado/
 *.d
 *.out
 cpp/build/
+
+# vim
+*.swp
