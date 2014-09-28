@@ -11,7 +11,7 @@ from numpy import array, linspace
 from operator import add
 from datetime import datetime
 
-from models import tank2 as tank
+from models import tank3 as tank
 from controllers.thermostat import thermostat
 import prediction.ambient
 import prediction.load
@@ -23,23 +23,24 @@ print 'Beginning simulation'
 startTime = datetime(2014, 9, 9, 00, 00, 00)
 ambient = prediction.ambient.make(start = startTime)
 load = prediction.load.make(start = startTime, mainsTemp = ambient)
-collector = prediction.collector.make(start = startTime)
+collector = lambda *args: [0.005, 60.0] #prediction.collector.make(start = startTime)
 
 N = 20
 r = 0.4
 h = 1.3
 auxOutlet = N/2
 tankModel = tank.model(
-    h = h, r = r, N = N,
-    P = 2000,
+    h = h, r = r, NT = N,
+    NC = 0, NX = 0,
+    PX = 2000,
     auxOutlet = auxOutlet,
     getAmbient = ambient,
     getLoad = load,
     getCollector = collector
 )
 
-dt = 30
-tf = 60 * 60 * 24 * 7
+dt = 5
+tf = 60 * 60 * 24 * 2
 x0 = array([24] * N).T
 s = simulation.Run(
     xdot = tankModel,
