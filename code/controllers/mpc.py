@@ -73,3 +73,11 @@ def linear(H, dt, umax, sys, dist, *args):
             raise Exception('Optimisation failed in state {}'.format(op.status))
 
     return solve
+
+def controller(period, law, estimator):
+    def control(x, t):
+        if t - control.lastTime >= period:
+            control.lastTime = t
+            control.lastSignal = law(x, t)
+    control.lastTime = -period
+    return control
