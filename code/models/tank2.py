@@ -57,7 +57,7 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
         NC_ = NT + NC
         T_coll = T[NC_-1]
         m_coll = collPumpController(T)
-        for i in range(NT+1, NC_):
+        for i in range(NT, NC_):
             pass
 
         # Calculate heater state change

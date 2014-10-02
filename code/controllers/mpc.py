@@ -7,6 +7,7 @@ from control.matlab import *
 import cvxopt as cvx
 from cvxpy import *
 
+# Implement \autoref{eq:discretise-xdot}.
 def discretise(dt, (A, Bu, Bd, C, D)):
     Adis = array(expm2(A * dt))
     B = np.hstack([Bu, Bd])
@@ -34,15 +35,19 @@ def linear(H, dt, umax, sys, dist, *args):
             else:
                 return C * matrix_power(A, i-j) * B
         return inner
+
+    # \Autoref{eq:mpc-theta-u}.
     b = builder(Bu)
-    theta = bmat([[b(i, j) for j in range(0, H)] for i in range(0, H)])
+    thetaU = bmat([[b(i, j) for j in range(0, H)] for i in range(0, H)])
+    # \Autoref{eq:mpc-theta-d}.
     b = builder(Bd)
-    theta_ = bmat([[b(i, j) for j in range(0, H)] for i in range(0, H)])
+    thetaD = bmat([[b(i, j) for j in range(0, H)] for i in range(0, H)])
+    # \Autoref{eq:mpc-psi}.
     psi = bmat([[C * matrix_power(A, i)] for i in range(1, H+1)])
 
     # Construct optimisation problem data.
-    Theta  = cvx.matrix(theta)
-    Theta_ = cvx.matrix(theta_)
+    ThetaU = cvx.matrix(thetaU)
+    ThetaB = cvx.matrix(thetaB)
     Psi    = cvx.matrix(psi)
     Q = cvx.matrix(kron(eye(H), diag([0]*(N-1) + [1] + [0]*N)))
     lastMask = cvx.matrix([0]*(H-1)*C.shape[0] + [1]*C.shape[0])
@@ -62,7 +67,7 @@ def linear(H, dt, umax, sys, dist, *args):
                 (quad_form(y, Q)), # Kinetic energy of system
                 #(norm(Q*y, 1)), # Distance of last mass from 0
             SubjectTo
-                (y == Psi * X + Theta * u + Theta_ * d,
+                (y == Psi * X + ThetaU * u + ThetaD * d,
                  #transpose(lastMask) * y == 0,
                  -umax <= u, u <= umax)
         )
@@ -70,7 +75,7 @@ def linear(H, dt, umax, sys, dist, *args):
         if u.value is not None:
             return array(u.value)[0:Bu.shape[1]].flatten()
         else:
-            raise Exception('Optimisation failed in state {}'.format(op.status))
+            raise Exception('Optimisation failed in state "{}"'.format(op.status))
 
     return solve
 
@@ -79,5 +84,7 @@ def controller(period, law, estimator):
         if t - control.lastTime >= period:
             control.lastTime = t
             control.lastSignal = law(x, t)
+        return control.lastSignal
+
     control.lastTime = -period
     return control

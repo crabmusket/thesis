@@ -13,6 +13,7 @@ from datetime import datetime
 
 from models import tank2 as tank
 from controllers.thermostat import thermostat
+import controllers.mpc
 import prediction.ambient
 import prediction.load
 import prediction.collector
@@ -26,12 +27,14 @@ load = prediction.load.make(start = startTime, mainsTemp = ambient)
 collector = prediction.collector.make(start = startTime)
 
 N = 20
+NC = 10
+NX = 10
 r = 0.4
 h = 1.3
 auxOutlet = N/2
 tankModel = tank.model(
     h = h, r = r, NT = N,
-    NC = 0, NX = 0,
+    NC = NC, NX = NX,
     P = 2000,
     auxOutlet = auxOutlet,
     getAmbient = ambient,
@@ -39,17 +42,53 @@ tankModel = tank.model(
     getCollector = collector
 )
 
+auxPump = thermostat(
+    measure = N-1,
+    on = 0,
+    off = 0,
+    setpoint = 60,
+    deadband = 5
+)
+
+auxHeat_ = thermostat(
+    measure = N-1,
+    on = 0,
+    off = 0,
+    setpoint = 60,
+    deadband = 5
+)
+def auxHeat(x, t, md_x):
+    return 0 if md_x == 0 else auxHeat_(x, t)
+
+predictive = mpc.controller(
+    period = 3600,
+    law = None,
+    estimator = None
+)
+
+def collPump(x, t):
+    pass
+
+def controllers(x, t):
+    fraction = predictive(x, t)
+    md_x = auxPump(x, t)
+    (md_coll_tank, md_coll_coll) = collPump(x, t)
+    p_x = auxHeat(fraction, md_x)
+    return array([md_x, p_x, md_coll_tank, md_coll_coll])
+
 dt = 5
 tf = 60 * 60 * 24 * 2
 x0 = array([24] * N).T
 s = simulation.Run(
     xdot = tankModel,
-    u = thermostat(
-        measure = N-1,
-        flow = 0.03,
-        setpoint = 60,
-        deadband = 5
-    ),
+    u = controllers,
+    #thermostat(
+    #    measure = N-1,
+    #    on = [0.03],
+    #    off = [0.0],
+    #    setpoint = 60,
+    #    deadband = 5
+    #),
     x0 = x0,
     dt = dt,
     tf = tf
