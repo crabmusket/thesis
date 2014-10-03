@@ -7,7 +7,7 @@ from control.matlab import *
 import cvxopt as cvx
 from cvxpy import *
 
-# Implement \autoref{eq:discretise-xdot}.
+# Implement discretisation according to \autoref{eq:discretise-xdot}.
 def discretise(dt, (A, Bu, Bd, C, D)):
     Adis = array(expm2(A * dt))
     B = np.hstack([Bu, Bd])
@@ -21,7 +21,7 @@ def discretise(dt, (A, Bu, Bd, C, D)):
 def SubjectTo(*args):
     return [a for a in list(args) if a is not None]
 
-def linear(H, dt, umax, sys, dist, *args):
+def linear(H, dt, sys, dist, objective, constraints):
     # Construct predictor from discretised SS model.
     (A, Bu, Bd, C, D) = discretise(dt, sys)
     N = A.shape[0]/2
@@ -49,7 +49,6 @@ def linear(H, dt, umax, sys, dist, *args):
     ThetaU = cvx.matrix(thetaU)
     ThetaB = cvx.matrix(thetaB)
     Psi    = cvx.matrix(psi)
-    Q = cvx.matrix(kron(eye(H), diag([0]*(N-1) + [1] + [0]*N)))
     lastMask = cvx.matrix([0]*(H-1)*C.shape[0] + [1]*C.shape[0])
 
     def solve(x, t):
@@ -67,9 +66,8 @@ def linear(H, dt, umax, sys, dist, *args):
                 (quad_form(y, Q)), # Kinetic energy of system
                 #(norm(Q*y, 1)), # Distance of last mass from 0
             SubjectTo
-                (y == Psi * X + ThetaU * u + ThetaD * d,
-                 #transpose(lastMask) * y == 0,
-                 -umax <= u, u <= umax)
+                (y == Psi * X + ThetaU * u + ThetaD * d) + \
+                 constraints(X, y, u)
         )
         op.solve()
         if u.value is not None:
@@ -79,7 +77,7 @@ def linear(H, dt, umax, sys, dist, *args):
 
     return solve
 
-def controller(period, law, estimator):
+def controller(period, system, horizon, objective, constraints, disturbances):
     def control(x, t):
         if t - control.lastTime >= period:
             control.lastTime = t

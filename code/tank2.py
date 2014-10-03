@@ -10,8 +10,10 @@ from utils.interval import Interval
 from numpy import array, linspace
 from operator import add
 from datetime import datetime
+import cvxopt as cvx
 
 from models import tank2 as tank
+import models.halvgaard
 from controllers.thermostat import thermostat
 import controllers.mpc
 import prediction.ambient
@@ -35,7 +37,6 @@ auxOutlet = N/2
 tankModel = tank.model(
     h = h, r = r, NT = N,
     NC = NC, NX = NX,
-    P = 2000,
     auxOutlet = auxOutlet,
     getAmbient = ambient,
     getLoad = load,
@@ -43,36 +44,40 @@ tankModel = tank.model(
 )
 
 auxPump = thermostat(
-    measure = N-1,
-    on = 0,
+    measure = 0,
+    on = 0.05,
     off = 0,
     setpoint = 60,
     deadband = 5
 )
 
+P = 2000
 auxHeat_ = thermostat(
-    measure = N-1,
-    on = 0,
+    measure = 0,
+    on = P,
     off = 0,
     setpoint = 60,
     deadband = 5
 )
-def auxHeat(x, t, md_x):
-    return 0 if md_x == 0 else auxHeat_(x, t)
+auxHeat = lambda T, t, md_x: 0 if md_x == 0 else auxHeat_(T, t)
 
+H = 12
+Q = cvx.matrix(kron(eye(H), diag([0]*(N-1) + [1] + [0]*N)))
 predictive = mpc.controller(
     period = 3600,
-    law = None,
-    estimator = None
+    horizon = H,
+    system = halvgaard.model(),
+    constraints = lambda X, y, u: [],
+    disturbances = lambda t, x: 0
 )
 
-def collPump(x, t):
+def collPump(T, t):
     pass
 
-def controllers(x, t):
-    fraction = predictive(x, t)
-    md_x = auxPump(x, t)
-    (md_coll_tank, md_coll_coll) = collPump(x, t)
+def controllers(T, t):
+    fraction = predictive(T, t)
+    md_x = auxPump(T, t)
+    (md_coll_tank, md_coll_coll) = collPump(T, t)
     p_x = auxHeat(fraction, md_x)
     return array([md_x, p_x, md_coll_tank, md_coll_coll])
 
@@ -82,13 +87,6 @@ x0 = array([24] * N).T
 s = simulation.Run(
     xdot = tankModel,
     u = controllers,
-    #thermostat(
-    #    measure = N-1,
-    #    on = [0.03],
-    #    off = [0.0],
-    #    setpoint = 60,
-    #    deadband = 5
-    #),
     x0 = x0,
     dt = dt,
     tf = tf
