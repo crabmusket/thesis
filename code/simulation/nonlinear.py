@@ -15,7 +15,6 @@ class Run(object):
                 .set_integrator('vode',
                     method = 'bdf',
                     with_jacobian = False,
-                    nsteps = 5000,
                     max_step = self.dt)
                 .set_initial_value(self.x0, t0))
         results = []

@@ -117,20 +117,22 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
 
         # Calculate collector state change.
         for i in range(collFirst, collFirst+NC):
-            dT[i] = ins / (rho * C * vX) / NC * 0.1 # TODO magic 0.1
+            U_ins = ins / NC * 0.1 # TODO magic 0.1
             if i is collFirst:
-                dT[i] += m_coll        * C * (T[tankFirst] - T[i]) \
-                       + m_coll_return * C * (T[collLast] - T[i])
+                U_mflow = m_coll        * C * (T[tankFirst] - T[i]) \
+                        + m_coll_return * C * (T[collLast] - T[i])
             else:
-                dT[i] += (m_coll + m_coll_return) * C * (T[i-1] - T[i])
+                U_mflow = (m_coll + m_coll_return) * C * (T[i-1] - T[i])
+            dT[i] = (U_ins + U_mflow) / (rho * C * vC)
 
         # Calculate heater state change.
         for i in range(auxFirst, auxFirst+NX):
-            dT[i] = p_aux / (rho * C * vX)
+            U_aux = p_aux / NX
             if i is auxFirst:
-                dT[i] += m_aux * C * (T[auxOutlet] - T[i])
+                U_mflow = m_aux * C * (T[auxOutlet] - T[i])
             else:
-                dT[i] += m_aux * C * (T[i-1] - T[i])
+                U_mflow = m_aux * C * (T[i-1] - T[i])
+            dT[i] = (U_aux + U_mflow) / (rho * C * vX)
 
         # The state changes in the tank depend on the temperatures of entering
         # water from the collector and aux heater, so let's make convenient
