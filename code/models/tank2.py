@@ -27,6 +27,8 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
     U_s_x = 0
     U_s_c = 0
 
+    # Node numbers for different areas of the tank. These index into the state
+    # vector and label specific nodes in the heat flow simulation.
     tankFirst = 0
     tankLast = NT-1
     collFirst = NT
@@ -39,7 +41,7 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
     # temperature at the bottom of the tank.
     auxPump_ = thermostat(
         measure = tankFirst,
-        on  = 0.05,
+        on  = 0.05, # Flow rate when on
         off = 0,
         setpoint = 60,
         deadband = 5
@@ -52,11 +54,12 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
     # sent back to the tank.
     auxHeat_ = thermostat(
         measure = auxLast,
-        on  = P,
+        on  = P, # Power input when heating
         off = 0,
         setpoint = 60,
         deadband = 5
     )
+    # Two cases: if there is mass flow, use the thermostat. No mass flow, no heat.
     auxHeat = lambda m_aux, t, T: 0 if m_aux == 0 else auxHeat_(t, T)
 
     # The collector pump controller returns two values - the flow to send back
@@ -64,19 +67,20 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
     # directly. It turns off entirely at night.
     collPump_ = thermostat(
         measure = collLast,
-        on  = (0.05, 0),
+        on  = (0.05, 0), # Flow into tank, and flow back to collector
         off = (0, 0.05),
         setpoint = 60,
         deadband = 5
     )
     collPump = collPump_ # TODO turn off at night
 
-    # Inlet control for cold water entering the tank.
-    def ctrlCold(T_l, T, i):
+    # Inlet control for cold water entering the tank. Returns 1 at if cold water
+    # should be deposited into node i, given the temperature distribution in T.
+    def ctrlCold(T_c, T, i):
         if i is tankFirst:
-            return 1 if T_l <= T[i] else 0
+            return 1 if T_c <= T[i] else 0
         else:
-            return 1 if T[i-1] < T_l <= T[i] else 0
+            return 1 if T[i-1] < T_c <= T[i] else 0
 
     # Inlet control for hot water entering the tank.
     def ctrlHot(T_c, T, i):
@@ -93,7 +97,10 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
              + m_x * (int(i >= auxOutlet) - \
                         sum([Bx(j) for j in [0] + range(1, i+1)]))
 
-    def xdot(t, T, u):
+    # Finally, the derivative of the state. This calculates the derivative of all
+    # nodes in the system - the nodes making up the tank, the collector, and the
+    # aux heater. Used by the ODE solver.
+    def Tdot(t, T, u):
         dT = zeros(T.shape)
 
         # Get current load and disturbance conditions.
@@ -109,7 +116,6 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
         (m_coll, m_coll_return) = collPump(t, T)
 
         # Calculate collector state change.
-        T_coll = T[collLast]
         for i in range(collFirst, collFirst+NC):
             dT[i] = ins / (rho * C * vX) / NC * 0.1 # TODO magic 0.1
             if i is collFirst:
@@ -119,13 +125,18 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
                 dT[i] += (m_coll + m_coll_return) * C * (T[i-1] - T[i])
 
         # Calculate heater state change.
-        T_aux = T[auxLast]
         for i in range(auxFirst, auxFirst+NX):
             dT[i] = p_aux / (rho * C * vX)
             if i is auxFirst:
                 dT[i] += m_aux * C * (T[auxOutlet] - T[i])
             else:
                 dT[i] += m_aux * C * (T[i-1] - T[i])
+
+        # The state changes in the tank depend on the temperatures of entering
+        # water from the collector and aux heater, so let's make convenient
+        # names for those:
+        T_coll = T[collLast]
+        T_aux = T[auxLast]
 
         # Convenience functions.
         Bl = lambda i: ctrlCold(T_load, T, i)
@@ -135,22 +146,26 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
 
         # Calculate tank state change.
         for i in range(tankFirst, tankFirst+NT):
-            # Ambient temperature loss
-            # TODO: fix ends
+            # Ambient temperature losses.
+            # TODO: fix ends. Need to account for larger surface area there.
             U_amb = (U_s_int if i in [tankFirst, tankLast] else U_s_int) \
                   * (T_a - T[i])
 
-            # Temperature flow from collector/load inlets.
+            # Temperature flow from inlets. Use the B functions to only apply
+            # these heat flows to the appropriate nodes.
             U_inlet = Bl(i) * m_load * C * (T_load - T[i]) \
                     + Bc(i) * m_coll * C * (T_coll - T[i]) \
                     + Bx(i) * m_aux  * C * (T_aux  - T[i])
 
-            # Mass flow.
+            # Mass flow. Nodes will receive heat from the node above them, and
+            # lose it to the node below them. The top and bottom tank nodes,
+            # of course, only do one of these things.
             U_mflow = (min(0, m(i-1)) * C * (T[i] - T[i-1]) if i > 0 else 0) \
                     + (max(0, m(i))   * C * (T[i+1] - T[i]) if i < NT-1 else 0)
 
             # Final temperature change (\autoref{eq:node-dT})
-            dT[i] = ((U_amb + U_inlet + U_mflow) / (rho * C * v))[0] # >:(
+            dT[i] = (U_amb + U_inlet + U_mflow) / (rho * C * v)
 
+        print t
         return dT
-    return xdot
+    return Tdot
