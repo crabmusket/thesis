@@ -67,8 +67,8 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
     # directly. It turns off entirely at night.
     collPump_ = thermostat(
         measure = collLast,
-        on  = (0.05, 0), # Flow into tank, and flow back to collector
-        off = (0, 0.05),
+        on  = (0, 0.05), # When we are 'on', i.e. the temp at collLast is < 60,
+        off = (0.05, 0), # send the water back to the collector, and vice versa.
         setpoint = 60,
         deadband = 5
     )
