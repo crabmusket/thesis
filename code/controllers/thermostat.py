@@ -1,5 +1,5 @@
 def thermostat(measure, on, off, setpoint, deadband):
-    def controller(x, t):
+    def controller(t, x):
         temp = x[measure]
         if controller.heating is False:
             if temp < setpoint-deadband:

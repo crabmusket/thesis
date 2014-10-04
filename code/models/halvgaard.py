@@ -1,9 +1,10 @@
 from numpy import array
 
-def model(C, UA):
-    A = array([[-UA/C]])
+#TODO LOL
+def model(C, UA, NC):
+    A  = array([[-UA/C]])
     Bu = array([[1/C]])
-    Bw = 
-    C = array([[1]])
-    D = array([[0]])
+    Bw = array([1/C, -1/C, UA/C])
+    C  = array([[1]])
+    D  = array([[0]])
     return (A, Bu, Bw, C, D)

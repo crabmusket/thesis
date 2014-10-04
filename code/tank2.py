@@ -10,7 +10,10 @@ from utils.interval import Interval
 from numpy import array, linspace
 from operator import add
 from datetime import datetime
+from math import pi
+
 import cvxopt as cvx
+import cvxpy
 
 from models import tank2 as tank
 import models.halvgaard
@@ -25,68 +28,58 @@ print 'Beginning simulation'
 
 startTime = datetime(2014, 9, 9, 00, 00, 00)
 ambient = prediction.ambient.make(start = startTime)
-load = prediction.load.make(start = startTime, mainsTemp = ambient)
-collector = prediction.collector.make(start = startTime)
+load = lambda *args: [0, 0]#prediction.load.make(start = startTime, mainsTemp = ambient)
+insolation = lambda *args: 0
 
 N = 20
 NC = 10
 NX = 10
 r = 0.4
 h = 1.3
+P = 2000
 auxOutlet = N/2
 tankModel = tank.model(
     h = h, r = r, NT = N,
     NC = NC, NX = NX,
+    vC = 1, vX = 0.1,
+    P = P,
     auxOutlet = auxOutlet,
     getAmbient = ambient,
     getLoad = load,
-    getCollector = collector
+    getInsolation = insolation,
 )
-
-auxPump = thermostat(
-    measure = 0,
-    on = 0.05,
-    off = 0,
-    setpoint = 60,
-    deadband = 5
-)
-
-P = 2000
-auxHeat_ = thermostat(
-    measure = 0,
-    on = P,
-    off = 0,
-    setpoint = 60,
-    deadband = 5
-)
-auxHeat = lambda T, t, md_x: 0 if md_x == 0 else auxHeat_(T, t)
 
 H = 12
+C = 2400
+UA = 0.5 * (2 * pi * r * h + 2 * pi * r * r)
+"""
 Q = cvx.matrix(kron(eye(H), diag([0]*(N-1) + [1] + [0]*N)))
 predictive = mpc.controller(
     period = 3600,
-    horizon = H,
-    system = halvgaard.model(),
-    constraints = lambda X, y, u: [],
-    disturbances = lambda t, x: 0
+    law = mpc.linear(
+        horizon = H,
+        system = halvgaard.model(C, UA),
+        objective = lambda X, y: cvxpy.norm(y),
+        constraints = lambda X, y, u: [],
+        disturbances = lambda t, x: array([0])
+    )
 )
+"""
 
-def collPump(T, t):
-    pass
-
-def controllers(T, t):
-    fraction = predictive(T, t)
-    md_x = auxPump(T, t)
-    (md_coll_tank, md_coll_coll) = collPump(T, t)
-    p_x = auxHeat(fraction, md_x)
-    return array([md_x, p_x, md_coll_tank, md_coll_coll])
+controller = thermostat(
+    measure = 0,
+    on  = 1,
+    off = 0,
+    setpoint = 60,
+    deadband = 5
+)
 
 dt = 5
 tf = 60 * 60 * 24 * 2
-x0 = array([24] * N).T
+x0 = array([24] * (N+NC+NX)).T
 s = simulation.Run(
     xdot = tankModel,
-    u = controllers,
+    u = controller,
     x0 = x0,
     dt = dt,
     tf = tf
@@ -112,6 +105,17 @@ try:
     axis(map(add, [0, 0, -0.002, 0.01], axis()))
 
     a3 = subplot(413, sharex=a1)
+    ylabel('Collector temperatures')
+    hs = [plot(th, xs[i,:])[0] for i in range(N, N+NC)]
+    axis(map(add, [0, 0, -1, 1], axis()))
+
+    a4 = subplot(414, sharex=a1)
+    ylabel('Auxiliary temperatures')
+    hs = [plot(th, xs[i,:])[0] for i in range(N+NC, N+NC+NX)]
+    axis(map(add, [0, 0, -1, 1], axis()))
+
+    """
+    a3 = subplot(413, sharex=a1)
     ylabel('Load flow')
     step(th, map(lambda t: float(load(t*60*60)[0]), th))
     axis(map(add, [0, 0, -0.01, 0.01], axis()))
@@ -120,10 +124,13 @@ try:
     ylabel('Collector temperature')
     step(th, map(lambda t: float(collector(t*60*60)[1]), th))
     axis(map(add, [0, 0, -1, 1], axis()))
+    """
 
     xlabel('Simulation time (h)')
 
     savefig('sim.png')
 
+    print 'Completed successfully'
+
 except Exception as e:
-    print e
+    print 'Error during plotting:', e

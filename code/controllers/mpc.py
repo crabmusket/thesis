@@ -8,22 +8,25 @@ import cvxopt as cvx
 from cvxpy import *
 
 # Implement discretisation according to \autoref{eq:discretise-xdot}.
-def discretise(dt, (A, Bu, Bd, C, D)):
+def discretise(dt, (A, Bu, Bw, C, D)):
     Adis = array(expm2(A * dt))
-    B = np.hstack([Bu, Bd])
+    B = np.hstack([Bu, Bw])
     Bdis = A.I * (Adis - eye(Adis.shape[0])) * B
     return (Adis,
             Bdis[:, 0           : Bu.shape[1]],
-            Bdis[:, Bu.shape[1] : Bu.shape[1] + Bd.shape[1]],
+            Bdis[:, Bu.shape[1] : Bu.shape[1] + Bw.shape[1]],
             C, D)
 
 # DSLs for the win!
 def SubjectTo(*args):
     return [a for a in list(args) if a is not None]
 
-def linear(H, dt, sys, dist, objective, constraints):
+def linear(horizon, step, system, objective, constraints, disturbances):
+    H = horizon
+    dt = step
+
     # Construct predictor from discretised SS model.
-    (A, Bu, Bd, C, D) = discretise(dt, sys)
+    (A, Bu, Bw, C, D) = discretise(dt, system)
     N = A.shape[0]/2
 
     # Construct the matrices that predict the state over the prediction horizon.
@@ -40,33 +43,31 @@ def linear(H, dt, sys, dist, objective, constraints):
     b = builder(Bu)
     thetaU = bmat([[b(i, j) for j in range(0, H)] for i in range(0, H)])
     # \Autoref{eq:mpc-theta-d}.
-    b = builder(Bd)
-    thetaD = bmat([[b(i, j) for j in range(0, H)] for i in range(0, H)])
+    b = builder(Bw)
+    thetaW = bmat([[b(i, j) for j in range(0, H)] for i in range(0, H)])
     # \Autoref{eq:mpc-psi}.
     psi = bmat([[C * matrix_power(A, i)] for i in range(1, H+1)])
 
     # Construct optimisation problem data.
     ThetaU = cvx.matrix(thetaU)
-    ThetaB = cvx.matrix(thetaB)
+    ThetaW = cvx.matrix(thetaW)
     Psi    = cvx.matrix(psi)
     lastMask = cvx.matrix([0]*(H-1)*C.shape[0] + [1]*C.shape[0])
 
     def solve(x, t):
-        if dist is not None:
-            dists = [dist(tt, x) for tt in linspace(t, t+(H-1)*dt, H)]
-            d = cvx.matrix(np.vstack(dists))
+        if disturbances is not None:
+            dists = [disturbances(x, tt) for tt in linspace(t, t+(H-1)*dt, H)]
+            w = cvx.matrix(np.vstack(dists))
         else:
-            d = cvx.matrix([0]*Bd.shape[1]*H)
+            w = cvx.matrix([0]*Bd.shape[1]*H)
         u = Variable(H * Bu.shape[1])
         y = Variable(H * C.shape[0])
         X = cvx.matrix(x)
         op = Problem(
             Minimize
-                #(norm(y)), # Distances and velocities
-                (quad_form(y, Q)), # Kinetic energy of system
-                #(norm(Q*y, 1)), # Distance of last mass from 0
+                (objective(X, y)),
             SubjectTo
-                (y == Psi * X + ThetaU * u + ThetaD * d) + \
+                (y == Psi * X + ThetaU * u + ThetaW * w) + \
                  constraints(X, y, u)
         )
         op.solve()
@@ -77,7 +78,7 @@ def linear(H, dt, sys, dist, objective, constraints):
 
     return solve
 
-def controller(period, system, horizon, objective, constraints, disturbances):
+def controller(period, law):
     def control(x, t):
         if t - control.lastTime >= period:
             control.lastTime = t
