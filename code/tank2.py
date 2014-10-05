@@ -27,8 +27,9 @@ import simulation.nonlinear as simulation
 print 'Beginning simulation'
 
 startTime = datetime(2014, 9, 9, 00, 00, 00)
+
 ambient = prediction.ambient.make(start = startTime)
-load = lambda *args: [0, 0]#prediction.load.make(start = startTime, mainsTemp = ambient)
+load = prediction.load.make(start = startTime, mainsTemp = ambient)
 insolation = lambda *args: 0
 
 N = 20
@@ -37,7 +38,7 @@ NX = 10
 r = 0.4
 h = 1.3
 P = 2000
-auxOutlet = N/2
+auxOutlet = 0
 tankModel = tank.model(
     h = h, r = r, NT = N,
     NC = NC, NX = NX,
@@ -68,14 +69,14 @@ predictive = mpc.controller(
 
 controller = thermostat(
     measure = 0,
-    on  = 1,
-    off = 0,
-    setpoint = 60,
+    on  = array([1]),
+    off = array([0]),
+    setpoint = 55,
     deadband = 5
 )
 
 dt = 5
-tf = 60 * 60 * 24 * 2
+tf = 60 * 60 * 24
 x0 = array([24] * (N+NC+NX)).T
 s = simulation.Run(
     xdot = tankModel,
@@ -85,11 +86,17 @@ s = simulation.Run(
     tf = tf
 )
 
-(us, xs) = s.result()
-ts = linspace(0, tf, num = len(xs[0,:]))
-th = map(lambda t: t / (60.0*60), ts)
+(us_, xs_) = s.result()
 
-try:
+def viewHours(hourFrom, hourTo, fname = 'sim.png'):
+    plotFrom = int(hourFrom * 60 * 60 / dt)
+    plotTo = int(hourTo * 60 * 60 / dt)
+
+    us = us_[:, plotFrom:plotTo]
+    xs = xs_[:, plotFrom:plotTo]
+    ts = linspace(plotFrom*dt, plotTo*dt, num = len(xs[0,:]))
+    th = map(lambda t: t / (60.0*60), ts)
+
     figure(figsize=(15, 20), dpi=80)
 
     a1 = subplot(411)
@@ -117,20 +124,17 @@ try:
     """
     a3 = subplot(413, sharex=a1)
     ylabel('Load flow')
-    step(th, map(lambda t: float(load(t*60*60)[0]), th))
+    step(th, map(lambda t: float(load(t*60*60)[0]), th[f:t]))
     axis(map(add, [0, 0, -0.01, 0.01], axis()))
 
     a4 = subplot(414, sharex=a1)
     ylabel('Collector temperature')
-    step(th, map(lambda t: float(collector(t*60*60)[1]), th))
+    step(th, map(lambda t: float(collector(t*60*60)[1]), th[f:t]))
     axis(map(add, [0, 0, -1, 1], axis()))
     """
 
     xlabel('Simulation time (h)')
 
-    savefig('sim.png')
+    savefig(fname)
 
-    print 'Completed successfully'
-
-except Exception as e:
-    print 'Error during plotting:', e
+print 'Completed successfully'
