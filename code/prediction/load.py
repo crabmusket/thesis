@@ -2,37 +2,29 @@ from ..utils.time import hours_after_midnight
 from ..utils.interval import Interval
 from numpy import array
 
-# Water flow intervals.
-patterns = [
-    # 10-minute showers at 7am and 8pm
-    Interval() \
-        .const_til(0,        7) \
-        .const_for(7.0/60.0, 10.0/60.0) \
-        .const_til(0,        20) \
-        .const_for(7.0/60.0, 10.0/60.0) \
-        .const_til(0,        24),
-    Interval() \
-        .const_til(0,        7) \
-        .const_for(7.0/60.0, 10.0/60.0) \
-        .const_til(0,        20) \
-        .const_for(7.0/60.0, 10.0/60.0) \
-        .const_til(0,        24),
-]
+# Liters per minute to liters per second.
+Lpm = lambda l: l / float(60.0)
+# Minutes to hours.
+minutes = lambda m: m / float(60.0)
 
-def make(start, mainsTemp=None, users=[0]):
+# Single spike profile.
+def spike(start, duration, flow):
+    return Interval() \
+        .const_til(0, start) \
+        .const_for(flow, duration) \
+        .const_til(0, 24)
+
+def make(start, profile, mainsTemp=None):
     if mainsTemp is None:
         mainsTemp = lambda *args: [24]
 
-    flow = Interval() \
-            .const_til(0,        7) \
-            .const_for(7.0/60.0, 10.0/60.0) \
-            .const_til(0,        20) \
-            .const_for(7.0/60.0, 10.0/60.0) \
-            .const_til(0,        24)
+    # Concatenate multiuple profile functions into a single function.
+    cat = lambda intervals: lambda t: sum([i(t) for i in intervals])
+    profileC = [cat(ps) for ps in profile]
 
     def predictor(t):
-        return array([
-            flow(hours_after_midnight(t, start) % 24),
-            mainsTemp(t)
-        ])
+        hour = hours_after_midnight(t, start)
+        day = int(hour / 24)
+        flow = profileC[day](hour % 24)
+        return array([flow, mainsTemp(t)])
     return predictor

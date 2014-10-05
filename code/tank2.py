@@ -21,16 +21,83 @@ from controllers.thermostat import thermostat
 import controllers.mpc
 import prediction.ambient
 import prediction.load
+from prediction.load import spike, Lpm, minutes
 import prediction.collector
 import simulation.nonlinear as simulation
-
-print 'Beginning simulation'
 
 startTime = datetime(2014, 9, 9, 00, 00, 00)
 
 ambient = prediction.ambient.make(start = startTime)
-load = prediction.load.make(start = startTime, mainsTemp = ambient)
 insolation = lambda *args: 0
+
+# Let's go with a 4-person household. Using information from YVW, we'll make up
+# some schedules. Significant events: weekend showers are more spread out. One
+# adult stays home on Wednesday. Evening showers on a couple of days.
+# http://www.yvw.com.au/Home/Inyourhome/Understandingyourwateruse/index.htm
+loadProfile = [
+    # Monday
+    [
+        # Morning showers
+        spike(7,   minutes(8),  Lpm(5)),
+        spike(7.5, minutes(9),  Lpm(6)),
+        spike(7.9, minutes(7),  Lpm(4)),
+        spike(8.1, minutes(10), Lpm(5)),
+    ],
+    # Tuesday
+    [
+        # Morning showers
+        spike(7.5, minutes(7), Lpm(4)),
+        spike(7.2, minutes(8), Lpm(4)),
+        spike(7.9, minutes(6), Lpm(5)),
+        spike(8.5, minutes(6), Lpm(6)),
+    ],
+    # Wednesday
+    [
+        # Morning showers
+        spike(6.8, minutes(8), Lpm(5)),
+        spike(7.1, minutes(5), Lpm(4)),
+        spike(7.8, minutes(9), Lpm(6)),
+        spike(8.2, minutes(6), Lpm(5)),
+    ],
+    # Thursday
+    [
+        # Morning showers
+        spike(6.5, minutes(8),  Lpm(4)),
+        spike(7,   minutes(8),  Lpm(5)),
+        spike(7.2, minutes(10), Lpm(6)),
+        spike(7.6, minutes(8),  Lpm(7)),
+    ],
+    # Friday
+    [
+        # Morning showers
+        spike(7,   minutes(8), Lpm(6)),
+        spike(7.5, minutes(7), Lpm(5)),
+        spike(7.9, minutes(5), Lpm(5)),
+        spike(8.1, minutes(9), Lpm(7)),
+    ],
+    # Saturday
+    [
+        # Morning showers
+        spike(8.2,   minutes(10), Lpm(6)),
+        spike(9.1, minutes(7),  Lpm(5)),
+        spike(9.5, minutes(10), Lpm(5)),
+        spike(10.5, minutes(12), Lpm(7)),
+    ],
+    # Sunday
+    [
+        # 'Morning' showers
+        spike(8.6,  minutes(8),  Lpm(6)),
+        spike(9.8,  minutes(13), Lpm(5)),
+        spike(10.5, minutes(7),  Lpm(5)),
+        spike(13.2, minutes(15), Lpm(7)),
+    ]
+]
+
+load = prediction.load.make(
+    start = startTime,
+    mainsTemp = ambient,
+    profile = loadProfile + loadProfile # Two weeks, yeah
+)
 
 N = 20
 NC = 10
@@ -75,8 +142,8 @@ controller = thermostat(
     deadband = 5
 )
 
-dt = 5
-tf = 60 * 60 * 24
+dt = 30
+tf = 60 * 60 * 24 * 14 - dt
 x0 = array([24] * (N+NC+NX)).T
 s = simulation.Run(
     xdot = tankModel,
@@ -86,9 +153,11 @@ s = simulation.Run(
     tf = tf
 )
 
+print 'Beginning simulation'
+
 (us_, xs_) = s.result()
 
-def viewHours(hourFrom, hourTo, fname = 'sim.png'):
+def viewHours(hourFrom, hourTo, size=(15, 20), dpi=80, fname = 'sim.png'):
     plotFrom = int(hourFrom * 60 * 60 / dt)
     plotTo = int(hourTo * 60 * 60 / dt)
 
@@ -97,7 +166,7 @@ def viewHours(hourFrom, hourTo, fname = 'sim.png'):
     ts = linspace(plotFrom*dt, plotTo*dt, num = len(xs[0,:]))
     th = map(lambda t: t / (60.0*60), ts)
 
-    figure(figsize=(15, 20), dpi=80)
+    figure(figsize=size, dpi=dpi)
 
     a1 = subplot(411)
     ylabel('Tank temperatures')

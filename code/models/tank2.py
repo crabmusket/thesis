@@ -168,6 +168,6 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
             # Final temperature change (\autoref{eq:node-dT})
             dT[i] = (U_amb + U_inlet + U_mflow) / (rho * C * v)
 
-        print t
+        #print t
         return dT
     return Tdot
