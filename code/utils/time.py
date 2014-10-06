@@ -5,4 +5,4 @@ def seconds_after_midnight(t, base):
          + 1e-6*base.microsecond
 
 def hours_after_midnight(t, start):
-    return seconds_after_midnight(t, start)/60/60
+    return seconds_after_midnight(t, start)/60.0/60.0

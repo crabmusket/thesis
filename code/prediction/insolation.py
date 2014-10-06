@@ -1,22 +1,18 @@
-import numpy as np
-import datetime as dt
-from math import ceil, sin, pi
-from ..utils import iterate, take
+from datetime import datetime, timedelta
+from ..utils.interval import Interval
 
-def predictedFrom(time, over, interval):
-    steps = ceil(over.total_seconds() / interval.total_seconds())
-    times = take(steps, iterate(lambda t: t + interval, time))
-    values = map(predictedAt, times)
-    return (times, values)
+fileStart = datetime(2014, 1, 1)
 
-directPeak   = 10
-indirectPeak = 2
-secsPerDay = 86400.0
-morning = dt.timedelta(hours=6)
-def predictedAt(time):
-    direct   = max(0, sin(secs(time-morning)/secsPerDay * 2*pi) - 0.4)/0.4 * directPeak
-    indirect = max(0, sin(secs(time-morning)/secsPerDay * 2*pi)) * indirectPeak
-    return direct + indirect
+def make(start):
+    hourlyInsolation = Interval()
+    for line in open('data/insolation.txt', 'r'):
+        solar = map(float, line.split('\t'))
+        hourlyInsolation.const_for(solar, 1)
 
-def secs(time):
-    return time.hour * 60 * 60 + time.minute * 60 + time.second
+    def predictor(t):
+        dt = timedelta(seconds=t)
+        time = start - fileStart + dt
+        hour = time.days * 24 + time.seconds / 60.0 / 60.0
+        return hourlyInsolation(hour)
+
+    return predictor

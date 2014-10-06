@@ -2,10 +2,13 @@ from numpy import zeros
 from numpy.linalg import norm
 from math import pi, sqrt
 from ..controllers.thermostat import thermostat
+from ..utils.time import hours_after_midnight
+from math import sin, pi
 
 # Implement the hot water tank model of \textcite{Cristofari02}.
 def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
-        getAmbient, getLoad, getInsolation):
+        getAmbient, getLoad, getInsolation,
+        sunAngleFactor):
     # Water and tank constants
     rho = 1000 # Water density
     C = 2400 # Specific heat capacity
@@ -40,7 +43,7 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
     # loop to be heated. This is a simple thermostat controller which measures
     # temperature at the bottom of the tank.
     auxPump_ = thermostat(
-        measure = tankFirst,
+        measure = auxOutlet,
         on  = 0.05, # Flow rate when on
         off = 0,
         setpoint = 60,
@@ -115,9 +118,17 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
         p_aux = auxHeat(m_aux, t, T)
         (m_coll, m_coll_return) = collPump(t, T)
 
+        # Convert MJ/hour/m^2 to Watts per segment.
+        watts = 277.8 # http://www.wolframalpha.com/input/?i=megajoule%2Fhour
+        area = 5 # m^2 of collector
+        ins = map(lambda i: i * watts * area / NC, ins)
+        # Direct radiation angle factor.
+        angleFactor = sunAngleFactor(t)
+        efficiency = 0.5
+        U_ins = (ins[0] + ins[1] * angleFactor) * efficiency
+
         # Calculate collector state change.
         for i in range(collFirst, collFirst+NC):
-            U_ins = ins / NC * 0.1 # TODO magic 0.1
             if i is collFirst:
                 U_mflow = m_coll        * C * (T[tankFirst] - T[i]) \
                         + m_coll_return * C * (T[collLast] - T[i])

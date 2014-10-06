@@ -7,10 +7,11 @@ import warnings
 warnings.simplefilter('ignore', np.ComplexWarning)
 
 from utils.interval import Interval
+from utils.time import hours_after_midnight
 from numpy import array, linspace
 from operator import add
 from datetime import datetime
-from math import pi
+from math import sin, pi
 
 import cvxopt as cvx
 import cvxpy
@@ -19,16 +20,17 @@ from models import tank2 as tank
 import models.halvgaard
 from controllers.thermostat import thermostat
 import controllers.mpc
+import prediction.insolation
 import prediction.ambient
 import prediction.load
 from prediction.load import spike, Lpm, minutes
 import prediction.collector
 import simulation.nonlinear as simulation
 
-startTime = datetime(2014, 9, 9, 00, 00, 00)
+startTime = datetime(2014, 1, 1, 00, 00, 00)
 
 ambient = prediction.ambient.make(start = startTime)
-insolation = lambda *args: 0
+insolation = prediction.insolation.make(start = startTime)
 
 # Let's go with a 4-person household. Using information from YVW, we'll make up
 # some schedules. Significant events: weekend showers are more spread out. One
@@ -109,22 +111,31 @@ load = prediction.load.make(
     profile = loadProfile + loadProfile # Two weeks, yeah
 )
 
+def sunAngleFactor(start):
+    def inner(t):
+        h = hours_after_midnight(t, start)
+        factor = 0 if h < 6 or h > 18 \
+            else sin(h-6 / 12 * 2*pi) / 2 + 1
+        return factor
+    return inner
+
 N = 20
 NC = 10
 NX = 10
 r = 0.4
 h = 1.3
 P = 2000
-auxOutlet = 0
+auxOutlet = N/2
 tankModel = tank.model(
     h = h, r = r, NT = N,
     NC = NC, NX = NX,
-    vC = 1, vX = 0.1,
+    vC = 0.2, vX = 0.1,
     P = P,
     auxOutlet = auxOutlet,
     getAmbient = ambient,
     getLoad = load,
     getInsolation = insolation,
+    sunAngleFactor = sunAngleFactor(startTime),
 )
 
 H = 12
@@ -145,7 +156,7 @@ predictive = mpc.controller(
 """
 
 controller = thermostat(
-    measure = 0,
+    measure = N/2+1,
     on  = array([1]),
     off = array([0]),
     setpoint = 55,
@@ -153,7 +164,7 @@ controller = thermostat(
 )
 
 dt = 30
-tf = 60 * 60 * 24 * 14 - dt
+tf = 60 * 60 * 24 * 5 - dt
 x0 = array([24] * (N+NC+NX)).T
 s = simulation.Run(
     xdot = tankModel,
@@ -163,11 +174,17 @@ s = simulation.Run(
     tf = tf
 )
 
-print 'Beginning simulation'
+us_ = xs_ = None
 
-(us_, xs_) = s.result()
+def run():
+    global us_
+    global xs_
+    (us_, xs_) = s.result()
 
 def viewHours(hourFrom, hourTo, size=(15, 20), dpi=80, fname = 'sim.png'):
+    global us_
+    global xs_
+
     plotFrom = int(hourFrom * 60 * 60 / dt)
     plotTo = int(hourTo * 60 * 60 / dt)
 
@@ -179,43 +196,38 @@ def viewHours(hourFrom, hourTo, size=(15, 20), dpi=80, fname = 'sim.png'):
     figure(figsize=size, dpi=dpi)
 
     a1 = subplot(411)
-    ylabel('Tank temperatures')
+    ylabel('Tank temperatures (deg C)')
     hs = [plot(th, xs[i,:])[0] for i in range(N)]
     ls = [str(i) for i in range(N)]
     axis(map(add, [0, 0, -1, 1], axis()))
 
     a2 = subplot(412, sharex=a1)
-    ylabel('Control effort')
-    for i in range(len(us[:,0])):
-        step(th, us[i,:])
-    axis(map(add, [0, 0, -0.002, 0.01], axis()))
-
-    a3 = subplot(413, sharex=a1)
-    ylabel('Load flow')
-    step(th, map(lambda t: float(load(t*60*60)[0]), th[f:t]))
-    axis(map(add, [0, 0, -0.01, 0.01], axis()))
-
-    """
-    a3 = subplot(413, sharex=a1)
-    ylabel('Collector temperatures')
+    ylabel('Collector temperatures (deg C)')
     hs = [plot(th, xs[i,:])[0] for i in range(N, N+NC)]
     axis(map(add, [0, 0, -1, 1], axis()))
-    """
+
+    a3 = subplot(413, sharex=a1)
+    ylabel('Load flow (L/s)')
+    step(th, map(lambda t: float(load(t*60*60)[0]), th))
+    axis(map(add, [0, 0, -0.01, 0.01], axis()))
 
     a4 = subplot(414, sharex=a1)
+    ylabel('Insolation (MJ/hour)')
+    step(th, map(lambda t: float(insolation(t*60*60)[0]), th), label='Indirect')
+    step(th, map(lambda t: float(insolation(t*60*60)[1]), th), label='Direct')
+    legend()
+    axis(map(add, [0, 0, -0.9, 0.5], axis()))
+
+    """
+    ylabel('Control effort')
+    [step(th, us[i,:]) for i in range(len(us[:,0]))]
+    axis(map(add, [0, 0, -0.002, 0.01], axis()))
+
     ylabel('Auxiliary temperatures')
     hs = [plot(th, xs[i,:])[0] for i in range(N+NC, N+NC+NX)]
-    axis(map(add, [0, 0, -1, 1], axis()))
-
-    """
-    a4 = subplot(414, sharex=a1)
-    ylabel('Collector temperature')
-    step(th, map(lambda t: float(collector(t*60*60)[1]), th[f:t]))
     axis(map(add, [0, 0, -1, 1], axis()))
     """
 
     xlabel('Simulation time (h)')
 
     savefig(fname)
-
-print 'Completed successfully'
