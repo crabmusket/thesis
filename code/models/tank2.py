@@ -118,9 +118,9 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
         p_aux = auxHeat(m_aux, t, T)
         (m_coll, m_coll_return) = collPump(t, T)
 
-        # Convert MJ/hour/m^2 to Watts per segment.
-        watts = 277.8 # http://www.wolframalpha.com/input/?i=megajoule%2Fhour
-        area = 5 # m^2 of collector
+        # Convert MJ/hour/sqm to Watts per segment.
+        watts = 277.8 # \url{http://www.wolframalpha.com/input/?i=megajoule%2Fhour}
+        area = 5 # sqm of collector
         ins = map(lambda i: i * watts * area / NC, ins)
         # Direct radiation angle factor.
         angleFactor = sunAngleFactor(t)
