@@ -42,6 +42,8 @@ loadProfile = [
         spike(7.5, minutes(9),  Lpm(6)),
         spike(7.9, minutes(7),  Lpm(4)),
         spike(8.1, minutes(10), Lpm(5)),
+        # Dishwasher
+        spike(22.5, minutes(70), Lpm(0.3)),
     ],
     # Tuesday
     [
@@ -58,6 +60,8 @@ loadProfile = [
         spike(7.1, minutes(5), Lpm(4)),
         spike(7.8, minutes(9), Lpm(6)),
         spike(8.2, minutes(6), Lpm(5)),
+        # Dishwasher
+        spike(22.4, minutes(70), Lpm(0.3)),
     ],
     # Thursday
     [
@@ -66,6 +70,8 @@ loadProfile = [
         spike(7,   minutes(8),  Lpm(5)),
         spike(7.2, minutes(10), Lpm(6)),
         spike(7.6, minutes(8),  Lpm(7)),
+        # Dishwasher
+        spike(22.5, minutes(70), Lpm(0.3)),
     ],
     # Friday
     [
@@ -78,18 +84,22 @@ loadProfile = [
     # Saturday
     [
         # Morning showers
-        spike(8.2,   minutes(10), Lpm(6)),
+        spike(8.2,   minutes(16), Lpm(6)),
         spike(9.1, minutes(7),  Lpm(5)),
-        spike(9.5, minutes(10), Lpm(5)),
+        spike(9.5, minutes(11), Lpm(5)),
         spike(10.5, minutes(12), Lpm(7)),
+        # Dishwasher
+        spike(21.7, minutes(70), Lpm(0.3)),
     ],
     # Sunday
     [
         # 'Morning' showers
         spike(8.6,  minutes(8),  Lpm(6)),
         spike(9.8,  minutes(13), Lpm(5)),
-        spike(10.5, minutes(7),  Lpm(5)),
-        spike(13.2, minutes(15), Lpm(7)),
+        spike(10.5, minutes(19),  Lpm(5)),
+        spike(13.2, minutes(14), Lpm(7)),
+        # Dishwasher
+        spike(21, minutes(70), Lpm(0.3)),
     ]
 ]
 
@@ -181,9 +191,16 @@ def viewHours(hourFrom, hourTo, size=(15, 20), dpi=80, fname = 'sim.png'):
     axis(map(add, [0, 0, -0.002, 0.01], axis()))
 
     a3 = subplot(413, sharex=a1)
+    ylabel('Load flow')
+    step(th, map(lambda t: float(load(t*60*60)[0]), th[f:t]))
+    axis(map(add, [0, 0, -0.01, 0.01], axis()))
+
+    """
+    a3 = subplot(413, sharex=a1)
     ylabel('Collector temperatures')
     hs = [plot(th, xs[i,:])[0] for i in range(N, N+NC)]
     axis(map(add, [0, 0, -1, 1], axis()))
+    """
 
     a4 = subplot(414, sharex=a1)
     ylabel('Auxiliary temperatures')
@@ -191,11 +208,6 @@ def viewHours(hourFrom, hourTo, size=(15, 20), dpi=80, fname = 'sim.png'):
     axis(map(add, [0, 0, -1, 1], axis()))
 
     """
-    a3 = subplot(413, sharex=a1)
-    ylabel('Load flow')
-    step(th, map(lambda t: float(load(t*60*60)[0]), th[f:t]))
-    axis(map(add, [0, 0, -0.01, 0.01], axis()))
-
     a4 = subplot(414, sharex=a1)
     ylabel('Collector temperature')
     step(th, map(lambda t: float(collector(t*60*60)[1]), th[f:t]))
