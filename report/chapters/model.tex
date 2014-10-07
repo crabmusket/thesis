@@ -307,4 +307,18 @@ The vectors $\vec{u}_e$ and $\vec{u}_d$ are defined as follows:
    \vec{u}_d &=& \left[\begin{array}{cccc} \dot{m}_c & \dot{m}_l & T_a & T_l \end{array} \right]
 \end{eqnarray}
 
-\section{Mixed control model}
+\section{Mixed-tank control model}
+
+Efficient control using convex optimisation requires a linear model.
+This is achieved by taking a very simplified view of the system used by \authors{Halvgaard12} and explained in \autoref{sec:review:mpc:halvgaard}.
+The entire tank is described as a single temperature, taken to represent the average temperature of all layers.
+
+\begin{equation}
+	\label{eq:tdot-halvgaard}
+	\dot{T} = \frac{-UA}{C}T + P \nu_x u +
+		\left[ \begin{array}{cccc}
+			\frac{-60}{C} & \frac{1}{C} & \\nu_c & frac{UA}{C}
+		\end{array} \right] \left[ \begin{array}{c}
+			m_l \\ T_l m_l \\ I \\ T_a
+		\end{array} \right]
+\end{equation}
