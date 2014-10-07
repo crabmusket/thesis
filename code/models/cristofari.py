@@ -3,8 +3,9 @@ from numpy.linalg import norm
 from math import pi, sqrt
 
 # Implement the hot water tank model of \textcite{Cristofari02}.
-def model(h, r, N, P, auxOutlet
-        getAmbient, getLoad, getCollector):
+def model(h, r, N, P, auxOutlet, \
+        collRate, collArea, sunAngleFactor, 
+        getAmbient, getLoad, getInsolation):
     # Water and tank constants
     rho = 1000 # Water density
     C = 2400 # Specific heat capacity
@@ -34,40 +35,52 @@ def model(h, r, N, P, auxOutlet
 
     # Net mass flow into node i from node i+1, i.e. in the direction of the
     # collector loop (downwards).
-    def mflow(T, u, i, load, coll, aux):
-        return coll[0] * sum([ctrlHot (coll[1], T, j) for j in [N-1] + range(i+1, N-1)]) \
-             - load[0] * sum([ctrlCold(load[1], T, j) for j in [0] + range(1, i-1)]) \
-             + aux[0]  * (int(i >= auxOutlet) - \
-                          sum([ctrlHot(aux[1],  T, j) for j in [0] + range(1, i+1)]))
+    def mflow(T, i, m_c, m_l, m_x, Bl, Bc, Bx):
+        return m_c * sum([Bc(j) for j in [NT-1] + range(i+1, NT-1)]) \
+             - m_l * sum([Bl(j) for j in [0] + range(1, i-1)]) \
+             + m_x * (int(i >= auxOutlet) - \
+                      sum([Bx(j) for j in [0] + range(1, i+1)]))
 
     # Rate of change
     def xdot(t, T, u):
         dT = zeros(T.shape)
 
         # Get current load and disturbance conditions.
+        T_a = getAmbient(t)
+        ins = getInsolation(t)
         load = getLoad(t)
-        coll = getCollector(t)
-        T_amb = getAmbient(t)[0]
+        m_load = load[0]
+        T_load = load[1]
+
+        # Convert MJ/hour/sqm to Watts.
+        angleFactor = sunAngleFactor(t)
+        efficiency = 0.5 # TODO
+        watts = 277.8 # \url{http://www.wolframalpha.com/input/?i=megajoule%2Fhour}
+        U_ins = (ins[0] + ins[1] * angleFactor) * efficiency * watts * collArea
 
         # Calculate the water temperature the aux heater will achieve, given its
         # inlet temperature, flow, and power rating.
         m_aux = max(0, u[0])
         T_aux = T[auxOutlet] + (P / (m_aux * C) if m_aux > 0 else 0)
 
+        # Calculate water temperature achieved by the collector.
+        m_coll = collRate if U_ins > 0 else 0
+        T_coll = T[0] + (U_ins / (m_coll * C) if m_coll > 0 else 0)
+
         # Convenience functions.
-        m  = lambda i: mflow(T, u, i, load, coll, [m_aux, T_aux])
-        Bl = lambda i: ctrlCold(load[1], T, i)
-        Bc = lambda i: ctrlHot (coll[1], T, i)
-        Bu = lambda i: ctrlHot (T_aux,   T, i)
+        Bl = lambda i: ctrlCold(T_load, T, i)
+        Bc = lambda i: ctrlHot (T_coll, T, i)
+        Bx = lambda i: ctrlHot (T_aux,  T, i)
+        m  = lambda i: mflow(T, i, m_coll, m_load, m_aux, Bl, Bc, Bx)
 
         for i in range(0, N):
             # Ambient temperature loss
             U_amb = (U_s_end if i in [0, N-1] else U_s_int) * (T_amb - T[i])
 
             # Temperature flow from collector/load inlets.
-            U_inlet = Bl(i) * load[0] * C * (load[1] - T[i]) \
-                    + Bc(i) * coll[0] * C * (coll[1] - T[i]) \
-                    + Bu(i) * m_aux   * C * (T_aux   - T[i])
+            U_inlet = Bl(i) * m_load * C * (T_load - T[i]) \
+                    + Bc(i) * m_coll * C * (T_coll - T[i]) \
+                    + Bx(i) * m_aux  * C * (T_aux   - T[i])
 
             # Mass flow.
             U_mflow = (min(0, m(i-1)) * C * (T[i] - T[i-1]) if i > 0 else 0) \
