@@ -21,15 +21,11 @@ def discretise(dt, (A, Bu, Bw, C, D)):
 def SubjectTo(*args):
     return [a for a in list(args) if a is not None]
 
-def linear(horizon, step, system, objective, constraints, disturbances):
-    H = horizon
-    dt = step
-
-    # Construct predictor from discretised SS model.
-    (A, Bu, Bw, C, D) = discretise(dt, system)
+# Calculate optimisation matrices for a linear system.
+def processLinear((A, Bu, Bw, C, D), H, dt):
     N = A.shape[0]/2
 
-    # Construct the matrices that predict the state over the prediction horizon.
+    # Construct the matrices that predict the state over the horizon.
     def builder(B):
         z = zeros((C*A*B).shape)
         def inner(i, j):
@@ -52,23 +48,34 @@ def linear(horizon, step, system, objective, constraints, disturbances):
     ThetaU = cvx.matrix(thetaU)
     ThetaW = cvx.matrix(thetaW)
     Psi    = cvx.matrix(psi)
-    lastMask = cvx.matrix([0]*(H-1)*C.shape[0] + [1]*C.shape[0])
+    return (Psi, ThetaU, ThetaW)
+
+def LTV(horizon, step, system, objective, constraints, disturbances):
+    H = horizon
+    dt = step
 
     def solve(x, t):
+        # First discretise the system.
+        sys = (A, Bu, Bw, C, D) = discretise(dt, system(t))
+
+        # Calculate disturbances.
         if disturbances is not None:
             dists = [disturbances(x, tt) for tt in linspace(t, t+(H-1)*dt, H)]
             w = cvx.matrix(np.vstack(dists))
         else:
             w = cvx.matrix([0]*Bd.shape[1]*H)
+
+        # Set up optimisation problem.
         u = Variable(H * Bu.shape[1])
         y = Variable(H * C.shape[0])
         X = cvx.matrix(x)
+        (Psi, ThetaU, ThetaW) = processLinear(sys, H, dt)
         op = Problem(
             Minimize
-                (objective(X, y)),
+                (objective(t, X, y)),
             SubjectTo
                 (y == Psi * X + ThetaU * u + ThetaW * w) + \
-                 constraints(X, y, u)
+                 constraints(t, X, y, u)
         )
         op.solve()
         if u.value is not None:
