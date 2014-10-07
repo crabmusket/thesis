@@ -11,12 +11,12 @@ class Run(object):
 
     def result(self):
         t0 = 0
-        sim = (ode(self.model)
+        sim = ode(self.model) \
                 .set_integrator('vode',
                     method = 'bdf',
                     with_jacobian = False,
-                    max_step = self.dt)
-                .set_initial_value(self.x0, t0))
+                    max_step = self.dt,
+                ).set_initial_value(self.x0, t0)
         results = []
         inputs = []
         while sim.successful() and sim.t < self.tf:

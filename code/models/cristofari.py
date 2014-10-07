@@ -3,9 +3,10 @@ from numpy.linalg import norm
 from math import pi, sqrt
 
 # Implement the hot water tank model of \textcite{Cristofari02}.
-def model(h, r, N, P, auxOutlet, \
-        collRate, collArea, sunAngleFactor, 
-        getAmbient, getLoad, getInsolation):
+def model(h, r, N, P, auxOutlet,
+        collRate, collArea,
+        collEfficiency, auxEfficiency,
+        getAmbient, getLoad, getInsolation, sunAngleFactor):
     # Water and tank constants
     rho = 1000 # Water density
     C = 2400 # Specific heat capacity
@@ -36,7 +37,7 @@ def model(h, r, N, P, auxOutlet, \
     # Net mass flow into node i from node i+1, i.e. in the direction of the
     # collector loop (downwards).
     def mflow(T, i, m_c, m_l, m_x, Bl, Bc, Bx):
-        return m_c * sum([Bc(j) for j in [NT-1] + range(i+1, NT-1)]) \
+        return m_c * sum([Bc(j) for j in [N-1] + range(i+1, N-1)]) \
              - m_l * sum([Bl(j) for j in [0] + range(1, i-1)]) \
              + m_x * (int(i >= auxOutlet) - \
                       sum([Bx(j) for j in [0] + range(1, i+1)]))
@@ -53,22 +54,21 @@ def model(h, r, N, P, auxOutlet, \
         T_load = load[1]
 
         # Convert MJ/hour/sqm to Watts.
-        collEfficiency = 0.5 # \todo{get an actual number}
         watts = 277.8 # \url{http://www.wolframalpha.com/input/?i=megajoule%2Fhour}
-        U_ins = (ins[0] + ins[1] * sunAngleFactor(t)) * collEfficiency * watts * collArea
+        U_ins = ins * collEfficiency * watts * collArea
 
         # Calculate water temperature achieved by the collector. \todo{need a better
         # controller here, I assume}
         m_coll = collRate if U_ins > 0 else 0
-        T_coll = T[0] + (U_ins / (m_coll * C) if m_coll > 0 else 0)
+        T_coll = T[0]# + (U_ins / (m_coll * C) if m_coll > 0 else 0)
         
-        auxEfficiency = 0.4 # \todo{get an actual number}
+        # Accommodate heater efficiency.
         U_aux = P * auxEfficiency
 
         # Calculate the water temperature the aux heater will achieve, given its
         # inlet temperature, flow, and power rating.
-        m_aux = max(0, u[0])
-        T_aux = T[auxOutlet] + (U_aux / (m_aux * C) if m_aux > 0 else 0)
+        m_aux = 0.05 * u
+        T_aux = T[auxOutlet]# + (U_aux / (m_aux * C) if m_aux > 0 else 0)
 
         # Convenience functions.
         Bl = lambda i: ctrlCold(T_load, T, i)
@@ -78,7 +78,7 @@ def model(h, r, N, P, auxOutlet, \
 
         for i in range(0, N):
             # Ambient temperature loss
-            U_amb = (U_s_end if i in [0, N-1] else U_s_int) * (T_amb - T[i])
+            U_amb = (U_s_end if i in [0, N-1] else U_s_int) * (T_a - T[i])
 
             # Temperature flow from collector/load inlets.
             U_inlet = Bl(i) * m_load * C * (T_load - T[i]) \

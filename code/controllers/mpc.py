@@ -11,7 +11,7 @@ from cvxpy import *
 def discretise(dt, (A, Bu, Bw, C, D)):
     Adis = array(expm2(A * dt))
     B = np.hstack([Bu, Bw])
-    Bdis = A.I * (Adis - eye(Adis.shape[0])) * B
+    Bdis = inv(A) * (Adis - eye(Adis.shape[0])) * B
     return (Adis,
             Bdis[:, 0           : Bu.shape[1]],
             Bdis[:, Bu.shape[1] : Bu.shape[1] + Bw.shape[1]],
@@ -21,7 +21,7 @@ def discretise(dt, (A, Bu, Bw, C, D)):
 def SubjectTo(*args):
     return [a for a in list(args) if a is not None]
 
-def linear(horizon, step, system, objective, constraints, disturbances):
+def LTI(horizon, step, system, objective, constraints, disturbances):
     H = horizon
     dt = step
 
@@ -54,9 +54,9 @@ def linear(horizon, step, system, objective, constraints, disturbances):
     Psi    = cvx.matrix(psi)
     lastMask = cvx.matrix([0]*(H-1)*C.shape[0] + [1]*C.shape[0])
 
-    def solve(x, t):
+    def solve(t, x):
         if disturbances is not None:
-            dists = [disturbances(x, tt) for tt in linspace(t, t+(H-1)*dt, H)]
+            dists = [disturbances(tt, x) for tt in linspace(t, t+(H-1)*dt, H)]
             w = cvx.matrix(np.vstack(dists))
         else:
             w = cvx.matrix([0]*Bd.shape[1]*H)
@@ -78,12 +78,17 @@ def linear(horizon, step, system, objective, constraints, disturbances):
 
     return solve
 
-def controller(period, law):
-    def control(x, t):
+def controller(period, law, preprocess, pwm):
+    def control(t, x):
         if t - control.lastTime >= period:
             control.lastTime = t
-            control.lastSignal = law(x, t)
-        return control.lastSignal
+            control.lastSignal = law(t, preprocess(x))
+            print t
+        if pwm:
+            return array([1 if (t - control.lastTime <= period * control.lastSignal)
+                            else 0])
+        else:
+            return control.lastSignal
 
     control.lastTime = -period
     return control
