@@ -53,19 +53,19 @@ def model(h, r, N, P, auxOutlet, \
         T_load = load[1]
 
         # Convert MJ/hour/sqm to Watts.
-        angleFactor = sunAngleFactor(t)
-        efficiency = 0.5 # TODO
+        efficiency = 0.5 # \todo{get an actual number}
         watts = 277.8 # \url{http://www.wolframalpha.com/input/?i=megajoule%2Fhour}
-        U_ins = (ins[0] + ins[1] * angleFactor) * efficiency * watts * collArea
+        U_ins = (ins[0] + ins[1] * sunAngleFactor(t)) * efficiency * watts * collArea
+
+        # Calculate water temperature achieved by the collector. \todo{need a better
+        # controller here, I assume}
+        m_coll = collRate if U_ins > 0 else 0
+        T_coll = T[0] + (U_ins / (m_coll * C) if m_coll > 0 else 0)
 
         # Calculate the water temperature the aux heater will achieve, given its
         # inlet temperature, flow, and power rating.
         m_aux = max(0, u[0])
         T_aux = T[auxOutlet] + (P / (m_aux * C) if m_aux > 0 else 0)
-
-        # Calculate water temperature achieved by the collector.
-        m_coll = collRate if U_ins > 0 else 0
-        T_coll = T[0] + (U_ins / (m_coll * C) if m_coll > 0 else 0)
 
         # Convenience functions.
         Bl = lambda i: ctrlCold(T_load, T, i)
