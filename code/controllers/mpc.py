@@ -70,7 +70,7 @@ def LTI(horizon, step, system, objective, constraints, disturbances):
                 (y == Psi * X + ThetaU * u + ThetaW * w) + \
                  constraints(X, y, u)
         )
-        op.solve()
+        op.solve(solver=CVXOPT)
         if u.value is not None:
             return array(u.value)[0:Bu.shape[1]].flatten()
         else:

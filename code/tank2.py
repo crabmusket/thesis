@@ -146,21 +146,23 @@ tankModel = cristofariPlus.model(
     getInsolation = insolation,
 )
 
-H = 12
+H = 6
 C = 2400
 UA = 0.5 * (2 * pi * r * h + 2 * pi * r * r)
+rho = 1000
+m = pi * r * r * h * rho
 controller = mpc.controller(
     period = 3600,
     law = mpc.LTI(
         horizon = H,
         step = 3600,
         system = halvgaard.model(
-            C, UA, P,
+            m, C, UA, P,
             auxEfficiency = nuX,
         ),
         objective = lambda X, y: cvxpy.norm(y-60),
         constraints = lambda X, y, u: [
-            y <= 70,
+            #y <= 70,
             0 <= u, u <= 1,
         ],
         disturbances = lambda t, x: array([
@@ -174,6 +176,7 @@ controller = mpc.controller(
     pwm = True,
 )
 
+"""
 controller = thermostat.controller(
     measure = N/2,
     on  = array([1]),
@@ -181,6 +184,7 @@ controller = thermostat.controller(
     setpoint = 55,
     deadband = 5
 )
+"""
 
 def report(t):
     print t
@@ -233,14 +237,14 @@ def view((us_, xs_), hourFrom=None, hourTo=None, size=(30, 15), dpi=80, fname = 
     axis(map(add, [0, 0, -0.01, 0.01], axis()))
 
     a4 = subplot(414, sharex=a1)
-    ylabel('Insolation (W)')
-    step(th, map(lambda t: float(insolation(t*60*60)), th))
-    axis(map(add, [0, 0, -0.9, 0.5], axis()))
-
-    """
     ylabel('Control effort')
     [step(th, us[i,:]) for i in range(len(us[:,0]))]
     axis(map(add, [0, 0, -0.002, 0.01], axis()))
+
+    """
+    ylabel('Insolation (W)')
+    step(th, map(lambda t: float(insolation(t*60*60)), th))
+    axis(map(add, [0, 0, -0.9, 0.5], axis()))
     """
 
     xlabel('Simulation time (h)')

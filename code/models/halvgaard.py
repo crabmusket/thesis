@@ -1,9 +1,9 @@
 from numpy import array
 
-def model(C, UA, P, auxEfficiency):
-    A  = array([[-UA/C]])
-    Bu = array([[P * auxEfficiency / C]])
-    Bw = array([[-60/C, 1/C, 1, UA/C]])
+def model(m, C, UA, P, auxEfficiency):
+    A  = array([[-UA/m/C]])
+    Bu = array([[P/m/C * auxEfficiency]])
+    Bw = array([[-60/m, 1/m, 1/m/C, UA/m/C]])
     C  = array([[1]])
     D  = array([[0]])
     return (A, Bu, Bw, C, D)
