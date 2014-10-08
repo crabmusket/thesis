@@ -1,14 +1,14 @@
 from numpy import zeros
 from numpy.linalg import norm
 from math import pi, sqrt
-from ..controllers.thermostat import thermostat
+from ..controllers import thermostat
 from ..utils.time import hours_after_midnight
 from math import sin, pi
 
 # Implement the hot water tank model of \textcite{Cristofari02}.
-def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
-        getAmbient, getLoad, getInsolation,
-        sunAngleFactor):
+def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet,
+        auxEfficiency, auxThermostat,
+        getAmbient, getLoad, getInsolation):
     # Water and tank constants
     rho = 1000 # Water density
     C = 2400 # Specific heat capacity
@@ -41,21 +41,21 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
 
     # The auxiliary pump controller decides when to send water through the aux
     # loop to be heated. This is a simple thermostat controller which measures
-    # temperature at the bottom of the tank.
-    auxPump_ = thermostat(
+    # temperature at the bottom of the tank. If external control is off, then
+    # it is forced off.
+    auxPump = thermostat.controller(
         measure = auxOutlet,
         on  = 0.05, # Flow rate when on
         off = 0,
         setpoint = 60,
         deadband = 5
     )
-    auxPump = lambda u, t, T: 0 if u == 0 else auxPump_(t, T)
 
     # The auxiliary heater controller is responsible for heating the water
     # flowing through the auxiliary loop. If there is no flow it turns off,
     # otherwise using a thermostat to measure the temperature of the water being
     # sent back to the tank.
-    auxHeat_ = thermostat(
+    auxHeat_ = thermostat.controller(
         measure = auxLast,
         on  = P, # Power input when heating
         off = 0,
@@ -68,7 +68,7 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
     # The collector pump controller returns two values - the flow to send back
     # into the tank, and the flow to bypass the tank and return to the collector
     # directly. It turns off entirely at night.
-    collPump_ = thermostat(
+    collPump_ = thermostat.controller(
         measure = collLast,
         on  = (0, 0.05), # When we are 'on', i.e. the temp at collLast is < 60,
         off = (0.05, 0), # send the water back to the collector, and vice versa.
@@ -98,7 +98,7 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
         return m_c * sum([Bc(j) for j in [NT-1] + range(i+1, NT-1)]) \
              - m_l * sum([Bl(j) for j in [0] + range(1, i-1)]) \
              + m_x * (int(i >= auxOutlet) - \
-                        sum([Bx(j) for j in [0] + range(1, i+1)]))
+                      sum([Bx(j) for j in [0] + range(1, i+1)]))
 
     # Finally, the derivative of the state. This calculates the derivative of all
     # nodes in the system - the nodes making up the tank, the collector, and the
@@ -108,24 +108,16 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
 
         # Get current load and disturbance conditions.
         T_a = getAmbient(t)
-        ins = getInsolation(t)
-        load = getLoad(t)
-        m_load = load[0]
-        T_load = load[1]
+        U_ins = getInsolation(t)
+        (m_load, T_load) = getLoad(t)
 
         # Compute internal control.
-        m_aux = auxPump(u, t, T)
-        p_aux = auxHeat(m_aux, t, T)
+        if auxThermostat:
+            m_aux = auxPump(t, T)
+        else:
+            m_aux = auxPump.on if u > 0 else auxPump.off
+        p_aux = auxHeat(m_aux, t, T) * auxEfficiency
         (m_coll, m_coll_return) = collPump(t, T)
-
-        # Convert MJ/hour/sqm to Watts per segment.
-        watts = 277.8 # \url{http://www.wolframalpha.com/input/?i=megajoule%2Fhour}
-        area = 5 # sqm of collector
-        ins = map(lambda i: i * watts * area / NC, ins)
-        # Direct radiation angle factor.
-        angleFactor = sunAngleFactor(t)
-        efficiency = 0.5
-        U_ins = (ins[0] + ins[1] * angleFactor) * efficiency
 
         # Calculate collector state change.
         for i in range(collFirst, collFirst+NC):
@@ -134,7 +126,7 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
                         + m_coll_return * C * (T[collLast] - T[i])
             else:
                 U_mflow = (m_coll + m_coll_return) * C * (T[i-1] - T[i])
-            dT[i] = (U_ins + U_mflow) / (rho * C * vC)
+            dT[i] = (U_ins + U_mflow) / (rho * C * vC_)
 
         # Calculate heater state change.
         for i in range(auxFirst, auxFirst+NX):
@@ -143,7 +135,7 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
                 U_mflow = m_aux * C * (T[auxOutlet] - T[i])
             else:
                 U_mflow = m_aux * C * (T[i-1] - T[i])
-            dT[i] = (U_aux + U_mflow) / (rho * C * vX)
+            dT[i] = (U_aux + U_mflow) / (rho * C * vX_)
 
         # The state changes in the tank depend on the temperatures of entering
         # water from the collector and aux heater, so let's make convenient
@@ -160,7 +152,7 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet, \
         # Calculate tank state change.
         for i in range(tankFirst, tankFirst+NT):
             # Ambient temperature losses.
-            # TODO: fix ends. Need to account for larger surface area there.
+            # \todo{fix ends. Need to account for larger surface area there.}
             U_amb = (U_s_int if i in [tankFirst, tankLast] else U_s_int) \
                   * (T_a - T[i])
 

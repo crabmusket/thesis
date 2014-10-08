@@ -85,8 +85,8 @@ def controller(period, law, preprocess, pwm):
             control.lastSignal = law(t, preprocess(x))
             print t
         if pwm:
-            return array([1 if (t - control.lastTime <= period * control.lastSignal)
-                            else 0])
+            switchOff = (t - control.lastTime) > (period * control.lastSignal)
+            return array([0 if switchOff else 1])
         else:
             return control.lastSignal
 

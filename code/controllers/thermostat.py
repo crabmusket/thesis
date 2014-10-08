@@ -1,9 +1,9 @@
-def thermostat(measure, on, off, setpoint, deadband):
-    def controller(t, x):
+def controller(measure, on, off, setpoint, deadband):
+    def law(t, x):
         temp = x[measure]
-        if controller.heating is False:
+        if law.heating is False:
             if temp < setpoint-deadband:
-                controller.heating = True
+                law.heating = True
                 return on
             else:
                 return off
@@ -11,7 +11,11 @@ def thermostat(measure, on, off, setpoint, deadband):
             if temp < setpoint:
                 return on
             else:
-                controller.heating = False
+                law.heating = False
                 return off
-    controller.heating = False
-    return controller
+    law.heating = False
+    law.on = on
+    law.off = off
+    law.setpoint = setpoint
+    law.deadband = deadband
+    return law

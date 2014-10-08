@@ -18,8 +18,7 @@ import cvxpy
 
 from models import tank2 as tank
 import models.halvgaard
-from controllers.thermostat import thermostat
-import controllers.mpc
+from controllers import thermostat, mpc
 import prediction.insolation
 import prediction.ambient
 import prediction.load
@@ -30,7 +29,21 @@ import simulation.nonlinear as simulation
 startTime = datetime(2014, 1, 1, 00, 00, 00)
 
 ambient = prediction.ambient.make(start = startTime)
-insolation = prediction.insolation.make(start = startTime)
+
+def sunAngleFactor(start):
+    def inner(t):
+        h = hours_after_midnight(t, start)
+        factor = 0 if h < 6 or h > 18 \
+            else sin(h-6 / 12 * 2*pi) / 2 + 1
+        return factor
+    return inner
+
+nuC = 0.5
+insolation = prediction.insolation.make(
+    start = startTime,
+    angleFactor = sunAngleFactor(startTime),
+    efficiency = nuC,
+)
 
 # Let's go with a 4-person household. Using information from YVW, we'll make up
 # some schedules. Significant events: weekend showers are more spread out. One
@@ -111,14 +124,6 @@ load = prediction.load.make(
     profile = loadProfile + loadProfile # Two weeks, yeah
 )
 
-def sunAngleFactor(start):
-    def inner(t):
-        h = hours_after_midnight(t, start)
-        factor = 0 if h < 6 or h > 18 \
-            else sin(h-6 / 12 * 2*pi) / 2 + 1
-        return factor
-    return inner
-
 N = 20
 NC = 10
 NX = 10
@@ -142,8 +147,7 @@ H = 12
 C = 2400
 UA = 0.5 * (2 * pi * r * h + 2 * pi * r * r)
 """
-Q = cvx.matrix(kron(eye(H), diag([0]*(N-1) + [1] + [0]*N)))
-predictive = mpc.controller(
+controller = mpc.controller(
     period = 3600,
     law = mpc.linear(
         horizon = H,
@@ -155,7 +159,7 @@ predictive = mpc.controller(
 )
 """
 
-controller = thermostat(
+controller = thermostat.controller(
     measure = N/2+1,
     on  = array([1]),
     off = array([0]),

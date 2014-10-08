@@ -3,7 +3,7 @@ from ..utils.interval import Interval
 
 fileStart = datetime(2014, 1, 1)
 
-def make(start, angleFactor):
+def make(start, efficiency, angleFactor):
     hourlyInsolation = Interval()
     for line in open('data/insolation.txt', 'r'):
         solar = map(float, line.split('\t'))
@@ -14,6 +14,6 @@ def make(start, angleFactor):
         time = start - fileStart + dt
         hour = time.days * 24 + time.seconds / 60.0 / 60.0
         ins = hourlyInsolation(hour)
-        return ins[0] + ins[1] * angleFactor(hour)
+        return (ins[0] + ins[1] * angleFactor(hour)) * efficiency
 
     return predictor

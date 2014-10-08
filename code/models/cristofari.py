@@ -6,6 +6,7 @@ from math import pi, sqrt
 def model(h, r, N, P, auxOutlet,
         collRate, collArea,
         collEfficiency, auxEfficiency,
+        T_ent,
         getAmbient, getLoad, getInsolation, sunAngleFactor):
     # Water and tank constants
     rho = 1000 # Water density
@@ -53,22 +54,18 @@ def model(h, r, N, P, auxOutlet,
         m_load = load[0]
         T_load = load[1]
 
-        # Convert MJ/hour/sqm to Watts.
-        watts = 277.8 # \url{http://www.wolframalpha.com/input/?i=megajoule%2Fhour}
-        U_ins = ins * collEfficiency * watts * collArea
-
         # Calculate water temperature achieved by the collector. \todo{need a better
         # controller here, I assume}
+        watts = 277.8 # \url{http://www.wolframalpha.com/input/?i=megajoule%2Fhour}
+        U_ins = ins * collEfficiency * watts * collArea
         m_coll = collRate if U_ins > 0 else 0
-        T_coll = T[0]# + (U_ins / (m_coll * C) if m_coll > 0 else 0)
-        
-        # Accommodate heater efficiency.
-        U_aux = P * auxEfficiency
+        T_coll = T_ent
 
         # Calculate the water temperature the aux heater will achieve, given its
         # inlet temperature, flow, and power rating.
+        U_aux = P * auxEfficiency * u
         m_aux = 0.05 * u
-        T_aux = T[auxOutlet]# + (U_aux / (m_aux * C) if m_aux > 0 else 0)
+        T_aux = T_ent
 
         # Convenience functions.
         Bl = lambda i: ctrlCold(T_load, T, i)
