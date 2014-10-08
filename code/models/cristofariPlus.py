@@ -6,29 +6,24 @@ from ..utils.time import hours_after_midnight
 from math import sin, pi
 
 # Implement the hot water tank model of \textcite{Cristofari02}.
-def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet,
+def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
         auxEfficiency, auxThermostat,
         getAmbient, getLoad, getInsolation):
     # Water and tank constants
     rho = 1000 # Water density
     C = 2400 # Specific heat capacity
     U = 0.5 # Tank wall heat loss coefficient
-    k = 0.58 # Heat conductivity
-    K = 0.41 # von Karman constant
-    beta = 69e-6 # Thermal expansion coefficient
-    g = 9.81 # Gravity
 
     # Derived parameters
     d = float(h) / NT # Depth of each segment
-    v = pi * r * r * d # Volume of each segment
-    vC_ = vC / NC # Volume per segment in collector
-    vX_ = vX / NX # Volume per segment in aux heater
+    vT = pi * r * r * d # Volume of each segment in tank
+    vC = collVolume / NC # Volume per segment in collector
+    vX = auxVolume / NX # Volume per segment in aux heater
     A_int = 2 * pi * r * d # Wall area of interior segment
     A_end = A_int + pi * r * r # Wall area of end segment
-    U_s_int = A_int * U # Rate of temperature something
-    U_s_end = A_end * U # Rate of temperature something else
+    U_s = (A_int + A_end / (NT/2)) * U # Rate of temperature something
     U_s_x = 0
-    U_s_c = 0
+    U_s_c = 0.3
 
     # Node numbers for different areas of the tank. These index into the state
     # vector and label specific nodes in the heat flow simulation.
@@ -69,11 +64,11 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet,
     # into the tank, and the flow to bypass the tank and return to the collector
     # directly. It turns off entirely at night.
     collPump_ = thermostat.controller(
-        measure = collLast,
-        on  = (0, 0.05), # When we are 'on', i.e. the temp at collLast is < 60,
+        measure = lambda T: T[collLast] - T[tankFirst],
+        on  = (0, 0.05), # When we are 'on', i.e. the tank doesn't want out water,
         off = (0.05, 0), # send the water back to the collector, and vice versa.
-        setpoint = 60,
-        deadband = 5
+        setpoint = 8,
+        deadband = 6
     )
     collPump = collPump_ # TODO turn off at night
 
@@ -108,7 +103,7 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet,
 
         # Get current load and disturbance conditions.
         T_a = getAmbient(t)
-        U_ins = getInsolation(t)
+        U_ins = getInsolation(t) / NC
         (m_load, T_load) = getLoad(t)
 
         # Compute internal control.
@@ -116,26 +111,27 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet,
             m_aux = auxPump(t, T)
         else:
             m_aux = auxPump.on if u > 0 else auxPump.off
-        p_aux = auxHeat(m_aux, t, T) * auxEfficiency
+        U_aux = auxHeat(m_aux, t, T) * auxEfficiency / NX
         (m_coll, m_coll_return) = collPump(t, T)
 
         # Calculate collector state change.
         for i in range(collFirst, collFirst+NC):
+            U_amb = U_s_c * (T_a - T[i])
             if i is collFirst:
                 U_mflow = m_coll        * C * (T[tankFirst] - T[i]) \
                         + m_coll_return * C * (T[collLast] - T[i])
             else:
                 U_mflow = (m_coll + m_coll_return) * C * (T[i-1] - T[i])
-            dT[i] = (U_ins + U_mflow) / (rho * C * vC_)
+            dT[i] = (U_amb + U_ins + U_mflow) / (rho * C * vC)
 
         # Calculate heater state change.
         for i in range(auxFirst, auxFirst+NX):
-            U_aux = p_aux / NX
+            U_amb = U_s_x * (T_a - T[i])
             if i is auxFirst:
                 U_mflow = m_aux * C * (T[auxOutlet] - T[i])
             else:
                 U_mflow = m_aux * C * (T[i-1] - T[i])
-            dT[i] = (U_aux + U_mflow) / (rho * C * vX_)
+            dT[i] = (U_amb + U_aux + U_mflow) / (rho * C * vX)
 
         # The state changes in the tank depend on the temperatures of entering
         # water from the collector and aux heater, so let's make convenient
@@ -153,8 +149,7 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet,
         for i in range(tankFirst, tankFirst+NT):
             # Ambient temperature losses.
             # \todo{fix ends. Need to account for larger surface area there.}
-            U_amb = (U_s_int if i in [tankFirst, tankLast] else U_s_int) \
-                  * (T_a - T[i])
+            U_amb = U_s * (T_a - T[i])
 
             # Temperature flow from inlets. Use the B functions to only apply
             # these heat flows to the appropriate nodes.
@@ -169,7 +164,7 @@ def model(h, r, NT, NC, NX, P, vC, vX, auxOutlet,
                     + (max(0, m(i))   * C * (T[i+1] - T[i]) if i < NT-1 else 0)
 
             # Final temperature change (\autoref{eq:node-dT})
-            dT[i] = (U_amb + U_inlet + U_mflow) / (rho * C * v)
+            dT[i] = (U_amb + U_inlet + U_mflow) / (rho * C * vT)
 
         #print t
         return dT

@@ -1,19 +1,22 @@
 def controller(measure, on, off, setpoint, deadband):
     def law(t, x):
-        temp = x[measure]
-        if law.heating is False:
-            if temp < setpoint-deadband:
-                law.heating = True
+        if hasattr(measure, '__call__'):
+            val = measure(x)
+        else:
+            val = x[measure]
+        if law.turnedOn is False:
+            if val < setpoint-deadband:
+                law.turnedOn = True
                 return on
             else:
                 return off
         else:
-            if temp < setpoint:
+            if val < setpoint:
                 return on
             else:
-                law.heating = False
+                law.turnedOn = False
                 return off
-    law.heating = False
+    law.turnedOn = False
     law.on = on
     law.off = off
     law.setpoint = setpoint

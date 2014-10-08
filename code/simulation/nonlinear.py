@@ -2,19 +2,20 @@ from scipy.integrate import ode
 from numpy import hstack, array
 
 class Run(object):
-    def __init__(self, xdot, x0, dt, tf, u = None):
+    def __init__(self, xdot, x0, dt, tf, u = None, report = None):
         self.model = xdot
         self.x0 = x0
         self.tf = tf
         self.dt = dt
         self.u = u
+        self.report = report
 
     def result(self):
         t0 = 0
         sim = ode(self.model) \
-                .set_integrator('vode',
-                    method = 'bdf',
-                    with_jacobian = False,
+                .set_integrator('dop853',
+                    #method = 'bdf',
+                    #with_jacobian = False,
                     max_step = self.dt,
                 ).set_initial_value(self.x0, t0)
         results = []
@@ -25,4 +26,6 @@ class Run(object):
             sim.integrate(sim.t + self.dt)
             results.append(sim.y)
             inputs.append(u)
+            if self.report:
+                self.report(sim.t)
         return (array(inputs).T, array(results).T)

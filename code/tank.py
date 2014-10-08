@@ -16,8 +16,8 @@ from math import sin, pi
 import cvxopt as cvx
 import cvxpy
 
-from models import cristofariPlus, halvgaard
-from controllers import thermostat, mpc
+from models import cristofari, halvgaard
+from controllers import mpc
 import prediction.insolation
 import prediction.ambient
 import prediction.load
@@ -37,13 +37,9 @@ def sunAngleFactor(start):
         return factor
     return inner
 
-area = 5
-nuC = 0.5
 insolation = prediction.insolation.make(
     start = startTime,
     angleFactor = sunAngleFactor(startTime),
-    efficiency = nuC,
-    area = area,
 )
 
 # Let's go with a 4-person household. Using information from YVW, we'll make up
@@ -126,24 +122,20 @@ load = prediction.load.make(
 )
 
 N = 20
-NC = 10
-NX = 10
 r = 0.4
 h = 1.3
 P = 2000
-auxOutlet = N/2
+nuC = 0.5
 nuX = 0.5
-tankModel = cristofariPlus.model(
-    h = h, r = r, NT = N,
-    NC = NC, NX = NX,
-    collVolume = 0.8, auxVolume = 0.2,
-    P = P,
+area = 5
+auxOutlet = N/2
+tankModel = cristofari.model(
+    h = h, r = r, N = N, P = P,
     auxOutlet = auxOutlet,
-    auxEfficiency = nuX,
-    auxThermostat = False,
-    getAmbient = ambient,
-    getLoad = load,
-    getInsolation = insolation,
+    collRate = 1, collArea = area,
+    collEfficiency = nuC, auxEfficiency = nuX,
+    getAmbient = ambient, getLoad = load, getInsolation = insolation,
+    sunAngleFactor = sunAngleFactor(startTime),
 )
 
 H = 12
@@ -156,7 +148,9 @@ controller = mpc.controller(
         step = 3600,
         system = halvgaard.model(
             C, UA, P,
-            auxEfficiency = nuX,
+            collEfficiency = nuC, auxEfficiency = nuX,
+            collArea = area,
+            sunAngleFactor = sunAngleFactor(startTime),
         ),
         objective = lambda X, y: cvxpy.norm(y-60),
         constraints = lambda X, y, u: [
@@ -170,47 +164,35 @@ controller = mpc.controller(
             [ambient(t)],
         ]),
     ),
-    preprocess = average,
+    preprocess = lambda x: average(x),
     pwm = True,
 )
 
-controller = thermostat.controller(
-    measure = N/2,
-    on  = array([1]),
-    off = array([0]),
-    setpoint = 55,
-    deadband = 5
-)
-
-def report(t):
-    print t
-
-dt = 30
-tf = 60 * 60 * 24 - dt
-x0 = array([24] * (N+NC+NX)).T
+dt = 60
+tf = 60 * 60 * 12 - dt
+x0 = array([24] * N).T
 s = simulation.Run(
     xdot = tankModel,
-    u = controller,
+    u = lambda *args: array([1]),
     x0 = x0,
     dt = dt,
-    tf = tf,
-    #report = report,
+    tf = tf
 )
 
+us_ = xs_ = None
+
 def run():
-    return s.result()
+    global us_
+    global xs_
+    (us_, xs_) = s.result()
 
-def view((us_, xs_), hourFrom=None, hourTo=None, size=(30, 15), dpi=80, fname = 'sim.png'):
-    if hourFrom is not None and hourTo is not None:
-        plotFrom = int(hourFrom * 60 * 60 / dt)
-        plotTo = int(hourTo * 60 * 60 / dt)
-        us = us_[:, plotFrom:plotTo]
-        xs = xs_[:, plotFrom:plotTo]
-        ts = linspace(plotFrom*dt, plotTo*dt, num = len(xs[0,:]))
-    else:
-        (us, xs) = (us_, xs_)
-        ts = linspace(0, tf, num = len(xs[0,:]))
+def viewHours((us_, xs_), hourFrom, hourTo, size=(15, 20), dpi=80, fname = 'sim.png'):
+    plotFrom = int(hourFrom * 60 * 60 / dt)
+    plotTo = int(hourTo * 60 * 60 / dt)
 
+    us = us_[:, plotFrom:plotTo]
+    xs = xs_[:, plotFrom:plotTo]
+    ts = linspace(plotFrom*dt, plotTo*dt, num = len(xs[0,:]))
     th = map(lambda t: t / (60.0*60), ts)
 
     figure(figsize=size, dpi=dpi)
@@ -222,10 +204,9 @@ def view((us_, xs_), hourFrom=None, hourTo=None, size=(30, 15), dpi=80, fname = 
     axis(map(add, [0, 0, -1, 1], axis()))
 
     a2 = subplot(412, sharex=a1)
-    ylabel('Heater and collector (deg C)')
-    [plot(th, xs[i,:])[0] for i in range(N, N+NC)]
-    [plot(th, xs[i,:])[0] for i in range(N+NC, N+NC+NX)]
-    axis(map(add, [0, 0, -1, 1], axis()))
+    ylabel('Control effort')
+    [step(th, us[i,:]) for i in range(len(us[:,0]))]
+    axis(map(add, [0, 0, -0.002, 0.01], axis()))
 
     a3 = subplot(413, sharex=a1)
     ylabel('Load flow (L/s)')
@@ -233,15 +214,9 @@ def view((us_, xs_), hourFrom=None, hourTo=None, size=(30, 15), dpi=80, fname = 
     axis(map(add, [0, 0, -0.01, 0.01], axis()))
 
     a4 = subplot(414, sharex=a1)
-    ylabel('Insolation (W)')
+    ylabel('Insolation (MJ/hour)')
     step(th, map(lambda t: float(insolation(t*60*60)), th))
     axis(map(add, [0, 0, -0.9, 0.5], axis()))
-
-    """
-    ylabel('Control effort')
-    [step(th, us[i,:]) for i in range(len(us[:,0]))]
-    axis(map(add, [0, 0, -0.002, 0.01], axis()))
-    """
 
     xlabel('Simulation time (h)')
 
