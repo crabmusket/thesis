@@ -22,8 +22,8 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
     A_int = 2 * pi * r * d # Wall area of interior segment
     A_end = A_int + pi * r * r # Wall area of end segment
     U_s = (A_int + A_end / (NT/2)) * U # Rate of temperature something
-    U_s_x = 0
-    U_s_c = 0.3
+    U_s_x = 0.3
+    U_s_c = 0.1
 
     # Node numbers for different areas of the tank. These index into the state
     # vector and label specific nodes in the heat flow simulation.
