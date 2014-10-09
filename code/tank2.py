@@ -8,7 +8,7 @@ warnings.simplefilter('ignore', np.ComplexWarning)
 
 from utils.interval import Interval
 from utils.time import hours_after_midnight
-from numpy import array, linspace, average
+from numpy import array, linspace, average, diag
 from operator import add
 from datetime import datetime
 from math import sin, pi
@@ -17,11 +17,12 @@ import cvxopt as cvx
 import cvxpy
 
 from models import cristofariPlus, halvgaard
-from controllers import thermostat, mpc
+from controllers import thermostat, mpc, pwm
 import prediction.insolation
 import prediction.ambient
 import prediction.load
 from prediction.load import spike, Lpm, minutes
+import prediction.load2
 import prediction.collector
 import simulation.nonlinear as simulation
 
@@ -59,7 +60,7 @@ loadProfile = [
         spike(7.9, minutes(7),  Lpm(4)),
         spike(8.1, minutes(10), Lpm(5)),
         # Dishwasher
-        spike(22.5, minutes(70), Lpm(0.3)),
+        spike(22.5, minutes(70), Lpm(0.5)),
     ],
     # Tuesday
     [
@@ -77,7 +78,7 @@ loadProfile = [
         spike(7.8, minutes(9), Lpm(6)),
         spike(8.2, minutes(6), Lpm(5)),
         # Dishwasher
-        spike(22.4, minutes(70), Lpm(0.3)),
+        spike(22.4, minutes(70), Lpm(0.5)),
     ],
     # Thursday
     [
@@ -87,7 +88,7 @@ loadProfile = [
         spike(7.2, minutes(10), Lpm(6)),
         spike(7.6, minutes(8),  Lpm(7)),
         # Dishwasher
-        spike(22.5, minutes(70), Lpm(0.3)),
+        spike(22.5, minutes(70), Lpm(0.5)),
     ],
     # Friday
     [
@@ -105,7 +106,7 @@ loadProfile = [
         spike(9.5, minutes(11), Lpm(5)),
         spike(10.5, minutes(12), Lpm(7)),
         # Dishwasher
-        spike(21.7, minutes(70), Lpm(0.3)),
+        spike(21.7, minutes(70), Lpm(0.5)),
     ],
     # Sunday
     [
@@ -115,7 +116,7 @@ loadProfile = [
         spike(10.5, minutes(19),  Lpm(5)),
         spike(13.2, minutes(14), Lpm(7)),
         # Dishwasher
-        spike(21, minutes(70), Lpm(0.3)),
+        spike(21, minutes(70), Lpm(0.5)),
     ]
 ]
 
@@ -123,6 +124,11 @@ load = prediction.load.make(
     start = startTime,
     mainsTemp = ambient,
     profile = loadProfile + loadProfile # Two weeks, yeah
+)
+
+load = prediction.load2.make(
+    start = startTime,
+    mainsTemp = ambient,
 )
 
 N = 20
@@ -146,34 +152,48 @@ tankModel = cristofariPlus.model(
     getInsolation = insolation,
 )
 
+def objective(t, y, u):
+    R = cvx.matrix(diag(reference(t)))
+    return cvxpy.norm(R * (y-60)) + cvxpy.norm(u, 1)
+
 H = 6
+def reference(t):
+    def mask(t):
+        hour = hours_after_midnight(t, startTime) % 24
+        return (1 if 7 <= hour <= 12 else 0)
+    times = map(lambda h: h * 3600 + t, range(1, H+1))
+    return [mask(tt) for tt in times]
+
 C = 2400
 UA = 0.5 * (2 * pi * r * h + 2 * pi * r * r)
 rho = 1000
 m = pi * r * r * h * rho
-controller = mpc.controller(
-    period = 3600,
-    law = mpc.LTI(
-        horizon = H,
-        step = 3600,
-        system = halvgaard.model(
-            m, C, UA, P,
-            auxEfficiency = nuX,
+controller = pwm.controller(
+    period = 600,
+    modulation = mpc.controller(
+        period = 3600,
+        law = mpc.LTI(
+            horizon = H,
+            step = 3600,
+            system = halvgaard.model(
+                m, C, UA, P,
+                auxEfficiency = nuX,
+            ),
+            objective = objective,
+            constraints = lambda t, y, u: [
+                #y <= 70,
+                0 <= u, u <= 1,
+            ],
+            disturbances = lambda t, x: array([
+                [load(t)[0]],
+                [load(t)[0] * load(t)[1]],
+                [insolation(t)],
+                [ambient(t)],
+            ]),
         ),
-        objective = lambda X, y: cvxpy.norm(y-60),
-        constraints = lambda X, y, u: [
-            #y <= 70,
-            0 <= u, u <= 1,
-        ],
-        disturbances = lambda t, x: array([
-            [load(t)[0]],
-            [load(t)[0] * load(t)[1]],
-            [insolation(t)],
-            [ambient(t)],
-        ]),
+        preprocess = average,
     ),
-    preprocess = average,
-    pwm = True,
+    postprocess = lambda u: array([u]),
 )
 
 """
@@ -189,8 +209,8 @@ controller = thermostat.controller(
 def report(t):
     print t
 
-dt = 30
-tf = 60 * 60 * 24 - dt
+dt = 60
+tf = 60 * 60 * 24 * 7 - dt
 x0 = array([24] * (N+NC+NX)).T
 s = simulation.Run(
     xdot = tankModel,
@@ -239,7 +259,7 @@ def view((us_, xs_), hourFrom=None, hourTo=None, size=(30, 15), dpi=80, fname = 
     a4 = subplot(414, sharex=a1)
     ylabel('Control effort')
     [step(th, us[i,:]) for i in range(len(us[:,0]))]
-    axis(map(add, [0, 0, -0.002, 0.01], axis()))
+    axis(map(add, [0, 0, -0.1, 0.1], axis()))
 
     """
     ylabel('Insolation (W)')
@@ -250,3 +270,6 @@ def view((us_, xs_), hourFrom=None, hourTo=None, size=(30, 15), dpi=80, fname = 
     xlabel('Simulation time (h)')
 
     savefig(fname)
+
+if __name__ == '__main__':
+    R = run()

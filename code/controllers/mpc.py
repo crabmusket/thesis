@@ -52,7 +52,6 @@ def LTI(horizon, step, system, objective, constraints, disturbances):
     ThetaU = cvx.matrix(thetaU)
     ThetaW = cvx.matrix(thetaW)
     Psi    = cvx.matrix(psi)
-    lastMask = cvx.matrix([0]*(H-1)*C.shape[0] + [1]*C.shape[0])
 
     def solve(t, x):
         if disturbances is not None:
@@ -65,10 +64,10 @@ def LTI(horizon, step, system, objective, constraints, disturbances):
         X = cvx.matrix(x)
         op = Problem(
             Minimize
-                (objective(X, y)),
+                (objective(t, y, u)),
             SubjectTo
                 (y == Psi * X + ThetaU * u + ThetaW * w) + \
-                 constraints(X, y, u)
+                 constraints(t, y, u)
         )
         op.solve(solver=CVXOPT)
         if u.value is not None:
@@ -78,17 +77,13 @@ def LTI(horizon, step, system, objective, constraints, disturbances):
 
     return solve
 
-def controller(period, law, preprocess, pwm):
+def controller(period, law, preprocess):
     def control(t, x):
         if t - control.lastTime >= period:
             control.lastTime = t
             control.lastSignal = law(t, preprocess(x))
-            print t
-        if pwm:
-            switchOff = (t - control.lastTime) > (period * control.lastSignal)
-            return array([0 if switchOff else 1])
-        else:
-            return control.lastSignal
+            print t, control.lastSignal
+        return control.lastSignal
 
     control.lastTime = -period
     return control

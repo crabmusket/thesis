@@ -35,4 +35,4 @@ if ! $(python -c "import control.matlab" &> /dev/null); then
 fi
 
 echo "============== INSTALLING CVXPY"
-pip install cvxpy==0.2
+pip install cvxpy==0.2.14
