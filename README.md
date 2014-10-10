@@ -31,7 +31,7 @@ And, of course, [matplotlib][] handles the output.
 
 All source code in the `code/` directory is licensed under the [GPL license][] as it uses cvxpy.
 All source code in the `cpp/` directory is licensed under the [LGPL license][] as it uses ACADO.
-All other content and sources are licensed under the [MIT license][].
+All other content and sources are licensed under the [MIT license][], except where explicitly noted in a file.
 
 [GPL license]: code/LICENSE
 [LGPL license]: cpp/LICENSE
