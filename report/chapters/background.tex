@@ -11,9 +11,13 @@ This is second only to HVAC (air conditioning and space heating).
 In some nations, the number may be as high as 30\% to 50\%~\cite{Lane96}.
 Therefore, using `free' solar energy to heat water is an obvious way to significantly reduce domestic power consumption.
 
-\subsection{System design}
+\subsection{System overview}
+\label{sec:background:system}
 
-The solar water heating systems we are concerned with have a number of variables in their design.
+Introduce solar water systems here with a nice diagram and high-level explanation.
+\todo{Diagram of system}
+
+The class of solar water heating systems we are concerned with have a number of variables in their design.
 
 \begin{description}
    \item[Water loop] An open-loop system is one in which the water circulating through the collectors is potable and is passed directly to the load.
@@ -29,9 +33,6 @@ The solar water heating systems we are concerned with have a number of variables
 
    \item[Scale] \todo{System size, tank size, collector count}
 \end{description}
-
-The common elements include the solar collector itself and collector circulation pump, the stratified storage tank, the boosting element, which may be positioned at a variable height in the tank, and the load.
-\todo{Diagram of system}
 
 \subsubsection{Stratification enhancing devices}
 \label{sec:background:stratifiers}
@@ -109,6 +110,14 @@ The controller attempts to minimise the chosen objective function $f$ while sati
 $\Phi$ and $\Theta$ encode these linear dynamic constraints on the output $\hvec{y}$ given the input $\vec{u}$, over some time horizon usually referred to as $H$.
 Note that there may be other types of constraint that are omitted in this short example, since constraining the absolute ranges of input and state are common.
 
+\subsection{Nonlinear systems}
+
+\todo{Write this section}
+
+Describe the general form of a nonlinear system and what sorts of challenges it introduces.
+Introduce bilinear.
+Refer to \ref{Oldewurtel10}.
+
 \section{Convex optimisation}
 
 \subsection{Mathematical background and significance}
@@ -121,17 +130,24 @@ Convexity, briefly, is the property that a function is `bowl-shaped'.
 \end{equation}
 Importantly, this implies that any local minimum of the function will also be a \emph{global} minimum.
 The particular shape of convex optimisation problems admits the use of very efficient algorithms to compute globally optimum solutions.
+\todo{More detail here?}
 
 Since the core of model-predictive control algorithms involves optimising the choice of cost function over the future control sequence, convex optimisation problems play an important role in its implementation.
-Note that if a system is linear and its objective function convex, the optimisation problem governing its control can be convex, and hence efficiently solved.
+Note that if a system is linear and its objective function and constraints are convex, the optimisation problem governing its control can be convex, and hence efficiently solved.
 
 \subsection{Disciplined convex programming}
 
 While the theoretical advantages of using convex optimisation are widely known~\cite{Luo06}, in practise these rewards may be difficult to reap.
 While there exist general-purpose solvers for non-smooth convex optimisation problems which have attractive theoretical properties, they may in practise be slower than transforming a non-smooth problem into a smooth problem of higher dimension, and using an efficient solver for the new problem class.
-Grant and Boyd opine in~\cite{Grant08} that this process is difficult and error-prone, even for experts in the field.
+Grant and Boyd opine that this process is difficult and error-prone, even for experts in the field~\cite{Grant08}.
 They propose a method called \emph{disciplined convex programming} (DCP)~\cite{Grant06} which aims to express convex optimisation problems in such a way that transformation to an efficiently-solvable representation can be automated, removing this ``expertise barrier'', as they put it.
 
 Recent DCP software such as CVX for MATLAB~\cite{CVX} and CVXPY in Python~\cite{CVXPY} implements this paradigm to provide a simple user interface without sacrificing the efficiency of specialised solvers for subclasses of convex problems.
 \opinion{It has yet to be seen whether the same gains discovered by \textcite{Wang10} in the area of MPC can be achieved by this general software.}
-\todo{Mention \textcite{Vukov12} and \textcite{Houska11}}
+\todo{Refer to MPC chapter in lit review}
+
+\section{Nonconvex optimisation}
+
+\todo{Introduce ACADO, \textcite{Houska11}.
+Mention code generation.
+Refer to MPC chapter in lit review.}

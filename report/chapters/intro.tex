@@ -2,7 +2,9 @@
 
 \section{Aim}
 
-The objective of this thesis is to produce a controller for the heating element of a domestic hot water tank connected to a solar collector which is able to reduce the weekly energy use required to satisfy the users' comfort requirements, as compared to a thermostat controller or custom boosting schedule.
+The objective of this thesis is to evaluate designs for a controller for the heating element of a domestic hot water tank connected to a solar collector which is able to reduce the weekly energy use required to satisfy the users' comfort requirements, when compared to a thermostat controller or custom boosting schedule.
+
+\todo{Mention the use of linear and nonlinead MPC, and maybe DCP.}
 
 \section{Motivation}
 
@@ -42,6 +44,5 @@ I will also include potential applications and future directions of the theory a
 
 \Autoref{ch:models} introduces the mathematical models that I use for water tank simulation and for the predictive controller.
 It outlines their derivation, suitability for this task, and gives some details about their implementation in source code.
-Then, \autoref{ch:control} outlines the control algorithm chosen, and the various stages of development it underwent over the course of this thesis.
 
-In \autoref{ch:results} I will present the results of the simulations, and evaluate the performance of the model-predictive controller in comparison to the standard baseline controller.
+In \autoref{ch:evaluation} I will present the results of the experiments descirbed in \autoref{ch:experiments}, and evaluate the performance of the controllers under different objectives, disturbance conditions and constraints.
