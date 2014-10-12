@@ -111,6 +111,8 @@ Note again that the flow is positive in the direction of the collector loop (dow
 
 \subsection{Auxiliary input}
 
+\todo{This section needs to be rewritten because the new model works differently.}
+
 In addition to the solar collector providing hot water to the tank, we wish to simulate an auxiliary heater, which in an actual system may be a gas burner, or an electric element connected to mains power.
 For the purposes of our simulation we will treat this auxiliary heat as a second collector loop which draws water from the node $i = O$ (for outlet), heats it directly, and re-introduces it into the tank using the usual stratification mechanism.
 The heating element has a fixed power rating $P$, but we are able to control the mass flow through the auxiliary water loop, $\dot{m}_x$.
@@ -154,6 +156,11 @@ $$
 
 The Python source code implementing this tank model is found in \autoref{app:code:models:cristofari}.
 
+\subsection{Collector input}
+
+\todo{This section needs to be written.}
+It works basically the same as the aux input.
+
 \subsection{Model validity}
 
 My implementation of the model was not verified against empirical data.
@@ -181,7 +188,8 @@ So, we will replace equations \ref{eq:B-col}, \ref{eq:B-load} and \ref{eq:B-aux}
 \end{eqnarray}
 which mean that the hot inputs from the collector and auxiliary heater are fixed to enter at the top layer, and the cold water from the mains input will always enter at the bottom of the tank.
 
-One further nonlinearity exists in \autoref{eq:Q-mflow}, where the min and max functions are used to express conditionality.
+\todo{This paragraph should be rewritten.}
+One further nonsmooth operation exists in \autoref{eq:Q-mflow}, where the min and max functions are used to express conditionality.
 If net flow through a node is downwards, then it receives a temperature contribution from the node above it, and vice versa.
 However, due to the changes introduced in the functions $\B{*}'$, we can simplify both the mass flow calculation and this heat calculation to remove any nonlinearity.
 First, note that due to fixing the inlet positions, the total mass flow through the tank is now uniform:
@@ -205,6 +213,25 @@ Therefore, the temperature at the top of the tank, $T_{N-1}$ will never exceed $
 
 Similarly, if water from the mains is colder than the bottom layer of the tank, it will enter at the bottom.
 To ensure this, place an additional constraint on the tank's controller that $T_0$ shall never fall below $T_l$, the mains water temperature, to ensure that water from the mains inlet always enters into the bottom node.
+
+\todo{Mention internal controllers.
+They will now be under external control, which removes them from the model, which is good, because they're nonlinear/nonsmooth.}
+
+\section{Mixed-tank control model}
+
+Efficient control using convex optimisation requires a linear model.
+This is achieved by taking a very simplified view of the system used by \authors{Halvgaard12} and explained in \autoref{sec:review:mpc:halvgaard}.
+The entire tank is described as a single temperature, taken to represent the average temperature of all layers.
+
+\begin{equation}
+	\label{eq:tdot-halvgaard}
+	\dot{T} = \frac{-UA}{C}T + P \nu_x u +
+		\left[ \begin{array}{cccc}
+			\frac{-60}{C} & \frac{1}{C} & \\nu_c & frac{UA}{C}
+		\end{array} \right] \left[ \begin{array}{c}
+			m_l \\ T_l m_l \\ I \\ T_a
+		\end{array} \right]
+\end{equation}
 
 \subsection{Linear state space model}
 
@@ -304,18 +331,3 @@ The vectors $\vec{u}_e$ and $\vec{u}_d$ are defined as follows:
    \vec{u}_d &=& \left[\begin{array}{cccc} \dot{m}_c & \dot{m}_l & T_a & T_l \end{array} \right]
 \end{eqnarray}
 
-\section{Mixed-tank control model}
-
-Efficient control using convex optimisation requires a linear model.
-This is achieved by taking a very simplified view of the system used by \authors{Halvgaard12} and explained in \autoref{sec:review:mpc:halvgaard}.
-The entire tank is described as a single temperature, taken to represent the average temperature of all layers.
-
-\begin{equation}
-	\label{eq:tdot-halvgaard}
-	\dot{T} = \frac{-UA}{C}T + P \nu_x u +
-		\left[ \begin{array}{cccc}
-			\frac{-60}{C} & \frac{1}{C} & \\nu_c & frac{UA}{C}
-		\end{array} \right] \left[ \begin{array}{c}
-			m_l \\ T_l m_l \\ I \\ T_a
-		\end{array} \right]
-\end{equation}
