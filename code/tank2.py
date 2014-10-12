@@ -20,8 +20,6 @@ from models import cristofariPlus, halvgaard
 from controllers import thermostat, mpc, pwm
 import prediction.insolation
 import prediction.ambient
-import prediction.load
-from prediction.load import spike, Lpm, minutes
 import prediction.load2
 import prediction.collector
 import simulation.nonlinear as simulation
@@ -47,89 +45,16 @@ insolation = prediction.insolation.make(
     area = area,
 )
 
-# Let's go with a 4-person household. Using information from YVW, we'll make up
-# some schedules. Significant events: weekend showers are more spread out. One
-# adult stays home on Wednesday. Evening showers on a couple of days.
-# http://www.yvw.com.au/Home/Inyourhome/Understandingyourwateruse/index.htm
-loadProfile = [
-    # Monday
-    [
-        # Morning showers
-        spike(7,   minutes(8),  Lpm(5)),
-        spike(7.5, minutes(9),  Lpm(6)),
-        spike(7.9, minutes(7),  Lpm(4)),
-        spike(8.1, minutes(10), Lpm(5)),
-        # Dishwasher
-        spike(22.5, minutes(70), Lpm(0.5)),
-    ],
-    # Tuesday
-    [
-        # Morning showers
-        spike(7.5, minutes(7), Lpm(4)),
-        spike(7.2, minutes(8), Lpm(4)),
-        spike(7.9, minutes(6), Lpm(5)),
-        spike(8.5, minutes(6), Lpm(6)),
-    ],
-    # Wednesday
-    [
-        # Morning showers
-        spike(6.8, minutes(8), Lpm(5)),
-        spike(7.1, minutes(5), Lpm(4)),
-        spike(7.8, minutes(9), Lpm(6)),
-        spike(8.2, minutes(6), Lpm(5)),
-        # Dishwasher
-        spike(22.4, minutes(70), Lpm(0.5)),
-    ],
-    # Thursday
-    [
-        # Morning showers
-        spike(6.5, minutes(8),  Lpm(4)),
-        spike(7,   minutes(8),  Lpm(5)),
-        spike(7.2, minutes(10), Lpm(6)),
-        spike(7.6, minutes(8),  Lpm(7)),
-        # Dishwasher
-        spike(22.5, minutes(70), Lpm(0.5)),
-    ],
-    # Friday
-    [
-        # Morning showers
-        spike(7,   minutes(8), Lpm(6)),
-        spike(7.5, minutes(7), Lpm(5)),
-        spike(7.9, minutes(5), Lpm(5)),
-        spike(8.1, minutes(9), Lpm(7)),
-    ],
-    # Saturday
-    [
-        # Morning showers
-        spike(8.2,   minutes(16), Lpm(6)),
-        spike(9.1, minutes(7),  Lpm(5)),
-        spike(9.5, minutes(11), Lpm(5)),
-        spike(10.5, minutes(12), Lpm(7)),
-        # Dishwasher
-        spike(21.7, minutes(70), Lpm(0.5)),
-    ],
-    # Sunday
-    [
-        # 'Morning' showers
-        spike(8.6,  minutes(8),  Lpm(6)),
-        spike(9.8,  minutes(13), Lpm(5)),
-        spike(10.5, minutes(19),  Lpm(5)),
-        spike(13.2, minutes(14), Lpm(7)),
-        # Dishwasher
-        spike(21, minutes(70), Lpm(0.5)),
-    ]
-]
-
-load = prediction.load.make(
-    start = startTime,
-    mainsTemp = ambient,
-    profile = loadProfile + loadProfile # Two weeks, yeah
-)
-
 load = prediction.load2.make(
     start = startTime,
     mainsTemp = ambient,
 )
+
+def loadHour(t):
+    loads = [load(t+dt) for dt in range(0, 3600, 60)]
+    avgFlow = sum([l[0] for l in loads]) / 60.0
+    avgTemp = sum([l[1] for l in loads]) / 60.0
+    return [avgFlow, avgTemp]
 
 N = 20
 NC = 10
@@ -155,6 +80,15 @@ tankModel = cristofariPlus.model(
 def objective(t, y, u):
     R = cvx.matrix(diag(reference(t)))
     return cvxpy.norm(R * (y-60)) + cvxpy.norm(u, 1)
+
+def disturbances(t, x):
+    load = loadHour(t)
+    return array([
+        [load[0]],
+        [load[0] * load[1]],
+        [insolation(t)],
+        [ambient(t)],
+    ])
 
 H = 6
 def reference(t):
@@ -184,12 +118,7 @@ controller = pwm.controller(
                 #y <= 70,
                 0 <= u, u <= 1,
             ],
-            disturbances = lambda t, x: array([
-                [load(t)[0]],
-                [load(t)[0] * load(t)[1]],
-                [insolation(t)],
-                [ambient(t)],
-            ]),
+            disturbances = disturbances,
         ),
         preprocess = average,
     ),
@@ -241,8 +170,7 @@ def view((us_, xs_), hourFrom=None, hourTo=None, size=(30, 15), dpi=80, fname = 
 
     a1 = subplot(411)
     ylabel('Tank temperatures (deg C)')
-    hs = [plot(th, xs[i,:])[0] for i in range(N)]
-    ls = [str(i) for i in range(N)]
+    [plot(th, xs[i,:])[0] for i in [0, N-1]]
     axis(map(add, [0, 0, -1, 1], axis()))
 
     a2 = subplot(412, sharex=a1)
