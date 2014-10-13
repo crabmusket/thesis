@@ -25,6 +25,8 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
     U_s_x = 0.3
     U_s_c = 0.1
 
+    m_aux_on = 0.05 # Aux pump flow.
+
     # Node numbers for different areas of the tank. These index into the state
     # vector and label specific nodes in the heat flow simulation.
     tankFirst = 0
@@ -39,8 +41,8 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
     # temperature at the bottom of the tank. If external control is off, then
     # it is forced off.
     auxPump = thermostat.controller(
-        measure = auxOutlet,
-        on  = array([0.05]), # Flow rate when on
+        measure = tankLast,
+        on  = array([1]),
         off = array([0]),
         setpoint = 55,
         deadband = 5
@@ -106,14 +108,13 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
         U_ins = getInsolation(t) / NC
         (m_load, T_load) = getLoad(t)
 
+        # Even with 'internal control' we take a single-element input to tell
+        # us when to heat.
+        m_aux = m_aux_on * (1 if u[0] > 0.0001 else 0)
         if internalControl:
-            # Even with 'internal control' we take a single-element input to
-            # tell us when to heat.
-            m_aux = auxPump.on if u[0] > 0 else auxPump.off
             U_aux = auxHeat(m_aux, t, T) * auxEfficiency / NX
             m_coll, m_coll_return = collPump(t, T)
         else:
-            m_aux = u[0]
             U_aux = u[1]
             m_coll, m_coll_return = u[2:4]
 
