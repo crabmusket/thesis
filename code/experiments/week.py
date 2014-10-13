@@ -6,8 +6,8 @@ from matplotlib.pyplot import * # Grab MATLAB plotting functions
 import warnings
 warnings.simplefilter('ignore', np.ComplexWarning)
 
-from utils.interval import Interval
-from utils.time import hours_after_midnight
+from ..utils.interval import Interval
+from ..utils.time import hours_after_midnight
 from numpy import array, linspace, average, diag
 from numpy.linalg import norm
 from operator import add
@@ -17,13 +17,13 @@ from math import sin, pi
 import cvxopt as cvx
 import cvxpy
 
-from models import cristofariPlus, halvgaard
-from controllers import thermostat, mpc, pwm
-import prediction.insolation
-import prediction.ambient
-import prediction.load2
-import prediction.collector
-import simulation.nonlinear as simulation
+from ..models import cristofariPlus, halvgaard
+from ..controllers import thermostat, mpc, pwm
+import ..prediction.insolation
+import ..prediction.ambient
+import ..prediction.load2
+import ..prediction.collector
+import ..simulation.nonlinear as simulation
 
 def run(startTime, useMPC, days, name):
     N = 20
@@ -155,7 +155,7 @@ def run(startTime, useMPC, days, name):
             print t
             report.lastTime = t
         if load(t)[0] > 0:
-            if T[N-1] >= 55:
+            if T[N-1] >= 50:
                 results['satisfied'] += dt
             else:
                 results['unsatisfied'] += dt
@@ -200,11 +200,16 @@ def run(startTime, useMPC, days, name):
     axis(map(add, [0, 0, -1, 1], axis()))
 
     a2 = subplot(412, sharex=a1)
-    ylabel('Costs')
     if len(controlOutputs) > 0:
+        ylabel('Costs')
         [step(th, getControl(th, cost), label=cost) for cost in ['Ucost', 'Ycost']]
         legend()
-    #axis(map(add, [0, 0, -1, 1], axis()))
+        axis(map(add, [0, 0, -0.1, 0], axis()))
+    else:
+        ylabel('Heater and collector (deg C)')
+        [plot(th, xs[i,:])[0] for i in [N, N+NC-1]]
+        [plot(th, xs[i,:])[0] for i in [N+NC, N+NC+NX-1]]
+        axis(map(add, [0, 0, -1, 1], axis()))
 
     a3 = subplot(413, sharex=a1)
     ylabel('Insolation (W)')
@@ -247,4 +252,4 @@ if __name__ == '__main__':
     else:
         start = datetime(2014, 6, 1, 00, 00, 00)
     useMPC = method == 'mpc'
-    run(start, useMPC, days=7, name=method+'_'+month)
+    run(start, useMPC, days=2, name=method+'_'+month)
