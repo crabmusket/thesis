@@ -27,5 +27,5 @@ class Run(object):
             results.append(sim.y)
             inputs.append(u)
             if self.report:
-                self.report(sim.t)
+                self.report(sim.t, sim.y, u)
         return (array(inputs).T, array(results).T)

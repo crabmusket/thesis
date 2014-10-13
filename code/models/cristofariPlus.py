@@ -1,4 +1,4 @@
-from numpy import zeros
+from numpy import zeros, array
 from numpy.linalg import norm
 from math import pi, sqrt
 from ..controllers import thermostat
@@ -7,7 +7,7 @@ from math import sin, pi
 
 # Implement the hot water tank model of \textcite{Cristofari02}.
 def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
-        auxEfficiency, auxThermostat,
+        auxEfficiency, internalControl,
         getAmbient, getLoad, getInsolation):
     # Water and tank constants
     rho = 1000 # Water density
@@ -40,9 +40,9 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
     # it is forced off.
     auxPump = thermostat.controller(
         measure = auxOutlet,
-        on  = 0.05, # Flow rate when on
-        off = 0,
-        setpoint = 60,
+        on  = array([0.05]), # Flow rate when on
+        off = array([0]),
+        setpoint = 55,
         deadband = 5
     )
 
@@ -54,7 +54,7 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
         measure = auxLast,
         on  = P, # Power input when heating
         off = 0,
-        setpoint = 60,
+        setpoint = 55,
         deadband = 5
     )
     # Two cases: if there is mass flow, use the thermostat. No mass flow, no heat.
@@ -106,13 +106,16 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
         U_ins = getInsolation(t) / NC
         (m_load, T_load) = getLoad(t)
 
-        # Compute internal control.
-        if auxThermostat:
-            m_aux = auxPump(t, T)
+        if internalControl:
+            # Even with 'internal control' we take a single-element input to
+            # tell us when to heat.
+            m_aux = auxPump.on if u[0] > 0 else auxPump.off
+            U_aux = auxHeat(m_aux, t, T) * auxEfficiency / NX
+            m_coll, m_coll_return = collPump(t, T)
         else:
-            m_aux = auxPump.on if u > 0 else auxPump.off
-        U_aux = auxHeat(m_aux, t, T) * auxEfficiency / NX
-        (m_coll, m_coll_return) = collPump(t, T)
+            m_aux = u[0]
+            U_aux = u[1]
+            m_coll, m_coll_return = u[2:4]
 
         # Calculate collector state change.
         for i in range(collFirst, collFirst+NC):
@@ -168,4 +171,7 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
 
         #print t
         return dT
+
+    # Export this so it can be used externally.
+    Tdot.auxPump = auxPump
     return Tdot

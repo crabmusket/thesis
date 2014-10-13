@@ -11,9 +11,15 @@
 
 \subsection{High performance/embedded hardware}
 
+We are interested in applications of MPC that are implemented on constrained hardware.
+\todo{Finish this thought: SDHW system won't have tons of computation resources.}
+
 When applied to an MPC controller by \textcite{Wang10}, a bespoke quadratic program (QP) solver achieved a 200Hz control frequency on a system with 13 states and 3 inputs over a 30-step control horizon.
 This was achievable by taking advantage of the structure of the MPC problem and the QP that was formed.
 The authors implemented an algorithm that solved the problem with time complexity linear in the horizon dimension, rather than cubic as seen in interior-point methods.
+
+This is the sort of expert optimisation that Grant and Boyd would hide in the backend of DCP software, quietly applying this transformation if the problem fits it.
+However, it remains to be seen whether intelligent transformations like this actually can be entirely automated and give such performance gains.
 
 \todo{Review \textcite{Vukov12}}
 
@@ -52,6 +58,8 @@ The heat gained from the element is a constrained input, the solar heat gain is 
 Their model was verified by measuring the temperature in a large water tank at eight different vertical locations and averaging these readings to calulate the approximate energy in the tank.
 In a practical experiment they found that even with this simplified model of the tank, their controller was able to reduce the operating power bill by up to 30\%.
 This is further discussed in \autoref{sec:review:mpc:halvgaard}.
+\todo{Mention that stratification devices were in the tank --- why?
+Simulation ignored stratification.}
 
 \textcite{Cao14} also used a mixed-tank model when designing a large-scale solar water heating system for a hotel.
 Their publication does not include a practical experiment, just simulation of the system design.

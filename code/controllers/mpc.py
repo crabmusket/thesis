@@ -21,7 +21,7 @@ def discretise(dt, (A, Bu, Bw, C, D)):
 def SubjectTo(*args):
     return [a for a in list(args) if a is not None]
 
-def LTI(horizon, step, system, objective, constraints, disturbances):
+def LTI(horizon, step, system, objective, constraints, disturbances, outputs=None, analysis=None):
     H = horizon
     dt = step
 
@@ -70,6 +70,18 @@ def LTI(horizon, step, system, objective, constraints, disturbances):
                  constraints(t, y, u)
         )
         op.solve(solver=CVXOPT)
+
+        if outputs is not None:
+            outputs.append({
+                'time': t,
+                'state': x,
+                'disturbances': dists,
+                'input': u.value,
+                'output': y.value,
+            })
+            if analysis is not None:
+                analysis(outputs[-1], t, x, y, u, dists)
+
         if u.value is not None:
             return array(u.value)[0:Bu.shape[1]].flatten()
         else:
