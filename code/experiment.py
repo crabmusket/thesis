@@ -25,29 +25,29 @@ import prediction.load2
 import prediction.collector
 import simulation.nonlinear as simulation
 
-N = 20
-NC = 10
-NX = 10
-r = 0.4
-h = 1.3
-P = 3000
-auxOutlet = N/2
-nuX = 0.8
+def run(startTime, useMPC, days, name):
+    N = 20
+    NC = 10
+    NX = 10
+    r = 0.4
+    h = 1.3
+    P = 3000
+    auxOutlet = N/2
+    nuX = 0.8
 
-area = 5
-nuC = 0.5
-H = 6
+    area = 5
+    nuC = 0.5
+    H = 6
 
-# Simulation timestep
-dt = 60
+    # Simulation timestep
+    dt = 60
 
-# MPC parameters
-C = 2400
-UA = 0.5 * (2 * pi * r * h + 2 * pi * r * r)
-rho = 1000
-m = pi * r * r * h * rho
+    # MPC parameters
+    C = 2400
+    UA = 0.5 * (2 * pi * r * h + 2 * pi * r * r)
+    rho = 1000
+    m = pi * r * r * h * rho
 
-def run(startTime, useMPC, days, showDays, name):
     ambient = prediction.ambient.make(start = startTime)
 
     def sunAngleFactor(start):
@@ -174,75 +174,60 @@ def run(startTime, useMPC, days, showDays, name):
         report = report,
     )
 
-    def view((us_, xs_),
-            hourFrom=None, hourTo=None,
-            size=(30, 15), dpi=80, fname = 'sim.png'):
+    (us, xs) = s.result()
 
-        def plotControl(hour, fn):
-            control = controlOutputs[hour]
-            th = range(hour + 1, hour + 1 + H)
-            plot(th, fn(control), 'm')
-        plotControl.y = lambda c: c['output'].reshape((H,)).tolist()[0]
+    def plotControl(hour, fn):
+        control = controlOutputs[hour]
+        th = range(hour + 1, hour + 1 + H)
+        plot(th, fn(control), 'm')
+    plotControl.y = lambda c: c['output'].reshape((H,)).tolist()[0]
 
-        def getControl(th, param):
-            return map(lambda h: controlOutputs[int(h)][param], th)
+    def getControl(th, param):
+        return map(lambda h: controlOutputs[int(h)][param], th)
 
-        if hourFrom is not None and hourTo is not None:
-            plotFrom = int(hourFrom * 60 * 60 / dt)
-            plotTo = int(hourTo * 60 * 60 / dt)
-            us = us_[:, plotFrom:plotTo]
-            xs = xs_[:, plotFrom:plotTo]
-            ts = linspace(plotFrom*dt, plotTo*dt, num = len(xs[0,:]))
-        else:
-            hourFrom = 0
-            hourTo = int(tf / 60.0 / 60.0)
-            (us, xs) = (us_, xs_)
-            ts = linspace(0, tf, num = len(xs[0,:]))
+    hourFrom = 0
+    hourTo = int(tf / 60.0 / 60.0)
+    ts = linspace(0, tf, num = len(xs[0,:]))
+    th = map(lambda t: t / (60.0*60), ts)
 
-        th = map(lambda t: t / (60.0*60), ts)
-        print(th[-1], len(controlOutputs))
+    figure(figsize=(30, 15), dpi=80)
 
-        figure(figsize=size, dpi=dpi)
+    a1 = subplot(411)
+    ylabel('Tank temperatures (deg C)')
+    if len(controlOutputs) > 0:
+        [plotControl(h, plotControl.y) for h in range(hourFrom, hourTo)]
+    [plot(th, xs[i,:])[0] for i in [0, N-1]]
+    axis(map(add, [0, 0, -1, 1], axis()))
 
-        a1 = subplot(411)
-        ylabel('Tank temperatures (deg C)')
-        if len(controlOutputs) > 0:
-            [plotControl(h, plotControl.y) for h in range(hourFrom, hourTo)]
-        [plot(th, xs[i,:])[0] for i in [0, N-1]]
-        axis(map(add, [0, 0, -1, 1], axis()))
-
-        a2 = subplot(412, sharex=a1)
-        ylabel('Costs')
-        if len(controlOutputs) > 0:
-            [step(th, getControl(th, cost), label=cost) for cost in ['Ucost', 'Ycost']]
+    a2 = subplot(412, sharex=a1)
+    ylabel('Costs')
+    if len(controlOutputs) > 0:
+        [step(th, getControl(th, cost), label=cost) for cost in ['Ucost', 'Ycost']]
         legend()
-        #axis(map(add, [0, 0, -1, 1], axis()))
+    #axis(map(add, [0, 0, -1, 1], axis()))
 
-        a3 = subplot(413, sharex=a1)
-        ylabel('Insolation (W)')
-        step(th, map(lambda t: float(insolation(t*60*60)), th))
-        axis(map(add, [0, 0, -0.9, 0.5], axis()))
+    a3 = subplot(413, sharex=a1)
+    ylabel('Insolation (W)')
+    step(th, map(lambda t: float(insolation(t*60*60)), th))
+    axis(map(add, [0, 0, -0.9, 0.5], axis()))
 
-        a4 = subplot(414, sharex=a1)
-        ylabel('Load flow (L/s) and control signal')
-        step(th, map(lambda t: float(load(t*60*60)[0]), th))
-        [step(th, map(lambda u: u/10.0, us[i,:])) for i in range(len(us[:,0]))]
-        axis(map(add, [0, 0, -0.1, 0.1], axis()))
+    a4 = subplot(414, sharex=a1)
+    ylabel('Load flow (L/s) and control signal')
+    step(th, map(lambda t: float(load(t*60*60)[0]), th))
+    [step(th, map(lambda u: u/10.0, us[i,:])) for i in range(len(us[:,0]))]
+    axis(map(add, [0, 0, -0.1, 0.1], axis()))
 
-        """
-        ylabel('Heater and collector (deg C)')
-        [plot(th, xs[i,:])[0] for i in [N, N+NC-1]]
-        [plot(th, xs[i,:])[0] for i in [N+NC, N+NC+NX-1]]
-        axis(map(add, [0, 0, -1, 1], axis()))
-        """
+    """
+    ylabel('Heater and collector (deg C)')
+    [plot(th, xs[i,:])[0] for i in [N, N+NC-1]]
+    [plot(th, xs[i,:])[0] for i in [N+NC, N+NC+NX-1]]
+    axis(map(add, [0, 0, -1, 1], axis()))
+    """
 
-        xlabel('Simulation time (h)')
+    xlabel('Simulation time (h)')
 
-        savefig(fname)
+    savefig(name)
 
-    R = s.result()
-    # showDays[0]*24, (showDays[-1]+1)*24, 
-    view(R, controlOutputs, fname=name+'.png')
     with open(name+'_results.txt', 'w') as f:
         if results['unsatisfied'] is 0:
             f.write('Satisfaction: {}%\n'.format(100))
@@ -262,4 +247,4 @@ if __name__ == '__main__':
     else:
         start = datetime(2014, 6, 1, 00, 00, 00)
     useMPC = method == 'mpc'
-    run(start, useMPC, days=7, showDays=[0, 6], name=method+'_'+month)
+    run(start, useMPC, days=7, name=method+'_'+month)

@@ -94,7 +94,6 @@ def controller(period, law, preprocess):
         if t - control.lastTime >= period:
             control.lastTime = t
             control.lastSignal = law(t, preprocess(x))
-            print t, control.lastSignal
         return control.lastSignal
 
     control.lastTime = -period
