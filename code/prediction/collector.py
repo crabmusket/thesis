@@ -2,7 +2,7 @@ from ..utils.time import hours_after_midnight
 from ..utils.interval import Interval
 from numpy import array
 
-def make(start):
+def predict(start):
     gpm_sf = 0.025 # gallons per minute per square foot
     ratio = 0.6791 # to litres per second per square meter
     sq_m = 2 # collector area

@@ -3,7 +3,7 @@ from ..utils.interval import Interval
 
 fileStart = datetime(2014, 1, 1)
 
-def make(start, mainsTemp=lambda *args: [24]):
+def predict(start, mainsTemp=lambda *args: [24]):
     dailyLoad = Interval()
     maxUsage = 57000000
     C = 2400

@@ -19,11 +19,8 @@ import cvxpy
 
 from ..models import cristofariPlus, halvgaard
 from ..controllers import thermostat, mpc, pwm
-import ..prediction.insolation
-import ..prediction.ambient
-import ..prediction.load2
-import ..prediction.collector
-import ..simulation.nonlinear as simulation
+from ..prediction import insolation, ambient, load2, collector
+from ..simulation import nonlinear
 
 def run(startTime, useMPC, days, name):
     N = 20
@@ -48,7 +45,7 @@ def run(startTime, useMPC, days, name):
     rho = 1000
     m = pi * r * r * h * rho
 
-    ambient = prediction.ambient.make(start = startTime)
+    ambientP = ambient.predict(start = startTime)
 
     def sunAngleFactor(start):
         def inner(t):
@@ -58,20 +55,20 @@ def run(startTime, useMPC, days, name):
             return factor
         return inner
 
-    insolation = prediction.insolation.make(
+    insolationP = insolation.predict(
         start = startTime,
         angleFactor = sunAngleFactor(startTime),
         efficiency = nuC,
         area = area,
     )
 
-    load = prediction.load2.make(
+    loadP = load2.predict(
         start = startTime,
-        mainsTemp = ambient,
+        mainsTemp = ambientP,
     )
 
     def loadHour(t):
-        loads = [load(t+dt) for dt in range(0, 3600, 60)]
+        loads = [loadP(t+dt) for dt in range(0, 3600, 60)]
         avgFlow = sum([l[0] for l in loads]) / 60.0
         avgTemp = sum([l[1] for l in loads]) / 60.0
         return [avgFlow, avgTemp]
@@ -84,9 +81,9 @@ def run(startTime, useMPC, days, name):
         auxOutlet = auxOutlet,
         auxEfficiency = nuX,
         internalControl = True,
-        getAmbient = ambient,
-        getLoad = load,
-        getInsolation = insolation,
+        getAmbient = ambientP,
+        getLoad = loadP,
+        getInsolation = insolationP,
     )
 
     def objective(t, y, u):
@@ -98,8 +95,8 @@ def run(startTime, useMPC, days, name):
         return array([
             [load[0]],
             [load[0] * load[1]],
-            [insolation(t)],
-            [ambient(t)],
+            [insolationP(t)],
+            [ambientP(t)],
         ])
 
     def reference(t):
@@ -154,7 +151,7 @@ def run(startTime, useMPC, days, name):
         if t - report.lastTime >= 3600:
             print t
             report.lastTime = t
-        if load(t)[0] > 0:
+        if loadP(t)[0] > 0:
             if T[N-1] >= 50:
                 results['satisfied'] += dt
             else:
@@ -165,7 +162,7 @@ def run(startTime, useMPC, days, name):
 
     tf = 60 * 60 * 24 * days - dt
     x0 = array([24] * (N+NC+NX)).T
-    s = simulation.Run(
+    s = nonlinear.Run(
         xdot = tankModel,
         u = controller,
         x0 = x0,
@@ -196,7 +193,7 @@ def run(startTime, useMPC, days, name):
     ylabel('Tank temperatures (deg C)')
     if len(controlOutputs) > 0:
         [plotControl(h, plotControl.y) for h in range(hourFrom, hourTo)]
-    [plot(th, xs[i,:])[0] for i in [0, N-1]]
+    [plot(th, xs[i,:])[0] for i in range(0, N)]
     axis(map(add, [0, 0, -1, 1], axis()))
 
     a2 = subplot(412, sharex=a1)
@@ -213,21 +210,14 @@ def run(startTime, useMPC, days, name):
 
     a3 = subplot(413, sharex=a1)
     ylabel('Insolation (W)')
-    step(th, map(lambda t: float(insolation(t*60*60)), th))
+    step(th, map(lambda t: float(insolationP(t*60*60)), th))
     axis(map(add, [0, 0, -0.9, 0.5], axis()))
 
     a4 = subplot(414, sharex=a1)
     ylabel('Load flow (L/s) and control signal')
-    step(th, map(lambda t: float(load(t*60*60)[0]), th))
+    step(th, map(lambda t: float(loadP(t*60*60)[0]), th))
     [step(th, map(lambda u: u/10.0, us[i,:])) for i in range(len(us[:,0]))]
     axis(map(add, [0, 0, -0.1, 0.1], axis()))
-
-    """
-    ylabel('Heater and collector (deg C)')
-    [plot(th, xs[i,:])[0] for i in [N, N+NC-1]]
-    [plot(th, xs[i,:])[0] for i in [N+NC, N+NC+NX-1]]
-    axis(map(add, [0, 0, -1, 1], axis()))
-    """
 
     xlabel('Simulation time (h)')
 
@@ -252,4 +242,4 @@ if __name__ == '__main__':
     else:
         start = datetime(2014, 6, 1, 00, 00, 00)
     useMPC = method == 'mpc'
-    run(start, useMPC, days=2, name=method+'_'+month)
+    run(start, useMPC, days=7, name=method+'_'+month)
