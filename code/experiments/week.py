@@ -19,7 +19,7 @@ import cvxpy
 
 from ..models import cristofariPlus, halvgaard
 from ..controllers import thermostat, mpc, pwm
-from ..prediction import insolation, ambient, load2, collector
+from ..prediction import insolation, ambient, load, collector
 from ..simulation import nonlinear
 
 def run(startTime, useMPC, days, name):
@@ -62,7 +62,7 @@ def run(startTime, useMPC, days, name):
         area = area,
     )
 
-    loadP = load2.predict(
+    loadP = load.predict(
         start = startTime,
         mainsTemp = ambientP,
     )

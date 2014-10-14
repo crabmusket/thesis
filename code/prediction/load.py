@@ -1,30 +1,29 @@
-from ..utils.time import hours_after_midnight
+from datetime import datetime, timedelta
 from ..utils.interval import Interval
-from numpy import array
 
-# Liters per minute to liters per second.
-Lpm = lambda l: l / float(60.0)
-# Minutes to hours.
-minutes = lambda m: m / float(60.0)
+fileStart = datetime(2014, 1, 1)
 
-# Single spike profile.
-def spike(start, duration, flow):
-    return Interval() \
-        .const_til(0, start) \
-        .const_for(flow, duration) \
-        .const_til(0, 24)
+def predict(start, mainsTemp=lambda *args: [24]):
+    dailyLoad = Interval()
+    maxUsage = 57000000
+    C = 2400
+    for line in open('data/daily_load.txt', 'r'):
+        (time, fraction) = map(float, line.split('\t'))
+        mass = maxUsage * fraction / C / 55.0
+        flow = mass / 360.0
+        dailyLoad.const_til(flow, time)
 
-def make(start, profile, mainsTemp=None):
-    if mainsTemp is None:
-        mainsTemp = lambda *args: [24]
-
-    # Concatenate multiuple profile functions into a single function.
-    cat = lambda intervals: lambda t: sum([i(t) for i in intervals])
-    profileC = [cat(ps) for ps in profile]
+    monthlyFraction = Interval()
+    for line in open('data/monthly_load.txt', 'r'):
+        (time, fraction) = map(float, line.split('\t'))
+        monthlyFraction.const_til(fraction, time)
 
     def predictor(t):
-        hour = hours_after_midnight(t, start)
-        day = int(hour / 24)
-        flow = profileC[day](hour % 24)
-        return array([flow, mainsTemp(t)])
+        dt = timedelta(seconds=t)
+        time = start - fileStart + dt
+        hour = time.days * 24 + time.seconds / 60.0 / 60.0
+        fraction = monthlyFraction(hour)
+        flow = dailyLoad(hour % 24)
+        return [flow, mainsTemp(t)]
+
     return predictor
