@@ -26,6 +26,7 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
     U_s_c = 0.1
 
     m_aux_on = 0.05 # Aux pump flow.
+    m_coll_on = 0.02 # Collector flow
 
     # Node numbers for different areas of the tank. These index into the state
     # vector and label specific nodes in the heat flow simulation.
@@ -67,9 +68,9 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
     # directly. It turns off entirely at night.
     collPump_ = thermostat.controller(
         measure = lambda T: T[collLast] - T[tankFirst],
-        on  = (0, 0.05), # When we are 'on', i.e. the tank doesn't want out water,
-        off = (0.05, 0), # send the water back to the collector, and vice versa.
-        setpoint = 8,
+        on  = (0, m_coll_on), # When we are 'on', i.e. the tank doesn't want our
+        off = (m_coll_on, 0), # water, send the water back to the collector,
+        setpoint = 8,         # and vice versa.
         deadband = 6
     )
     collPump = collPump_ # TODO turn off at night
