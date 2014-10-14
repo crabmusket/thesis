@@ -22,7 +22,7 @@ from ..controllers import thermostat, mpc, pwm
 from ..prediction import insolation, ambient, load, collector
 from ..simulation import nonlinear
 
-def run(startTime, useMPC, days, name):
+def run(startTime, useMPC, days, showRange, name):
     # Tank parameters
     N = 20
     NC = 10
@@ -179,13 +179,18 @@ def run(startTime, useMPC, days, name):
         control = controlOutputs[hour]
         th = range(hour + 1, hour + 1 + H)
         plot(th, fn(control), 'm')
+    plotControl.u = lambda c: c['input'].reshape((H,)).tolist()[0]
     plotControl.y = lambda c: c['output'].reshape((H,)).tolist()[0]
 
     def getControl(th, param):
         return map(lambda h: controlOutputs[int(h)][param], th)
 
-    hourFrom = 0
-    hourTo = int(tf / 60.0 / 60.0)
+    if len(showRange) == 0:
+        hourFrom = 0
+        hourTo = int(tf / 60.0 / 60.0)
+    else:
+        hourFrom = 24 * showRange[0]
+        hourTo = 24 * (showRange[-1]+1)
     ts = linspace(0, tf, num = len(xs[0,:]))
     th = map(lambda t: t / (60.0*60), ts)
 
@@ -246,4 +251,4 @@ if __name__ == '__main__':
     else:
         start = datetime(2014, 6, 1, 00, 00, 00)
     useMPC = method == 'mpc'
-    run(start, useMPC, days=7, name=method+'_'+month)
+    run(start, useMPC, days=7, showRange=(3, 5), name=method+'_'+month)
