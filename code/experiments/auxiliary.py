@@ -21,6 +21,7 @@ from ..models import cristofariPlus
 from ..simulation import nonlinear
 
 def run(chargeHours, waitHours, dischargeHours, name):
+    # Tank parameters
     N = 20
     NC = 10
     NX = 10
@@ -30,14 +31,15 @@ def run(chargeHours, waitHours, dischargeHours, name):
     auxOutlet = N/2
     nuX = 0.8
 
+    # Collector parameters
     area = 5
     nuC = 0.5
-    H = 6
 
     # Simulation timestep
     dt = 60
 
     # MPC parameters
+    H = 6
     C = 2400
     UA = 0.5 * (2 * pi * r * h + 2 * pi * r * r)
     rho = 1000
@@ -50,6 +52,8 @@ def run(chargeHours, waitHours, dischargeHours, name):
         .const_for(array([0.05, 24]), dischargeHours) \
         .const_til(array([0.0, 24]), 1)
     loadP = lambda t: loadP_(t/60.0/60.0)
+
+    insolationP = lambda *args: 0,
 
     controller_ = Interval() \
         .const_for(array([1]), chargeHours) \
@@ -66,7 +70,7 @@ def run(chargeHours, waitHours, dischargeHours, name):
         internalControl = True,
         getAmbient = ambientP,
         getLoad = loadP,
-        getInsolation = lambda *args: 0,
+        getInsolation = insolationP,
     )
 
     def report(t, T, u):

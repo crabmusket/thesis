@@ -23,6 +23,7 @@ from ..prediction import insolation, ambient, load, collector
 from ..simulation import nonlinear
 
 def run(startTime, useMPC, days, name):
+    # Tank parameters
     N = 20
     NC = 10
     NX = 10
@@ -32,14 +33,15 @@ def run(startTime, useMPC, days, name):
     auxOutlet = N/2
     nuX = 0.8
 
+    # Collector parameters
     area = 5
     nuC = 0.5
-    H = 6
 
     # Simulation timestep
     dt = 60
 
     # MPC parameters
+    H = 6
     C = 2400
     UA = 0.5 * (2 * pi * r * h + 2 * pi * r * r)
     rho = 1000
@@ -193,7 +195,7 @@ def run(startTime, useMPC, days, name):
     ylabel('Tank temperatures (deg C)')
     if len(controlOutputs) > 0:
         [plotControl(h, plotControl.y) for h in range(hourFrom, hourTo)]
-    [plot(th, xs[i,:])[0] for i in range(0, N)]
+    [plot(th, xs[i,:])[0] for i in [0, N-1]]
     axis(map(add, [0, 0, -1, 1], axis()))
 
     a2 = subplot(412, sharex=a1)
