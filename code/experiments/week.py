@@ -191,14 +191,15 @@ def run(startTime, useMPC, days, name):
 
     figure(figsize=(30, 15), dpi=80)
 
-    a1 = subplot(411)
+    a1 = subplot(311)
     ylabel('Tank temperatures (deg C)')
     if len(controlOutputs) > 0:
         [plotControl(h, plotControl.y) for h in range(hourFrom, hourTo)]
     [plot(th, xs[i,:])[0] for i in [0, N-1]]
     axis(map(add, [0, 0, -1, 1], axis()))
 
-    a2 = subplot(412, sharex=a1)
+    """
+    a2 = subplot(312, sharex=a1)
     if len(controlOutputs) > 0:
         ylabel('Costs')
         [step(th, getControl(th, cost), label=cost) for cost in ['Ucost', 'Ycost']]
@@ -209,13 +210,14 @@ def run(startTime, useMPC, days, name):
         [plot(th, xs[i,:])[0] for i in [N, N+NC-1]]
         [plot(th, xs[i,:])[0] for i in [N+NC, N+NC+NX-1]]
         axis(map(add, [0, 0, -1, 1], axis()))
+    """
 
-    a3 = subplot(413, sharex=a1)
+    a3 = subplot(312, sharex=a1)
     ylabel('Insolation (W)')
     step(th, map(lambda t: float(insolationP(t*60*60)), th))
     axis(map(add, [0, 0, -0.9, 0.5], axis()))
 
-    a4 = subplot(414, sharex=a1)
+    a4 = subplot(313, sharex=a1)
     ylabel('Load flow (L/s) and control signal')
     step(th, map(lambda t: float(loadP(t*60*60)[0]), th))
     [step(th, map(lambda u: u/10.0, us[i,:])) for i in range(len(us[:,0]))]
