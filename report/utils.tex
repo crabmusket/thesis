@@ -40,18 +40,6 @@
 \newcommand{\hvec}[1]{\hat{\vec{#1}}}
 \newcommand{\dvec}[1]{\dot{\vec{#1}}}
 
-% Optimisation problem command.
-\usepackage{xparse}
-\NewDocumentCommand%
-   {\optimise}
-   {m m m >{\SplitList{;}}m}
-   {\begin{aligned}
-         & \underset{#2}{\text{#1}} && #3 \\
-         & \text{subject to} && \ProcessList{#4}{\optimiseConstraint}.
-   \end{aligned}}
-\newcommand\optimiseConstraint[1]{#1\let\optimiseConstraint\optimiseConstraintA}
-\newcommand\optimiseConstraintA[1]{, \\ &&& #1}
-
 % For defining heat flows in the model chapter.
 \newcommand{\flow}[2][i]{(\dot{T}_{#1})_{\;\text{#2}}}
 \newcommand{\Q}[2][i]{Q_{\text{#2}, #1}}

@@ -105,16 +105,15 @@ MPC controllers solve an optimisation problem at every instant in time to determ
 When controlling a system whose dynamics can be modeled linearly, the form of this optimisation problem is, in general,
 \begin{equation}
    \label{eq:mpc-opt}
-   \optimise
-      {minimise}{\vec{u}}
-      {f(\hvec{y}, \vec{u})}
-      {
-         \hvec{y} = \Psi \vec{x}_0 + \Theta \vec{u};
-         \vec{u}_{\text{min}} \le \vec{u} \le \vec{u}_{\text{max}};
-         \hvec{y}_{\text{min}} \le \hvec{y} \le \hvec{y}_{\text{max}}
-      }.
+   \begin{aligned}
+      & \underset{\vec{u}}{\text{minimise}}
+      & & f(\hvec{y}, \vec{u}) \\
+      & \text{subject to}
+      & & \hvec{y} = \Psi \vec{x}_0 + \Theta \vec{u}, \\
+      &&& \vec{u}_{\text{min}} \le \vec{u} \le \vec{u}_{\text{max}}, \\
+      &&& \hvec{y}_{\text{min}} \le \hvec{y} \le \hvec{y}_{\text{max}}.
+   \end{aligned}
 \end{equation}
-\todo{fix optimisation problem rendering}
 The controller attempts to minimise the chosen objective function $f$ while satisfying the system dynamic constraints.
 $\Phi$ and $\Theta$ encode these linear dynamic constraints on the output $\hvec{y}$ given the input $\vec{u}$, over some time horizon usually referred to as $H$.
 Note that there may be other types of constraint that are omitted in this short example, since constraining the absolute ranges of input and state are common.
