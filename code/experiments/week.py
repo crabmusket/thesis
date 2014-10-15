@@ -141,18 +141,20 @@ def run(startTime, useMPC, days, showRange, name):
             postprocess = lambda u: array([u]),
         )
     else:
-        controller = tankModel.auxPump
+        controller = tankModel.internalController
 
     results = {
         'satisfied': 0,
         'unsatisfied': 0,
         'energy': 0,
+        'solar': 0,
+        'auxiliary': 0,
     }
 
     def report(t, T, u):
         if t - report.lastTime >= 3600:
-            print t
             report.lastTime = t
+            print t
         if loadP(t)[0] > 0:
             if T[N-1] >= 50:
                 results['satisfied'] += dt
@@ -160,6 +162,9 @@ def run(startTime, useMPC, days, showRange, name):
                 results['unsatisfied'] += dt
         if u[0] > 0:
             results['energy'] += u[0] * P * dt
+        [m_aux, U_aux, m_coll, m_coll_return] = tankModel.lastInternalControl
+        results['solar'] += m_coll * T[N+NC-1]
+        results['auxiliary'] += m_aux * T[N+NC+NX-1]
     report.lastTime = 0
 
     tf = 60 * 60 * 24 * days - dt
@@ -173,7 +178,7 @@ def run(startTime, useMPC, days, showRange, name):
         report = report,
     )
 
-    (us, xs) = s.result()
+    (us_, xs_) = s.result()
 
     def plotControl(hour, fn):
         control = controlOutputs[hour]
@@ -191,6 +196,10 @@ def run(startTime, useMPC, days, showRange, name):
     else:
         hourFrom = 24 * showRange[0]
         hourTo = 24 * (showRange[-1]+1)
+    plotFrom = int(hourFrom * 60 * 60 / dt)
+    plotTo = int(hourTo * 60 * 60 / dt)
+    us = us_[:, plotFrom:plotTo]
+    xs = xs_[:, plotFrom:plotTo]
     ts = linspace(0, tf, num = len(xs[0,:]))
     th = map(lambda t: t / (60.0*60), ts)
 
@@ -234,14 +243,20 @@ def run(startTime, useMPC, days, showRange, name):
 
     with open(name+'_results.txt', 'w') as f:
         if results['unsatisfied'] is 0:
-            f.write('Satisfaction: {}%\n'.format(100))
+            f.write('Satisfaction: {:.2f}%\n'.format(100))
         else:
-            f.write('Satisfaction: {}%\n'.format(
+            f.write('Satisfaction: {:.2f}%\n'.format(
                 results['satisfied'] / float(results['satisfied'] + results['unsatisfied']) * 100
             ))
-        f.write('Energy used: {}kWh\n'.format(
+        f.write('Energy used: {:.2f}kWh\n'.format(
             results['energy'] / (3.6e6)
         ))
+        if results['auxiliary'] is 0:
+            f.write('Solar fraction: {:.2f}%\n'.format(100))
+        else:
+            f.write('Solar fraction: {:.2f}%\n'.format(
+                results['solar'] / float(results['solar'] + results['auxiliary']) * 100
+            ))
 
 import sys
 if __name__ == '__main__':
@@ -251,4 +266,4 @@ if __name__ == '__main__':
     else:
         start = datetime(2014, 6, 1, 00, 00, 00)
     useMPC = method == 'mpc'
-    run(start, useMPC, days=7, showRange=(3, 5), name=method+'_'+month)
+    run(start, useMPC, days=1, showRange=(0,), name=method+'_'+month)

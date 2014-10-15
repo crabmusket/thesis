@@ -171,9 +171,11 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
             # Final temperature change (\autoref{eq:node-dT})
             dT[i] = (U_amb + U_inlet + U_mflow) / (rho * C * vT)
 
-        #print t
+        # Make the last internal control state available to external watchers.
+        # This is used for analytics that need to know what flows are happening.
+        Tdot.lastInternalControl = [m_aux, U_aux, m_coll, m_coll_return]
         return dT
 
     # Export this so it can be used externally.
-    Tdot.auxPump = auxPump
+    Tdot.internalController = auxPump
     return Tdot
