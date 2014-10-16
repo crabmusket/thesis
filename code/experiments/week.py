@@ -203,10 +203,10 @@ def run(startTime, useMPC, days, showRange, name):
     ts = linspace(0, tf, num = len(xs[0,:]))
     th = map(lambda t: t / (60.0*60), ts)
 
-    figure(figsize=(30, 15), dpi=80)
+    figure(figsize=(12, 8), dpi=80)
 
     a1 = subplot(311)
-    ylabel('Tank temperatures (deg C)')
+    ylabel('Tank (deg C)')
     if len(controlOutputs) > 0:
         [plotControl(h, plotControl.y) for h in range(hourFrom, hourTo)]
     [plot(th, xs[i,:])[0] for i in [0, N-1]]
@@ -232,7 +232,7 @@ def run(startTime, useMPC, days, showRange, name):
     axis(map(add, [0, 0, -0.9, 0.5], axis()))
 
     a4 = subplot(313, sharex=a1)
-    ylabel('Load flow (L/s) and control signal')
+    ylabel('Load and control')
     step(th, map(lambda t: float(loadP(t*60*60)[0]), th))
     [step(th, map(lambda u: u/10.0, us[i,:])) for i in range(len(us[:,0]))]
     axis(map(add, [0, 0, -0.1, 0.1], axis()))
@@ -266,4 +266,4 @@ if __name__ == '__main__':
     else:
         start = datetime(2014, 6, 1, 00, 00, 00)
     useMPC = method == 'mpc'
-    run(start, useMPC, days=1, showRange=(0,), name=method+'_'+month)
+    run(start, useMPC, days=4, showRange=(1,3), name=method+'_'+month)
