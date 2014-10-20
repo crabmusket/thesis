@@ -34,7 +34,7 @@ Some of the details outlined here will also be used to derive a simplified tank 
 \textcite{Vrettos12} note that many current publications use ``single-point'' or zero-dimensional models of domestic water heaters, where the entire tank is represented by a single value (temperature or energy).
 We refer to these models as mixed-tank models, as they treat the entire tank as a single uniformly-mixed body of water.
 The alternative is a one-dimensional model, in which the tank is considered to be at uniform conditions across every horizontal section, but may vary at different depths.
-This type of model is able to capture the effect of stratification, described in \autoref{sec:review:stratified-tank-models}, which is an important factor in predicting the performance of hot water devices.
+This type of model is able to capture the effect of stratification, described in \autoref{sec:background:stratification}, which is an important factor in predicting the performance of hot water devices.
 
 \subsection{Mixed-tank models}
 \label{sec:review:mixed-tank}
@@ -67,13 +67,7 @@ Their publication does not include a practical experiment, just simulation of th
 \subsection{Stratified models}
 \label{sec:review:stratified-tank-models}
 
-Stratification is the natural tendency of water to form layers of uniform temperature, between which there is relatively little heat flow.
-\textcite{Hollands89} review the benefits of maintaining stratification in a hot water storage tank in their 1989 paper.
-At this point, stratified tanks were just beginning to become the preferred paradigm for storage in domestic hot water systems.
-Their review points out that systems that maintain tank stratification (usually by designing for low flow rates, but potentially by using good diffusers inside the tank) can improve performance by nearly 40\% in some circumstances.
-\todo{Make sure I understand how. Also, what is `performance'?}
-
-The authors review mathematical models for stratified tanks and note that it was usual to model the tank as several fixed-volume, variable-temperature layers.
+\textcite{Hollands89} review mathematical models for stratified tanks and note that it was usual to model the tank as several fixed-volume, variable-temperature layers.
 \textcite{Kleinbach93} refer to this approach as the \emph{multinode} model, which they contrast to the \emph{plug flow} model, in which there are a variable number of layers, each with variable volume and temperature.
 With as few as three of these \emph{multinode} layers, \authors{Hollands89} found that models could under-predict system performance by 10\%.
 With complex supply and load patterns, they found that up to sixty-four layers were needed to capture the system's dynamics.

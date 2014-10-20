@@ -11,6 +11,27 @@ This is second only to HVAC (air conditioning and space heating).
 In some nations, the number may be as high as 30\% to 50\%~\cite{Lane96}.
 Therefore, using `free' solar energy to heat water is an obvious way to significantly reduce domestic power consumption.
 
+Two approaches are immediately obvious when considering heating water by catching sunlight: direct heating, which is the subject of this thesis, and using photovoltaics to heat water with electricity generated from the sun.
+Though this thesis simulates a direct water heating system, since both types involve a heated water tank the resulting controller is likely to be easily adapted to photovoltaic systems as well.
+
+\subsection{Economics}
+
+\textcite{Fitzmorris10} performed an economic analysis of the current SDHW industry in North America.
+He found that although solar water heating is positioned to be a disruptive technology, due to its superior energy efficiency compared to traditional water heating, it was actually losing market share due to problems in supply chain and the increased up-front cost of these systems.
+He identified two important markets: construction firms who want to minimise the cost of a new house, and homeowners who need to replace a broken heating system.
+The former is sensitive to the highly increased price of the solar system (Fitzmorris estimates up to \$2000 for a solar system installation, versus \$300 for an electric heater).
+The latter market is sensitive to the increased complexity of installing a solar system --- there is more design work involved in properly sizing and installing a solar water heater currently, and replacement speed is typically a deciding factor.
+
+Once a solar water heating system is running, though, the gains are found to be significant.
+Anecdotally, the University of Newcastle reported a nearly-80\% reduction in energy use (and energy bill) in a six-storey teaching and research building~\cite{ApricusNewcastle}.
+Less anecdotally, members of the School of Energy and Power Engineering at the Xi'an Jiaotong University designed and studied a SHWS for a hotel in the city~\cite{Cao14}.
+They considered a replacement for the hotel's current gas geyser water heater, and predicted that it would have a payback period of just 7.4 years, as well as a lower \emph{total} investment over its 20 year lifetime than the \emph{initial} amount spent on the gas geyser heater.
+This analysis included the benefits of carbon credits the hotel would receive from the government.
+
+However, this feasibility is obviously location-dependent.
+\textcite{Greening14} concluded that ``the potential of solar thermal systems to contribute to a more sustainable domestic energy supply in the UK is limited'' due to their poor effectiveness in that nation's climate.
+He also identified the reliance on a backup heating system as a significant weakness and disadvantage when compared to other heating systems.
+
 \subsection{System overview}
 \label{sec:background:system}
 
@@ -34,34 +55,6 @@ The class of solar water heating systems we are concerned with have a number of 
    \item[Scale] \todo{System size, tank size, collector count}
 \end{description}
 
-\subsubsection{Stratification enhancing devices}
-\label{sec:background:stratifiers}
-
-\todo{Write this section}
-
-\begin{itemize}
-	\item Maintain stratification
-	\item This is desirable in ideal circumstances, for reasons
-	\item Diagram of operation
-	\item In practise, not always stratified
-\end{itemize}
-
-\subsection{Economics}
-
-\textcite{Fitzmorris10} performed an economic analysis of the current SDHW industry in North America.
-He found that although solar water heating is positioned to be a disruptive technology, due to its superior energy efficiency compared to traditional water heating, it was actually losing market share due to problems in supply chain and the increased up-front cost of these systems.
-He identified two important markets: construction firms who want to minimise the cost of a new house, and homeowners who need to replace a broken heating system.
-The former is sensitive to the highly increased price of the solar system (Fitzmorris estimates up to \$2000 for a solar system installation, versus \$300 for an electric heater).
-The latter market is sensitive to the increased complexity of installing a solar system --- there is more design work involved in properly sizing and installing a solar water heater currently, and replacement speed is typically a deciding factor.
-
-Once a solar water heating system is running, though, the gains are found to be significant.
-Anecdotally, the University of Newcastle reported a nearly-80\% reduction in energy use (and energy bill) in a six-storey teaching and research building~\cite{ApricusNewcastle}.
-Less anecdotally, members of the School of Energy and Power Engineering at the Xi'an Jiaotong University designed and studied a SHWS for a hotel in the city~\cite{Cao14}.
-They considered a replacement for the hotel's current gas geyser water heater, and predicted that it would have a payback period of just 7.4 years, as well as a lower \emph{total} investment over its 20 year lifetime than the \emph{initial} amount spent on the gas geyser heater.
-This analysis included the benefits of carbon credits the hotel would receive from the government.
-
-\todo{Mention~\cite{Greening14} and~\cite{Chandrasekar04}.}
-
 \subsection{Control}
 
 Current hot water systems typically use simple temperature-differential controllers to force water through the solar collectors and to decide when to use a secondary booster to heat the tank water.
@@ -75,6 +68,27 @@ The handbook goes on to detail refinements to this approach --- using proportion
 Additional insight is provided in a 1994 paper by~\textcite{Beckman94} in which the process of designing these binary differential controllers is analysed.
 They primarily cocern themselves with designing hysterisis bands that result in stable simulations, in order that fair and correct results may be obtained when comparing system ratings.
 They note that in practise, this instability in pump control is rarely a problem because ``solar radiation is generally increasing continuously (in the morning) and the system soon reaches a stable condition''.
+
+\subsubsection{Stratification}
+\label{sec:background:stratification}
+
+The heart of the domestic hot water service is the tank where hot water is stored waiting for the user to demand it.
+(While tankless systems may provide efficiency gains~\cite{DuffBradnum13}, they are unable to store solar heat and use it when the sun is not shining.)
+Tank stratification is an important concept to understand and account for when considering these systems.
+
+Stratification is the natural tendency of water to form layers of uniform temperature, between which there is relatively little heat flow.
+\textcite{Hollands89} review the benefits of maintaining stratification in a hot water storage tank in their 1989 paper.
+At this point, stratified tanks were just beginning to become the preferred paradigm for storage in domestic hot water systems.
+Their review points out that systems that maintain tank stratification (usually by designing for low flow rates, but potentially by using good diffusers inside the tank) can improve performance by nearly 40\% in some circumstances.
+This is an effect of lower-temperature water entering the solar collector.
+
+These diffusers have been investigated in studies such as \textcite{Andersen08} and \textcite{Gari82}.
+While they may still not be common in commercial hot water systems, diffusers appear to be a proven technology.
+A diffuser typically takes the form of a pipe running the length of the tank, either of slotted platic or double-layered fabric.
+Water is inlet into the pipe, and it allowed to travel vertically before it naturally diffuses out of the manifold at a height matching its temperature.
+In this way turbulent mixing is mostly localised to within the manifold, and overall tank stratification is preserved.
+
+\todo{diagram}
 
 \section{Model-predictive control}
 
@@ -130,14 +144,16 @@ Refer to \ref{Oldewurtel10}.
 
 \subsection{Mathematical background and significance}
 
-Convex optimisation refers to the class of mathematical optimisation problems where the objective and constraint functions are all convex with respect to the decision variable/variables~\cite{Boyd04}.
+Convex optimisation refers to the class of mathematical optimisation problems where the objective and constraint functions are all convex with respect to the decision variable(s)~\cite{Boyd04}.
 Convexity, briefly, is the property that a function is `bowl-shaped'.
 \todo{Diagram of convex function}
+It must at all points obey Jensen's inequality:
 \begin{equation}
-   f(\theta x + (1-\theta)y) \le \theta f(x) + (1-\theta) f(y)
+   f(\theta x + (1-\theta)y) \le \theta f(x) + (1-\theta) f(y).
 \end{equation}
+That is, in between any two points, the function must lie on or below the direct line between those points.
 Importantly, this implies that any local minimum of the function will also be a \emph{global} minimum.
-The particular shape of convex optimisation problems admits the use of very efficient algorithms to compute globally optimum solutions.
+This property means that gradient descent algorithms can be guaranteed to find the global optimum of the function, and very efficient solvers can take advantage of this.
 \todo{More detail here?}
 
 Since the core of model-predictive control algorithms involves optimising the choice of cost function over the future control sequence, convex optimisation problems play an important role in its implementation.
