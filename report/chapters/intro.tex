@@ -2,47 +2,61 @@
 
 \section{Aim}
 
-The objective of this thesis is to evaluate designs for a controller for the heating element of a domestic hot water tank connected to a solar collector which is able to reduce the weekly energy use required to satisfy the users' comfort requirements, when compared to a thermostat controller or custom boosting schedule.
+The objective of this thesis is to evaluate designs for a predictive controller a domestic hot water tank connected to a solar collector.
+The new controller should use weather and use predictions to reduce the energy used by the system to satisfy the users' comfort requirements as compared to a thermostat controller or fixed boosting schedule.
 
-\todo{Mention the use of linear and nonlinead MPC, and maybe DCP.}
+\todo{Mention the use of linear and nonlinear MPC, and maybe DCP.}
 
 \section{Motivation}
 
 \section{Scope}
 
+This thesis will concern itself with the following issues and methods:
+
 \begin{itemize}
-	\item Evaluate current common controller designs
-	\item Evaluate literature on control of SDHW systems
-	\item Implement simulation of hot water tank with solar collector and booster (validation?)
-	\item Implement simple controller
-	\item Implement smart controller
-	\begin{itemize}
-		\item Mixed-tank simplification
-		\item Stratified simplification?
-		\item Linearisation
-		\item Nonlinear MPC?
-	\end{itemize}
-	\item Evaluate differences
-	\begin{itemize}
-		\item Energy use
-		\item Bill
-		\item Comfort
-	\end{itemize}
-	\item Evaluate robustness
-	\begin{itemize}
-		\item Prediction accuracy
-		\item System scale
-	\end{itemize}
+   \item A review of the current state of domestic solar hot water systems.
+         This will focus on control methods and problems with the current state of the art.
+   \item A review of work applying model-predictive control to hot water systems or other building automation scenarios, as well as recent advances in the control field relevant to MPC and to this application.
+   \item Implementing a detailed simulation of a domestic solar hot water system with a solar collector, auxiliary heater, storage tank, and forced circulation.
+         The simulation will not involve CFD but will attempt to capture the nonlinearities of the system accurately.
+         It will be based on similar models presented in literature.
+   \item Implementing a model-predictive controller to replace the current thermostat controller.
+         The new controller will only have access to the same actuation as the thermostat control (i.e. turning the heating element on or off).
+   \item Evaluating the effectiveness of the new controller in terms of three metrics:
+         \begin{itemize}
+            \item To what extent the user's demand is satisfied
+            \item Total auxiliary energy used
+            \item Solar contribution to the tank
+         \end{itemize}
+\end{itemize}
+
+This thesis will not examine the following issues, leaving them instead for future work in this field:
+
+\begin{itemize}
+   \item State estimation and sensing.
+         It is assumed that the controller has access to the full internal state of the system when planning.
+         Due to the slow system dynamics and ability to directly measure the system state at certain points this is taken to be a less important problem than the control itself.
+   \item Validation of the model against an existing solar hot water system.
+         As the model was reproduced from literature it was assumed to be adequately valid.
+         In addition, the comparison of model-predictive control was expected to yield interesting results even if the simulation was not an exact match for an existing system.
+   \item Nonlinear control.
+         The true system under consideration involves complex fluid dynamics that could only be appropriately captured by a CFD simulation.
+         The implemented simulation is nonlinear and nonsmooth, and attempts to capture these dynamics without performing full CFD, but the controller itself uses a linear simplification of the true system.
+   \item Robust control.
+         Due to time constraints, this thesis does not examine the controller's robustness in the face of incorrect predictions, nor develop any of the robust control methods described in the literature.
 \end{itemize}
 
 \section{Approach and structure}
 
-In \autoref{ch:background}, I will discuss the broad situation of domestic solar water heating with a particular focus on the Australian industry, the current state-of-the-art in their control, and the mathematical background of optimisation methods I will use in my controller.
+\todo{Write about the actual approach to the work?}
+
+In \autoref{ch:background}, I will discuss the broad situation of domestic solar water heating with a particular focus on the Australian industry, the current state-of-the-art in their control, and the mathematical background of the convex optimisation software I will use in my controller.
 In \autoref{ch:review}, I will outline relevant research, both historical and current as necessary.
 I will also include potential applications and future directions of the theory and implementation of this thesis.
-\todo{Awful phrasing. Learn 2 english}
 
-\Autoref{ch:models} introduces the mathematical models that I use for water tank simulation and for the predictive controller.
+\Autoref{ch:system} outlines the particular hardware of the system I will be considering and notes important issues that must be taken to account when designing the simulation and controller.
+\Autoref{ch:models} then describes the mathematical models that I use for water tank simulation and for the predictive controller.
 It outlines their derivation, suitability for this task, and gives some details about their implementation in source code.
 
-In \autoref{ch:evaluation} I will present the results of the experiments descirbed in \autoref{ch:experiments}, and evaluate the performance of the controllers under different objectives, disturbance conditions and constraints.
+In \autoref{ch:experiments} I describe the various simulations that were performed on the old and new controllers, and why these conditions were chosen.
+Finally, \autoref{ch:evaluation} presents the results of the experiments and some qualitative analysis and commentary of how the controller performed.
