@@ -222,7 +222,7 @@ def run(startTime, days, showRange, method, cost, name):
 
     xlabel('Simulation time (h)')
 
-    savefig(name)
+    savefig(name+'.png')
 
     with open(name+'_results.txt', 'w') as f:
         if results['unsatisfied'] is 0:
@@ -251,5 +251,5 @@ if __name__ == '__main__':
     run(start, days=3, showRange=[],
         method=method,
         cost=float(cost),
-        name='{}_{}_{}_{}.png'.format(name, month, method, cost),
+        name='_'.join([name, month, method, cost]),
     )

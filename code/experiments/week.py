@@ -90,7 +90,16 @@ def run(startTime, useMPC, days, showRange, name):
 
     def objective(t, y, u):
         R = cvx.matrix(diag(reference(t)))
-        return cvxpy.norm(R * (y-50)) + cvxpy.norm(u, 1)
+        return cvxpy.norm(R * cvxpy.min_elemwise(y-50, 0)) \
+             + cvxpy.norm(u, 1) * 3
+
+    def reference(t):
+        def mask(t):
+            hour = hours_after_midnight(t, startTime) % 24
+            # Only consider reference during the peak times of the day.
+            return (1 if 6 <= hour <= 7 or 16 <= hour <= 18 else 0)
+        times = map(lambda h: h * 3600 + t, range(1, H+1))
+        return [mask(tt) for tt in times]
 
     def disturbances(t, x):
         load = loadHour(t)
@@ -100,14 +109,6 @@ def run(startTime, useMPC, days, showRange, name):
             [insolationP(t)],
             [ambientP(t)],
         ])
-
-    def reference(t):
-        def mask(t):
-            hour = hours_after_midnight(t, startTime) % 24
-            # Only consider reference during the peak times of the day.
-            return (1 if 6 <= hour <= 8 or 16 <= hour <= 18 else 0)
-        times = map(lambda h: h * 3600 + t, range(1, H+1))
-        return [mask(tt) for tt in times]
 
     def analyse(out, t, x, y, u, dists):
         R = diag(reference(t))
@@ -200,15 +201,13 @@ def run(startTime, useMPC, days, showRange, name):
     plotTo = int(hourTo * 60 * 60 / dt)
     us = us_[:, plotFrom:plotTo]
     xs = xs_[:, plotFrom:plotTo]
-    ts = linspace(0, tf, num = len(xs[0,:]))
+    ts = linspace(hourFrom*60*60, hourTo*60*60, num = len(xs[0,:]))
     th = map(lambda t: t / (60.0*60), ts)
 
     figure(figsize=(12, 8), dpi=80)
 
     a1 = subplot(311)
     ylabel('Tank (deg C)')
-    if len(controlOutputs) > 0:
-        [plotControl(h, plotControl.y) for h in range(hourFrom, hourTo)]
     [plot(th, xs[i,:])[0] for i in [0, N-1]]
     axis(map(add, [0, 0, -1, 1], axis()))
 
@@ -239,7 +238,7 @@ def run(startTime, useMPC, days, showRange, name):
 
     xlabel('Simulation time (h)')
 
-    savefig(name)
+    savefig(name+'.png')
 
     with open(name+'_results.txt', 'w') as f:
         if results['unsatisfied'] is 0:
@@ -266,4 +265,4 @@ if __name__ == '__main__':
     else:
         start = datetime(2014, 6, 1, 00, 00, 00)
     useMPC = method == 'mpc'
-    run(start, useMPC, days=4, showRange=(1,3), name=method+'_'+month)
+    run(start, useMPC, days=8, showRange=[1, 7], name=method+'_'+month)
