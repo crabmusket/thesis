@@ -248,7 +248,7 @@ if __name__ == '__main__':
         start = datetime(2014, 1, 1, 00, 00, 00)
     else:
         start = datetime(2014, 6, 1, 00, 00, 00)
-    run(start, days=3, showRange=[],
+    run(start, days=14, showRange=[],
         method=method,
         cost=float(cost),
         name='_'.join([name, month, method, cost]),

@@ -12,21 +12,25 @@
 \subsection{High performance/embedded hardware}
 
 We are interested in applications of MPC that are implemented on constrained hardware.
-\todo{Finish this thought: SDHW system won't have tons of computation resources.}
+A typical domestic hot water system may be designed with very minimal computer hardware, such as an embedded microcomputer.
+Demanding requirements like this have historically prevented MPC for being practical in embedded applications but this may be changing.
 
 When applied to an MPC controller by \textcite{Wang10}, a bespoke quadratic program (QP) solver achieved a 200Hz control frequency on a system with 13 states and 3 inputs over a 30-step control horizon.
 This was achievable by taking advantage of the structure of the MPC problem and the QP that was formed.
 The authors implemented an algorithm that solved the problem with time complexity linear in the horizon dimension, rather than cubic as seen in interior-point methods.
 
+Note that these results were observed running on a 3GHz Athlon desktop processor, but a hot water system would require significanly slower control than 200Hz.
+
 This is the sort of expert optimisation that Grant and Boyd would hide in the backend of DCP software, quietly applying this transformation if the problem fits it.
 However, it remains to be seen whether intelligent transformations like this actually can be entirely automated and give such performance gains.
 
-\todo{Review \textcite{Vukov12}}
+Another approach to high-performance MPC is code generation, in which a high-level program generates low-level code to solve a particular problem class, which can be run efficiently on the target platform.
+
 
 \section{Hot water system modelling}
 
 \authors{Camacho04} estimate that one of the key differences in MPC control is the significant up-front modelling effort, as the system model is very important to the overall control achieved.
-Therefore we take care to study various efforts in modelling hot water tanks.
+Therefore care must me taken to study various efforts in modelling hot water tanks.
 In \autoref{ch:models} a model is developed following the work presented in this section, in order to evaluate the controllers designed in \autoref{ch:control}.
 The model must be adequately able to capture the subtleties of the domestic hot water tank in order to better evaluate the effect of different control strategies.
 Some of the details outlined here will also be used to derive a simplified tank model used in the controllers themselves, as control of the full nonlinear model is beyond the scope of this thesis.
