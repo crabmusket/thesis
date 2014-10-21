@@ -3,7 +3,6 @@
 
 This chapter introduces the various models used in both simulation of the system, and control.
 \Autoref{sec:models:simulation} introduces the full nonlinear tank model which is used when running simulations.
-\Autoref{sec:models:disturbances} introduces the method of generating predicted weather and user load profiles.
 \Autoref{sec:models:control} outlines the linear state-space model of the stratified tank for MPC, and then describes the simplifying assumptions made to express the nonlinear simulation model as a linear model.
 These sections all use the variables defined in \autoref{tab:model-symbols}.
 
@@ -22,9 +21,10 @@ These sections all use the variables defined in \autoref{tab:model-symbols}.
       $T_T$ & Target temperature for hot water inlets \\
       $\Q{*}$ & Energy inflow into tank node $i$ caused by * \\
       $\B{*}$ & Control/indicator function for flow * at node $i$ \\
-      $C_i$ & Thermal capacitance of node $i$ \\
-      $v_i$ & Volume of node $i$ \\
-      $U_{s, i}$ & Surface conductivity of the tank at node $i$ \\
+      $\rho$ Density of water
+      $C$ & Thermal capacitance of water \\
+      $v_T$ & Volume of a node in the tank \\
+      $U_{s, i}$ & Surface conductivity of node $i$ \\
       \bottomrule
    \end{tabular}
    \end{center}
@@ -42,51 +42,61 @@ Note that this approach assumes stratification baffle devices are present on the
 
 \subsection{Discretisation}
 
-The tank is split into $N$ identical horizontal disks as illustrated in \autoref{fig:models:discretised-tank}, numbered $0$ (bottom) to $N-1$ (top).
-Each disk, called a node, has uniform volume $v_i$.
+The tank is split into $N_T$ identical horizontal disks as illustrated in \autoref{fig:models:discretised-tank}, numbered $0$ (bottom) to $N_T-1$ (top).
+\todo{Badly needs diagram}
+Each disk, called a node, has uniform volume $v_T$.
 The heat flows into the node, as shown in \autoref{fig:models:discretised-disk}, are governed by the equation:
 \begin{equation}
-   \label{eq:node-dT}
-   \rho_i C_i v_i \dot{T}_i = \Q{amb} + \Q{mflow} + \Q{inlet}
+   \label{eq:tank-node-dT}
+   \rho C v_T \dot{T}_i = \Q{amb} + \Q{$T$, mflow} + \Q{inlet}
 \end{equation}
 That is, the total energy flow through the node can be broken into three parts: ambient losses, changes from the mass flow through the tank while charging/drawing, and input from the three heat/cold inlet: the collector inlet, mains inlet, and auxiliary inlet.
 
+The collector and auxiliary heater are also treated as discretised volumes of water with $N_C$ and $N_X$ nodes of volumes $v_C$ and $v_X$ respectively.
+The indices $i$ of the collector nodes begin at $N_T$ and end at $N_T+N_C-1$, while the auxiliary indices begin at $N_T+N_X$ and end at $N_T+N_C+N_X-1$.
+Their state equations look like this:
+\begin{eqnarray}
+   \label{eq:coll-node-dT}
+   \rho C v_C \dot{T}_i &=& \Q{amb} + \Q{$C$, mflow} + \Q{$C$, external} \\
+   \label{eq:aux-node-dT}
+   \rho C v_X \dot{T}_i &=& \Q{amb} + \Q{$X$, mflow} + \Q{$X$, external} \\
+\end{eqnarray}
+
 \subsection{Heat flows}
 
-The ambient term is a simple equation accounting for the surface area of an element and its current temperature relative to the exterior ambient temperature.
+The ambient terms are simple equations accounting for the surface area of an element and its current temperature relative to the exterior ambient temperature.
 The parameter $U_{s, i}$ accounts for the different surface areas of the nodes at each end of the tank.
 \begin{equation}
    \label{eq:Q-amb}
    \Q{amb} = U_{s, i} (T_a - T_i)
 \end{equation}
 The mflow energy flow accounts for the heat that enters and exits each node carried by the actual volume of water that flows through it.
-As water is physically flowing through the tank during charging (hot water entering from the solar collector) and drawing (hot water exiting to the load), the composition of each node changes.
+As water is physically flowing through the system during charging (hot water entering from the solar collector) and drawing (hot water exiting to the load), the composition of each node changes.
 The factor $\dot{m}_i$, defined in \autoref{eq:mdot}, refers to the amount of water entering node $i$ from node $i+1$, the node above it, and is therefore positive when water is flowing downwards through the tank (in the direction of drawing).
 \begin{equation}
-   \label{eq:Q-mflow}
-   \Q{mflow} = \max \left\{ 0, \dot{m}_i \right\}     C_i (T_{i+1} - T_i)
+   \label{eq:tank-Q-mflow}
+   \Q{$T$, mflow} = \max \left\{ 0, \dot{m}_i \right\}     C_i (T_{i+1} - T_i)
              + \min \left\{ 0, \dot{m}_{i-1} \right\} C_i (T_i - T_{i-1})
 \end{equation}
 We additionally define $\dot{m}_{N-1} = \dot{m}_{-1} = 0$ to handle the end cases.
 Finally, the heat flow from each inlet is calculated in terms of its current mass flow and temperature.
-$\Q{aux}$ represents the head gained due to the auxiliary input, which will be covered below.
+$\Q{inlet}$ represents the heat gained due to flows of water entering the tank from the collector, auxiliary heater, and load.
 \begin{equation}
    \label{eq:Q-inlet}
-   \Q{inlet} = \B{col} \dot{m}_c (T_c - T_i)
+   \Q{inlet} = \B{coll} \dot{m}_c (T_c - T_i)
              + \B{load} \dot{m}_l (T_l - T_i)
-             + \Q{aux}
+             + \B{aux} \dot{m}_c (T_x - T_i)
 \end{equation}
-where $\Q{aux}$ is the heat from the auxiliary input, defined below in \autoref{eq:Q-aux}.
 
 \subsection{Control functions}
 
-\Autoref{eq:Q-inlet} introduced the two \emph{control functions} $\B{col}$ and $\B{load}$ used by \authors{Cristofari02}, which are binary indicator functions that determine which nodes receive hot and cold water flows from the inlets.
+\Autoref{eq:Q-inlet} introduced the two \emph{control functions} $\B{coll}$ and $\B{load}$ used by \authors{Cristofari02}, which are binary indicator functions that determine which nodes receive hot and cold water flows from the inlets.
 These control functions simulate the hot and cold water from the collector and load passing through stratification devices as they enter the tank, so that they are distributed to the water layer which most appropriately matches their temperature.
 They only ever return 1 for a single node in the tank.
 They are defined as follows:
 \begin{eqnarray}
-   \label{eq:B-col}
-   \B{col} &=& \begin{dcases*}
+   \label{eq:B-coll}
+   \B{coll} &=& \begin{dcases*}
       1 & if $T_c > T_i$ and $i = N-1$ \\
       1 & if $T_{i+1} \ge T_c > T_i$ and $i < N-1$ \\
       0 & otherwise
@@ -98,59 +108,38 @@ They are defined as follows:
       1 & if $T_{i-1} \le T_l < T_i$ and $i > 0$ \\
       0 & otherwise
    \end{dcases*}
+   \\
+   \label{eq:B-aux}
+   \B{aux} &=& \begin{dcases*}
+      0 & if $i < O$ \\
+      1 & if $T_x > T_i$ and $i = N-1$ \\
+      1 & if $T_{i+1} \ge T_x > T_i$ and $i < N-1$ \\
+      0 & otherwise.
+   \end{dcases*}
 \end{eqnarray}
 The mass flow through each node is defined by \authors{Cristofari02} using sums of these collector functions to express the presence of an inlet above/below the current node being examined as
 \begin{equation}
-	\label{eq:mdot}
+   \label{eq:mdot}
    \dot{m}_i = \dot{m}_c \sum_{j=i+1}^{N-1} \B{col}
              - \dot{m}_l \sum_{j=1}^{i-1} \B{load}
              + \dot{m}_{\text{aux}, i}.
 \end{equation}
 $\dot{m}_{\text{aux}, i}$ represents the mass flow due to the auxiliary heating loop described in \autoref{eq:mdot-aux}.
 Note again that the flow is positive in the direction of the collector loop (downwards).
-
-\subsection{Auxiliary input}
-
-\todo{This section needs to be rewritten because the new model works differently.}
-
-In addition to the solar collector providing hot water to the tank, we wish to simulate an auxiliary heater, which in an actual system may be a gas burner, or an electric element connected to mains power.
-For the purposes of our simulation we will treat this auxiliary heat as a second collector loop which draws water from the node $i = O$ (for outlet), heats it directly, and re-introduces it into the tank using the usual stratification mechanism.
-The heating element has a fixed power rating $P$, but we are able to control the mass flow through the auxiliary water loop, $\dot{m}_x$.
-The temperature of the water re-entering the tank after being heated is denoted by $T_x$.
-It is calculated by assuming that the water drawn out of node $O$, $T_O$, is constant across the time interval we simulate over, and calculating the temperature gain given the heater's power rating:
 \begin{equation}
-	\label{eq:T-aux}
-	T_x = T_O + \frac{P}{m_x * C_i}.
-\end{equation}
-Of course, this equation is only defined for $m_x \ne 0$.
-In cases of zero flow through the auxiliary loop, this calculation is not performed.
-The heat entering each node due to the auxiliary heater is given by
-\begin{equation}
-   \label{eq:Q-aux}
-	\Q{aux} = \B{aux} \dot{m}_x (T_x - T_i),
-\end{equation}
-where $\B{aux}$, the auxiliary inlet's control function, is defined similarly to that of the collector (since both are treated as `hot' water):
-\begin{equation}
-   \label{eq:B-aux}
-   \B{aux} = \begin{dcases*}
-		0 & if $i < O$ \\
-      1 & if $T_x > T_i$ and $i = N-1$ \\
-      1 & if $T_{i+1} \ge T_x > T_i$ and $i < N-1$ \\
-      0 & otherwise.
-   \end{dcases*}
 \end{equation}
 Finally, we must define the mass flow through a node due to the operation of the auxiliary loop.
 It is slightly more complex than the mass flows caused by the collector and load loops, because their outlets are fixed at the bottom and top of the tank respectively.
 It is given by
 \begin{equation}
    \label{eq:mdot-aux}
-	\dot{m}_{\text{aux}, i} = \dot{m}_l \left( o_i - \sum_{j=1}^{i-1} \B{aux} \right)
+   \dot{m}_{\text{aux}, i} = \dot{m}_l \left( o_i - \sum_{j=1}^{i-1} \B{aux} \right)
 \end{equation}
 where $o_i$ is a binary factor that selects nodes above the auxiliary outlet:
 $$
-	o_i = \begin{dcases*}
-		1 & if $i \ge O$ \\
-		0 & otherwise.
+   o_i = \begin{dcases*}
+      1 & if $i \ge O$ \\
+      0 & otherwise.
    \end{dcases*}
 $$
 
@@ -166,71 +155,21 @@ It works basically the same as the aux input.
 My implementation of the model was not verified against empirical data.
 As this work focuses on comparing control strategies on the system, efforts were not made to ensure that physical parameters were realistic, only plausible.
 
-\section{Stratified control model}
-\label{sec:models:control}
-
-\subsection{Simplifying assumptions}
-
-When controlling a nonlinear system, it is possible to work with the full nonlinear model using software such as the ACADO control toolkit \textcite{ACADO}.
-Such control algorithms may produce globally suboptimal control, depending on the problem.
-However, ACADO in particular only works with smooth nonlinear functions.
-The system model presented in \autoref{sec:models:simulation} is not smooth because of its use of binary indicator control functions (e.g. \autoref{eq:B-col}), and therefore is unsuitable for control by ACADO.
-Therefore I have two options - revising the system model to be smoothly nonlinear, or revising it to be linear.
-
-I chose to introduce simplifying assumptions to make the system linear by removing the necessity for the control functions $\B{*}$.
-The control functions are responsible for selecting the position in the tank where entering water is deposited, and simulate the action of stratification devices as described in \autoref{sec:background:stratifiers}.
-To eliminate these functions, it must be assumed that all water entry happens at fixed locations in the tank.
-So, we will replace equations \ref{eq:B-col}, \ref{eq:B-load} and \ref{eq:B-aux} with
-\begin{eqnarray}
-   \label{eq:B-col'}  \B{col}'  =& 1 \text{ if } i = N-1, & 0 \text{ otherwise} \\
-   \label{eq:B-load'} \B{load}' =& 1 \text{ if } i = 0,   & 0 \text{ otherwise} \\
-   \label{eq:B-aux'}  \B{aux}'  =& 1 \text{ if } i = N-1, & 0 \text{ otherwise}
-\end{eqnarray}
-which mean that the hot inputs from the collector and auxiliary heater are fixed to enter at the top layer, and the cold water from the mains input will always enter at the bottom of the tank.
-
-\todo{This paragraph should be rewritten.}
-One further nonsmooth operation exists in \autoref{eq:Q-mflow}, where the min and max functions are used to express conditionality.
-If net flow through a node is downwards, then it receives a temperature contribution from the node above it, and vice versa.
-However, due to the changes introduced in the functions $\B{*}'$, we can simplify both the mass flow calculation and this heat calculation to remove any nonlinearity.
-First, note that due to fixing the inlet positions, the total mass flow through the tank is now uniform:
-\begin{equation}
-   \label{eq:mdot'}
-   \dot{m}_i' = \dot{m}_c - \dot{m}_l + \dot{m}_{\text{aux}},
-\end{equation}
-which shows that the total mass flow through all nodes is now uniform, since there is no dependence on $i$ (except, of course, for node $N-1$, whose mass flow is still 0 by definition).
-Now, with the constraint that $\dot{m}_c, \dot{m}_l, \dot{m}_{\text{aux}} > 0$ since these are all physical pump rates that cannot be reversed, \autoref{eq:Q-mflow} can be rewritten:
-\begin{equation}
-   \Q{mflow}' =  (\dot{m}_c + \dot{m}_{\text{aux}}) C_i (T_{i+1} - T_i)
-               +  \dot{m}_l                         C_i (T_i - T_{i-1})
-\end{equation}
-with obvious corrections at the top and bottom nodes.
-
-What conditions are necessary to ensure these assumptions remain valid?
-The control functions imply that if the temperature of water entering from the collector or heater is greater than the temperature at the top of the tank, then the water will entrer into the top node.
-Therefore, is is required of the low-level pump controllers that they ensure all water from both the collector and the auxiliary heater must enter the tank at exactly temperature $T_T$.
-This `target' temperature will be constant, and fixed during system design.
-Therefore, the temperature at the top of the tank, $T_{N-1}$ will never exceed $T_T$ and these inlet flows will always enter at the top layer.
-
-Similarly, if water from the mains is colder than the bottom layer of the tank, it will enter at the bottom.
-To ensure this, place an additional constraint on the tank's controller that $T_0$ shall never fall below $T_l$, the mains water temperature, to ensure that water from the mains inlet always enters into the bottom node.
-
-\todo{Mention internal controllers.
-They will now be under external control, which removes them from the model, which is good, because they're nonlinear/nonsmooth.}
-
 \section{Mixed-tank control model}
+\label{sec:models:control}
 
 Efficient control using convex optimisation requires a linear model.
 This is achieved by taking a very simplified view of the system used by \authors{Halvgaard12} and explained in \autoref{sec:review:mpc:halvgaard}.
 The entire tank is described as a single temperature, taken to represent the average temperature of all layers.
 
 \begin{equation}
-	\label{eq:tdot-halvgaard}
-	\dot{T} = -\frac{UA}{mC}T + \frac{P \nu_x}{m} u +
-		\left[ \begin{array}{cccc}
-			-\frac{50}{mC} & \frac{1}{m} & \frac{1}{mC} & \frac{UA}{mC}
-		\end{array} \right] \left[ \begin{array}{c}
-			m_l \\ T_l m_l \\ I \\ T_a
-		\end{array} \right]
+   \label{eq:tdot-halvgaard}
+   \dot{T} = -\frac{UA}{mC}T + \frac{P \nu_x}{m} u +
+      \left[ \begin{array}{cccc}
+         -\frac{50}{mC} & \frac{1}{m} & \frac{1}{mC} & \frac{UA}{mC}
+      \end{array} \right] \left[ \begin{array}{c}
+         m_l \\ T_l m_l \\ I \\ T_a
+      \end{array} \right]
 \end{equation}
 
 \subsection{Linear state space model}
