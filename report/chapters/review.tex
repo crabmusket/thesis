@@ -3,7 +3,25 @@
 
 \section{Model-predictive control}
 
-\todo{Jalali, Wright, }
+\subsection{Robust MPC}
+
+Robustness is the property that a controller functions well under various disturbances or environmental conditions.
+In the context of a hot water system, a robust controller might ensure that there is always some hot water in the tank to satisfy unexpected loads, for example.
+We are interested in robustness as it pertains to keeping the user satisfied in most conditions, which is the primary goal of a hot water service, and the reason thermostat control is attractive: it is pessimistic and provides the best possible robustness, at the cost of possible unnecessary heating.
+
+\textcite{Jalali06} take the view that robust MPC has the goal of ``[minimizing] some objective function, while guaranteeing a set of constraints to be satisfied for all possible uncertainties.''
+\todo{Say more about this paper?}
+
+\textcite{Oldewurtel10} take the view instead that robustness can be formulated in terms of probability.
+They note that in building automation problems, assigning hard constraints can often result in infeasible problems, so they instead create an objective function that represents the probability of constraints being violated.
+Minimising this provides a robust response to disturbances modelled as Gaussians, which have ``infinite support'': a non-zero probability of occurrence at all values.
+This approach has the additional advantage that European standards are specified in this way (probability of violating bounds), so the control design maps almost directly onto standards compliance.
+This is a key benefit for practical implementations of MPC, where the controller must be designs in accordance with local and national regulations.
+
+\textcite{Parisio14}, however, argue that the assumption of Gaussian distribution of disturbances is restrictive.
+They retain the chance constraints and objective formulation from \authors{Oldewurtel10} but considered the maximum possible disturbance from a finite set of disturbance scenarios as a constraint.
+These disturbance scenarios are hand-constructed as black-box functions that ``do not require the specification of particular probability distributions \dots but only the capability of randomly extracting from them''.
+This was augmented using a vector of slack variables, which in effect assign a large penalty to constraint violation instead of declaring the problem infeasible.
 
 \subsection{Applying DCP}
 
@@ -18,14 +36,15 @@ Demanding requirements like this have historically prevented MPC for being pract
 When applied to an MPC controller by \textcite{Wang10}, a bespoke quadratic program (QP) solver achieved a 200Hz control frequency on a system with 13 states and 3 inputs over a 30-step control horizon.
 This was achievable by taking advantage of the structure of the MPC problem and the QP that was formed.
 The authors implemented an algorithm that solved the problem with time complexity linear in the horizon dimension, rather than cubic as seen in interior-point methods.
-
 Note that these results were observed running on a 3GHz Athlon desktop processor, but a hot water system would require significanly slower control than 200Hz.
 
 This is the sort of expert optimisation that Grant and Boyd would hide in the backend of DCP software, quietly applying this transformation if the problem fits it.
 However, it remains to be seen whether intelligent transformations like this actually can be entirely automated and give such performance gains.
 
 Another approach to high-performance MPC is code generation, in which a high-level program generates low-level code to solve a particular problem class, which can be run efficiently on the target platform.
-
+According to \textcite{Mattingley12}, code generation can sidestep the need for complex, proprietary software, and targets cases where high performance is required.
+In one example, \textcite{Vukov12} showed that the code generation of the ACADO nonlinear control tool~\cite{ACADO}, which outputs optimised C code, can achieve solve times averaging less than 1ms on a quad-core desktop processor.
+\todo{More detail here.}
 
 \section{Hot water system modelling}
 
@@ -67,6 +86,7 @@ Simulation ignored stratification.}
 
 \textcite{Cao14} also used a mixed-tank model when designing a large-scale solar water heating system for a hotel.
 Their publication does not include a practical experiment, just simulation of the system design.
+\todo{More detail}
 
 \subsection{Stratified models}
 \label{sec:review:stratified-tank-models}
@@ -162,7 +182,7 @@ They examine three MPC formulations that deal with this uncertainty in different
       For performance reasons, they found it necessary to pre-compute various permutations of $M$ and combine them with linear weighting during the actual optimisation process.
 \end{description}
 
-These latter two methods were developed by and for the OptiControl project.
+The latter two methods were developed by and for the OptiControl project.
 
 \section{Water tank control}
 
