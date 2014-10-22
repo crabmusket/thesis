@@ -26,7 +26,7 @@ def run(startTime, name):
     N = 20
     NC = 10
     NX = 10
-    r = 0.4
+    r = 0.3
     h = 1.3
     P = 3000
     auxOutlet = N/2
