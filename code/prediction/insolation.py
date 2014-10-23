@@ -3,9 +3,9 @@ from ..utils.interval import Interval
 
 fileStart = datetime(2014, 1, 1)
 
-def predict(start, efficiency, area, angleFactor):
+def predict(start, filename, efficiency, area, angleFactor):
     hourlyInsolation = Interval()
-    for line in open('data/insolation.txt', 'r'):
+    for line in open(filename, 'r'):
         solar = map(float, line.split('\t'))
         hourlyInsolation.const_for(solar, 1)
 

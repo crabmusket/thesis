@@ -5,9 +5,9 @@ from ..utils.interval import Interval
 
 fileStart = datetime(2014, 1, 1)
 
-def predict(start):
+def predict(start, filename):
     hourlyAmbient = Interval()
-    for line in open('data/ambient.txt', 'r'):
+    for line in open(filename, 'r'):
         temp = float(line)
         hourlyAmbient.const_for(temp, 1)
 

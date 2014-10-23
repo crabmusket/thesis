@@ -3,11 +3,11 @@ from ..utils.interval import Interval
 
 fileStart = datetime(2014, 1, 1)
 
-def predict(start, mainsTemp=lambda *args: [24]):
+def predict(start, filename, mainsTemp=lambda *args: [24]):
     dailyLoad = Interval()
     maxUsage = 57000000
     C = 2400
-    for line in open('data/daily_load.txt', 'r'):
+    for line in open(filename, 'r'):
         (time, fraction) = map(float, line.split('\t'))
         mass = maxUsage * fraction / C / 55.0
         flow = mass / 360.0

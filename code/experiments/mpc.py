@@ -8,14 +8,14 @@ warnings.simplefilter('ignore', np.ComplexWarning)
 
 from ..utils.interval import Interval
 from ..utils.time import hours_after_midnight
-from numpy import array, linspace, average, diag
+from numpy import array, linspace, average, diag, minimum
 from numpy.linalg import norm
 from operator import add
 from datetime import datetime
 from math import sin, pi
 
-import cvxopt as cvx
-import cvxpy
+import cvxopt as co
+import cvxpy as cp
 
 from ..models import cristofariPlus, halvgaard
 from ..controllers import thermostat, mpc, pwm
@@ -47,7 +47,9 @@ def run(startTime, args):
     rho = 1000
     m = pi * r * r * h * rho
 
-    ambientT = ambient.predict(start = startTime)
+    # True and predicted ambient temperature.
+    ambientT = ambient.predict(start = startTime, filename = 'data/ambient.txt')
+    ambientP = ambient.predict(start = startTime, filename = args.ambientP)
 
     def sunAngleFactor(start):
         def inner(t):
@@ -57,6 +59,7 @@ def run(startTime, args):
             return factor
         return inner
 
+    # True and predicted insolation profiles.
     insolationT = insolation.predict(
         start = startTime,
         angleFactor = sunAngleFactor(startTime),
@@ -72,23 +75,27 @@ def run(startTime, args):
         filename = args.insolationP,
     )
 
+    # True and predicted load profiles.
     loadT = load.predict(
         start = startTime,
         mainsTemp = ambientT,
-        filename = 'data/daily_load.txt',
+        filename = 'data/daily_load3.txt',
     )
     loadP = load.predict(
         start = startTime,
-        mainsTemp = ambientT,
+        mainsTemp = ambientP,
         filename = args.loadP,
     )
 
+    # Used by the controller to get the mean load over an hour. Uses loadP
+    # instead of loadT because the prediction may differ from the actuality.
     def loadHour(t):
         loads = [loadP(t+dt) for dt in range(0, 3600, 60)]
         avgFlow = sum([l[0] for l in loads]) / 60.0
         avgTemp = sum([l[1] for l in loads]) / 60.0
         return [avgFlow, avgTemp]
 
+    # Create the model which simulates the entire system.
     tankModel = cristofariPlus.model(
         h = h, r = r, NT = N,
         NC = NC, NX = NX,
@@ -97,16 +104,31 @@ def run(startTime, args):
         auxOutlet = auxOutlet,
         auxEfficiency = nuX,
         internalControl = True,
-        getAmbient = ambientP,
-        getLoad = loadP,
-        getInsolation = insolationP,
+        # Tank receives true disturbances.
+        getAmbient = ambientT,
+        getLoad = loadT,
+        getInsolation = insolationT,
     )
 
+    # Construct the objective function for one solve step of the controller.
+    # The problem depends on R(t)
     def objective(t, y, u):
-        R = cvx.matrix(diag(reference(t)))
-        return cvxpy.norm(R * cvxpy.min_elemwise(y-50, 0)) \
-             + cvxpy.norm(u, 1) * args.cost
+        R = co.matrix(diag(reference(t)))
+        return cp.norm(R * cp.min_elemwise(y-50, 0)) \
+             + cp.norm(u, 1) * args.cost
 
+    # The reference vector used buy the objective function. This reference is
+    # only 1 for the hours starting at 6am, 7am, 4pm, 5pm and 6pm.
+    def reference(t):
+        def mask(t):
+            hour = hours_after_midnight(t, startTime) % 24
+            # Only consider reference during the peak times of the day.
+            return (1 if 6 <= hour <= 7 or 16 <= hour <= 18 else 0)
+        times = map(lambda h: h * 3600 + t, range(1, H+1))
+        return [mask(tt) for tt in times]
+
+    # Get a vector of disturbances for the control problem. We use the
+    # predictors, not the true values.
     def disturbances(t, x):
         load = loadHour(t)
         return array([
@@ -116,18 +138,11 @@ def run(startTime, args):
             [ambientP(t)],
         ])
 
-    def reference(t):
-        def mask(t):
-            hour = hours_after_midnight(t, startTime) % 24
-            # Only consider reference during the peak times of the day.
-            return (1 if 6 <= hour <= 7 or 16 <= hour <= 18 else 0)
-        times = map(lambda h: h * 3600 + t, range(1, H+1))
-        return [mask(tt) for tt in times]
-
+    # Callback to analyse the controller's action at a given point.
     def analyse(out, t, x, y, u, dists):
         R = diag(reference(t))
-        out['Ucost'] = norm(u.value)
-        out['Ycost'] = norm(R.dot(y.value-60))
+        out['Ucost'] = norm(u.value, 1)
+        out['Ycost'] = norm(R.dot(minimum(y.value-50, 0)))
 
     controlOutputs = []
     controller = pwm.controller(
@@ -172,10 +187,10 @@ def run(startTime, args):
             else:
                 results['unsatisfied'] += dt
         if u[0] > 0:
-            results['energy'] += u[0] * P * dt
+            results['energy'] += u[0] * P * dt / (3.6e6) # convert to kWh
         [m_aux, U_aux, m_coll, m_coll_return] = tankModel.lastInternalControl
-        results['solar'] += m_coll * T[N+NC-1]
-        results['auxiliary'] += m_aux * T[N+NC+NX-1]
+        results['solar'] += m_coll * T[N+NC-1] / 1000.0
+        results['auxiliary'] += m_aux * T[N+NC+NX-1] / 1000.0
     report.lastTime = 0
 
     tf = 60 * 60 * 24 * args.days - dt
@@ -214,16 +229,20 @@ def run(startTime, args):
     plotTo = int(hourTo * 60 * 60 / dt)
     us = us_[:, plotFrom:plotTo]
     xs = xs_[:, plotFrom:plotTo]
-    ts = linspace(0, tf, num = len(xs[0,:]))
+    ts = linspace(hourFrom * 60 * 60, hourTo * 60 * 60, num = len(xs[0,:]))
     th = map(lambda t: t / (60.0*60), ts)
 
-    figure(figsize=dim, dpi=80)
+    figure(figsize=(args.width, args.height), dpi=80)
 
     a1 = subplot(311)
     ylabel('Tank (deg C)')
     if args.internals:
         [plotControl(h, plotControl.y) for h in range(hourFrom, hourTo)]
-    [plot(th, xs[i,:])[0] for i in [0, N-1]]
+    if args.alltemps:
+        temps = range(0, N)
+    else:
+        temps = [0, N-1]
+    [plot(th, xs[i,:])[0] for i in temps]
     axis(map(add, [0, 0, -1, 1], axis()))
 
     a2 = subplot(312, sharex=a1)
@@ -250,7 +269,7 @@ def run(startTime, args):
                 results['satisfied'] / float(results['satisfied'] + results['unsatisfied']) * 100
             ))
         f.write('Energy used: {:.2f}kWh\n'.format(
-            results['energy'] / (3.6e6)
+            results['energy']
         ))
         if results['auxiliary'] is 0:
             f.write('Solar fraction: {:.2f}%\n'.format(100))
@@ -263,18 +282,40 @@ import sys
 import argparse
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Simulate the MPC controller')
-    parser.add_argument('-d', '--days',    default=8, type=int)
-    parser.add_argument('-s', '--start',   type=int)
-    parser.add_argument('-e', '--end',     type=int)
-    parser.add_argument('-m', '--month',   default='jun', choices=['jan', 'jun'])
-    parser.add_argument('--internals',     action='store_true')
-    parser.add_argument('-w', '--width',   default=6, type=float)
-    parser.add_argument('-h', '--height',  default=4, type=float)
-    parser.add_argument('-c', '--cost',    default=1, type=float)
-    parser.add_argument('-h', '--horizon', default=6, type=int)
-    parser.add_argument('--loadP',         default='data/daily_load.txt')
-    parser.add_argument('--insolationP',   default='data/insolation.txt')
-    parser.add_argument('name')
+
+    parser.add_argument('-m', '--month',   default='jun', choices=['jan', 'jun'],
+        help='Which month to start the simulation in.')
+    parser.add_argument('-d', '--days',    default=8, type=int,
+        help='Number of days the sinulation will run for.')
+    parser.add_argument('-s', '--start',   type=int,
+        help='Start graphing at the start of this day (indexed from 0).')
+    parser.add_argument('-e', '--end',     type=int,
+        help='End graphing at the end of this day (indexed from 0).')
+
+    parser.add_argument('-w', '--width',   default=6, type=float,
+        help='Width in inches of the resulting plot')
+    parser.add_argument('-g', '--height',  default=4, type=float,
+        help='height in inches of the resulting plot.')
+
+    parser.add_argument('-c', '--cost',    default=1, type=float,
+        help='Weight on the input term of the cost function.')
+    parser.add_argument('-z', '--horizon', default=6, type=int,
+        help='Number of hours to predict into the future.')
+
+    parser.add_argument('--loadP',         default='data/daily_load.txt',
+        help='File containing load prediction values.')
+    parser.add_argument('--insolationP',   default='data/insolation.txt',
+        help='File containing insolation prediction values.')
+    parser.add_argument('--ambientP',      default='data/ambient.txt',
+        help='File containing ambient prediction values.')
+
+    parser.add_argument('--alltemps',      action='store_true',
+        help='Show all tank temperatures, instead of just the top and bottom.')
+    parser.add_argument('--internals',     action='store_true',
+        help='Show controller\'s prediction of average temperature at each timestep.')
+
+    parser.add_argument('name',
+        help='Filename prefix for plot and results.')
 
     args = parser.parse_args()
     if args.month == 'jan':
