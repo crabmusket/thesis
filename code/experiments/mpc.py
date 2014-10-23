@@ -22,7 +22,7 @@ from ..controllers import thermostat, mpc, pwm
 from ..prediction import insolation, ambient, load, collector
 from ..simulation import nonlinear
 
-def run(startTime, days, showRange, method, cost, name):
+def run(startTime, args):
     # Tank parameters
     N = 20
     NC = 10
@@ -41,13 +41,13 @@ def run(startTime, days, showRange, method, cost, name):
     dt = 60
 
     # MPC parameters
-    H = 6
+    H = args.horizon
     C = 2400
     UA = 0.5 * (2 * pi * r * h + 2 * pi * r * r)
     rho = 1000
     m = pi * r * r * h * rho
 
-    ambientP = ambient.predict(start = startTime)
+    ambientT = ambient.predict(start = startTime)
 
     def sunAngleFactor(start):
         def inner(t):
@@ -57,16 +57,30 @@ def run(startTime, days, showRange, method, cost, name):
             return factor
         return inner
 
+    insolationT = insolation.predict(
+        start = startTime,
+        angleFactor = sunAngleFactor(startTime),
+        efficiency = nuC,
+        area = area,
+        filename = 'data/insolation.txt',
+    )
     insolationP = insolation.predict(
         start = startTime,
         angleFactor = sunAngleFactor(startTime),
         efficiency = nuC,
         area = area,
+        filename = args.insolationP,
     )
 
+    loadT = load.predict(
+        start = startTime,
+        mainsTemp = ambientT,
+        filename = 'data/daily_load.txt',
+    )
     loadP = load.predict(
         start = startTime,
-        mainsTemp = ambientP,
+        mainsTemp = ambientT,
+        filename = args.loadP,
     )
 
     def loadHour(t):
@@ -91,7 +105,7 @@ def run(startTime, days, showRange, method, cost, name):
     def objective(t, y, u):
         R = cvx.matrix(diag(reference(t)))
         return cvxpy.norm(R * cvxpy.min_elemwise(y-50, 0)) \
-             + cvxpy.norm(u, 1) * cost
+             + cvxpy.norm(u, 1) * args.cost
 
     def disturbances(t, x):
         load = loadHour(t)
@@ -164,7 +178,7 @@ def run(startTime, days, showRange, method, cost, name):
         results['auxiliary'] += m_aux * T[N+NC+NX-1]
     report.lastTime = 0
 
-    tf = 60 * 60 * 24 * days - dt
+    tf = 60 * 60 * 24 * args.days - dt
     x0 = array([24] * (N+NC+NX)).T
     s = nonlinear.Run(
         xdot = tankModel,
@@ -187,12 +201,15 @@ def run(startTime, days, showRange, method, cost, name):
     def getControl(th, param):
         return map(lambda h: controlOutputs[int(h)][param], th)
 
-    if len(showRange) == 0:
+    if args.start is None:
         hourFrom = 0
+    else:
+        hourFrom = 24 * args.start
+    if args.end is None:
         hourTo = int(tf / 60.0 / 60.0)
     else:
-        hourFrom = 24 * showRange[0]
-        hourTo = 24 * (showRange[-1]+1)
+        hourTo = 24 * (args.end+1)
+
     plotFrom = int(hourFrom * 60 * 60 / dt)
     plotTo = int(hourTo * 60 * 60 / dt)
     us = us_[:, plotFrom:plotTo]
@@ -200,11 +217,12 @@ def run(startTime, days, showRange, method, cost, name):
     ts = linspace(0, tf, num = len(xs[0,:]))
     th = map(lambda t: t / (60.0*60), ts)
 
-    figure(figsize=(10, 6), dpi=80)
+    figure(figsize=dim, dpi=80)
 
     a1 = subplot(311)
     ylabel('Tank (deg C)')
-    [plotControl(h, plotControl.y) for h in range(hourFrom, hourTo)]
+    if args.internals:
+        [plotControl(h, plotControl.y) for h in range(hourFrom, hourTo)]
     [plot(th, xs[i,:])[0] for i in [0, N-1]]
     axis(map(add, [0, 0, -1, 1], axis()))
 
@@ -222,9 +240,9 @@ def run(startTime, days, showRange, method, cost, name):
 
     xlabel('Simulation time (h)')
 
-    savefig(name+'.png')
+    savefig(args.name+'.png')
 
-    with open(name+'_results.txt', 'w') as f:
+    with open(args.name+'_results.txt', 'w') as f:
         if results['unsatisfied'] is 0:
             f.write('Satisfaction: {:.2f}%\n'.format(100))
         else:
@@ -242,14 +260,25 @@ def run(startTime, days, showRange, method, cost, name):
             ))
 
 import sys
+import argparse
 if __name__ == '__main__':
-    [_, name, month, method, cost] = sys.argv
-    if month == 'jan':
+    parser = argparse.ArgumentParser(description='Simulate the MPC controller')
+    parser.add_argument('-d', '--days',    default=8, type=int)
+    parser.add_argument('-s', '--start',   type=int)
+    parser.add_argument('-e', '--end',     type=int)
+    parser.add_argument('-m', '--month',   default='jun', choices=['jan', 'jun'])
+    parser.add_argument('--internals',     action='store_true')
+    parser.add_argument('-w', '--width',   default=6, type=float)
+    parser.add_argument('-h', '--height',  default=4, type=float)
+    parser.add_argument('-c', '--cost',    default=1, type=float)
+    parser.add_argument('-h', '--horizon', default=6, type=int)
+    parser.add_argument('--loadP',         default='data/daily_load.txt')
+    parser.add_argument('--insolationP',   default='data/insolation.txt')
+    parser.add_argument('name')
+
+    args = parser.parse_args()
+    if args.month == 'jan':
         start = datetime(2014, 1, 1, 00, 00, 00)
     else:
         start = datetime(2014, 6, 1, 00, 00, 00)
-    run(start, days=14, showRange=[],
-        method=method,
-        cost=float(cost),
-        name='_'.join([name, month, method, cost]),
-    )
+    run(start, args)

@@ -110,8 +110,16 @@ Note that although a plan of inputs is generated over a time horizon, the entire
 This strategy has a natural analogy in pathfinding; it is necessary to plan the entire path to determine which direction to move in first.
 
 \authors{Camacho04} compare MPC to PID by likening PID to driving a car by only looking in the rear-view mirror.
-In this situation, the driver can only respond to past errors, as PID does.
+In this situation, the driver can only respond to past errors, as PID does --- achieving pure feedback control.
 MPC allows future conditions to be anticipated and explicitly included in the decision-making process.
+Note that some techniques may allow PID to emulate the output of MPC on some systems.
+For example, where a reference signal must be tracked, and the signal has a known schedule, the signal may be transformed forwards in time so that the PID controller starts responding to 
+
+MPC is not an optimal control technique like the LQR, but at every control instant (item 2 in the algorithm description above) a finite-horizon optimal control problem is solved.
+
+\subsection{Application to hot water services}
+
+
 
 \subsection{Linear systems}
 
