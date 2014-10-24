@@ -105,17 +105,19 @@ The typical implementation of MPC follows this simplified flow:
    \item Repeat at next time interval.
 \end{enumerate}
 
-In this way, feedback control is achieved by repeatedly measuring the system state.
 Note that although a plan of inputs is generated over a time horizon, the entire plan is not usually used.
 This strategy has a natural analogy in pathfinding; it is necessary to plan the entire path to determine which direction to move in first.
+However, as the system model and disturbances are usually not perfectly known, the system will diverge somewhat between iterations of the algorithm, and therefore the remainder of the input sequence may be invalidated.
+In this way, feedback control is achieved by repeatedly responding to the current system state.
 
 \authors{Camacho04} compare MPC to PID by likening PID to driving a car by only looking in the rear-view mirror.
 In this situation, the driver can only respond to past errors, as PID does --- achieving pure feedback control.
 MPC allows future conditions to be anticipated and explicitly included in the decision-making process.
-Note that some techniques may allow PID to emulate the output of MPC on some systems.
-For example, where a reference signal must be tracked, and the signal has a known schedule, the signal may be transformed forwards in time so that the PID controller starts responding to 
-
 MPC is not an optimal control technique like the LQR, but at every control instant (item 2 in the algorithm description above) a finite-horizon optimal control problem is solved.
+
+Note that some techniques may allow PID to emulate the output of MPC on some systems.
+For example, where a reference signal must be tracked, and the signal has a known schedule, the signal may be transformed forwards in time so that the PID controller starts responding earlier.
+However, MPC will determine the best course of action itself without requiring manual intervention.
 
 \subsection{Application to hot water services}
 
@@ -149,6 +151,7 @@ Introduce bilinear.
 Refer to \ref{Oldewurtel10}.
 
 \section{Convex optimisation}
+\label{sec:background:convex}
 
 \subsection{Mathematical background and significance}
 

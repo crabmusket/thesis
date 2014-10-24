@@ -24,7 +24,7 @@ These sections all use the variables defined in \autoref{tab:model-symbols}.
       $\rho$ Density of water
       $C$ & Thermal capacitance of water \\
       $v_T$ & Volume of a node in the tank \\
-      $U_{s, i}$ & Surface conductivity of node $i$ \\
+      $U_s$ & Coefficient of surface temperature loss \\
       \bottomrule
    \end{tabular}
    \end{center}
@@ -39,8 +39,6 @@ It is desirable to develop an accurate simulation of the system in order to test
 The popular multinode tank model, as discussed in \autoref{sec:review:stratified-tank-models}, treats the tank as a stack of identical vertical disks with their own heat flow equations.
 I will reproduce this model, relying on the description in \textcite{Cristofari02} with my own augmentation to handle the auxiliary heater, which was not present in that work.
 Note that this approach assumes stratification baffle devices are present on the solar and mains inputs into the tank, and that these devices work perfectly.
-
-The Python source code implementing this tank model is found in \autoref{app:code} \autoref{app:code:models:cristofari}.
 
 \subsection{Discretisation}
 
@@ -67,14 +65,18 @@ Their state equations look like this:
 \subsection{Heat flows}
 
 The ambient terms are simple equations accounting for the surface area of an element and its current temperature relative to the exterior ambient temperature.
-The parameter $U_{s, i}$ accounts for the different surface areas of the nodes at each end of the tank.
 \begin{equation}
    \label{eq:Q-amb}
-   \Q{amb} = U_{s, i} (T_a - T_i)
+   \Q{amb} = U_s (T_a - T_i)
 \end{equation}
+Note that there are three $U_s$ values, one each for the tank surface, collector surface, and auxiliary heater surface.
+The tank is assumed to have a uniform value of $U_s$ at each node, despite the larger surface area of the top and bottom nodes (which include the ends of the tank cylinder).
+The calculation of the tank's $U_s$ value takes into account the total surface area of the tank and averages that head loss over all nodes.
+This is based on the assumption that heat loss to the ambient acts on the same timescale as buoyancy of the water, so even if the top node cools more rapidly than the second-top, hotter water will rise to replace the loss.
+This effect is not explicitly accounted for due to the faster action of heating and cooling due to mass flows through the tank.
 
 The mflow energy flow accounts for the heat that enters and exits each node carried by the actual volume of water that flows through it.
-As water is physically flowing through the system during charging (hot water entering from the solar collector) and drawing (hot water exiting to the load), the composition of each node changes.
+As water is flows through the system during charging (hot water entering from the solar collector) drawing (hot water exiting to the load), and auxiliary heating, the composition of each node changes.
 The factor $\dot{m}_i$, defined in \autoref{eq:mdot}, refers to the amount of water entering node $i$ from node $i+1$, the node above it, and is therefore positive when water is flowing downwards through the tank (in the direction of drawing).
 In the collector and auxiliary loop, water flows from the entrance to the exit (as illustrated in \autoref{fig:tank-nodes}).
 \begin{equation}
@@ -103,8 +105,10 @@ The load inlet temperature $T_l$ is a disturbance.
 \subsection{Control functions}
 
 \Autoref{eq:Q-inlet} introduced the two \emph{control functions} $\B{coll}$ and $\B{load}$ used by \authors{Cristofari02}, which are binary indicator functions that determine which nodes receive hot and cold water flows from the inlets.
+(There is an additional control function of my own addition $\B{aux}$ which works identically, but did not exist in the original paper.)
 These control functions simulate the hot and cold water from the collector and load passing through stratification devices as they enter the tank, so that they are distributed to the water layer which most appropriately matches their temperature.
-They only ever return 1 for a single node in the tank.
+If the hot water tank has a temperature distribution such that for all nodes $i$ in the tank, $T_{i-1} \le T_i \le T{i+1}$, these functions only ever return 1 for a single node in the tank.
+This is not assumed in my implementation of these algorithms, but in practise it does hold since all heat changes in the tank are caused by water flows or uniform cooling due to ambient losses.
 They are defined as follows:
 \begin{eqnarray}
    \label{eq:B-coll}
@@ -129,6 +133,7 @@ They are defined as follows:
       0 & otherwise.
    \end{dcases*}
 \end{eqnarray}
+
 The mass flow through each node is defined by \authors{Cristofari02} using sums of these collector functions to express the presence of an inlet above/below the current node being examined as
 \begin{equation}
    \label{eq:mdot}
@@ -137,10 +142,6 @@ The mass flow through each node is defined by \authors{Cristofari02} using sums 
              + \dot{m}_{\text{aux}, i}.
 \end{equation}
 $\dot{m}_{\text{aux}, i}$ represents the mass flow due to the auxiliary heating loop described in \autoref{eq:mdot-aux}.
-Note again that the flow is positive in the direction of the collector loop (downwards).
-\begin{equation}
-\end{equation}
-Finally, we must define the mass flow through a node due to the operation of the auxiliary loop.
 It is slightly more complex than the mass flows caused by the collector and load loops, because their outlets are fixed at the bottom and top of the tank respectively.
 It is given by
 \begin{equation}
@@ -155,23 +156,19 @@ $$
    \end{dcases*}
 $$
 
-\subsection{Collector input}
-
-\todo{This section needs to be written.}
-It works basically the same as the aux input.
-
 \subsection{Model validity}
 
 My implementation of the model was not verified against empirical data.
 As this work focuses on comparing control strategies on the system, efforts were not made to ensure that physical parameters were realistic, only plausible.
+The work of \textcite{Cristofari02} was assumed to be valid for the purposes of simulating the system in this thesis.
 
 \section{Mixed-tank control model}
 \label{sec:models:control}
 
-Efficient control using convex optimisation requires a linear model.
+Efficient control using convex optimisation requires a linear model, as described in \autoref{sec:background:convex}.
 This is achieved by taking a very simplified view of the system used by \authors{Halvgaard12} and explained in \autoref{sec:review:mpc:halvgaard}.
 The entire tank is described as a single temperature, taken to represent the average temperature of all layers.
-
+\Autoref{eq:tdot-halvgaard} describes the rate of change of this single temperature in response to the current state, input and disturbance conditions.
 \begin{equation}
    \label{eq:tdot-halvgaard}
    \dot{T} = -\frac{UA}{mC}T + \frac{P \nu_x}{m} u +
@@ -179,18 +176,28 @@ The entire tank is described as a single temperature, taken to represent the ave
          -\frac{50}{mC} & \frac{1}{m} & \frac{1}{mC} & \frac{UA}{mC}
       \end{array} \right] \left[ \begin{array}{c}
          m_l \\ T_l m_l \\ I \\ T_a
-      \end{array} \right]
+      \end{array} \right].
 \end{equation}
+Note that this equation involves a constant 50.
+This accounts for the bilinear effect of hot water leaving the top of the tank to be consumed by the user.
+The true equation would use $T$ instead of a constant 50.
+However, this would not produce a linear model.
 
-\subsection{Linear state space model}
+\authors{Halvgaard12} get around this problem by specifying disturbances in terms of energy loss, rather than flow rate.
+They assume that a fixed amount of energy will be drawn by the user, regardless of the temperature of the water the user is drawing.
+This constant value is equivalent to that assumption --- we assume that the energy lost will be equivalent to 50 degrees multiplied by the flow rate at that instant.
+If the tank is hotter, the flow rate will be lower (as the user mixes the hot water with more cold mains water), and if the temperature is lower, more water will be drawn.
+Whether this matches actual user behaviour is unverified.
 
-This is how we make a state-space model, consider the system as linear time-varying, but say it in a way that doesn't exclude the possibility that I might come up with other models, for example based on step response.
-\todo{Fix these words.}
+\subsection{Linear optimisation problem}
+
+This section describes a generic convex optimisation problem for linear state-space models which may be time-varying.
+A linear time-varying system is descibed in the following form:
 \begin{eqnarray}
    \label{eq:continuous-xdot}
-   \dvec{x} &=& A(t) \vec{x} + B(t) \vec{u}, \\
+   \dvec{x}(t) &=& A(t) \vec{x}(t) + B(t) \vec{u}, \\
    \label{eq:continuous-y}
-   \vec{y} &=& C(t) \vec{x}
+   \vec{y}(t) &=& C(t) \vec{x}(t)
 \end{eqnarray}
 where $\vec{x}$ represents the state vector, $\vec{u}$ the input vector, $\vec{y}$ the output vector, and $t$ the current time.
 From now, all $t$ arguments will be dropped for clarity; it is understood that all matrices may vary in time, and that $\dvec{x}$ and $\vec{y}$ are functions of time.
@@ -216,37 +223,36 @@ To make this distinction between disturbance and non-disturbance inputs, we deco
       B_u & B_d
    \end{array}\right], \\
    \vec{u} &=& \left[\begin{array}{c}
-      \vec{u}_e \\ \vec{u}_d
+      \vec{u}_e \\ \hvec{u}_d
    \end{array}\right]
 \end{eqnarray}
-where $\vec{u}_e$ represents our \emph{explicit} control signal to the system.
+where $\vec{u}_e$ represents our \emph{explicit} control signal to the system and $\vec{u}_d$ represents the disturbance input we cannot control.
 When $B$ is discretised according to \autoref{eq:discretise-B}, we can simply reconstruct the discretised $B_{u, d}$ and $B_{d, d}$ from the appropriate columns of $B_d$.
 
-\autoref{eq:mpc-opt}
-\todo{Diagram of $\hvec{y}, \vec{u}$ over planning horizon.}
-This time horizon, $H$, is a unitless integer that determines how many time steps into the future the planning problem will consider.
-We first define the output, input and disturbance vectors used in the planning problem, in terms of the time horizon:
+Once the system has been described in this form, a planning problem can be formulated.
+\todo{\autoref{eq:mpc-opt}, diagram of $\hvec{y}, \hvec{u}$ over planning horizon.}
+We consider a plan over a time horizon $H$ elements long (so the total look-ahead time will be $H \delta t$, where $\delta t$ is the planning resulution) where $H$ is of course a unitless integer.
+First define the input vector over the time horizon
+\begin{eqnarray*}
+   \hvec{u} &=& \left[\begin{array}{cc}
+      \vec{u}_{e, 0} & \vec{u}_{d, 0} \\
+      \vdots & \vdots \\
+      \hvec{u}_{e, H-1} & \hvec{u}_{d, H-1}
+   \end{array}\right]
+\end{eqnarray*}
+which is the vertically-stacked control and disturbance signals for the duration of the entire time horizon.
+Then the output $\hvec{y}$, which is similarly defined as the stacked vector of all output vectors over $H$, can be defined in terms of these vectors multiplied by some time-varying matrices that define the system behaviour:
 \begin{eqnarray}
    \label{eq:mpc-vectors}
-   \hvec{y} = \left[\begin{array}{c}
+   \hvec{y} = \Psi \vec{x}_0
       \vec{y}_0 \\
       \vdots \\
-      \vec{y}_H
-   \end{array}\right],
-   &
-   \vec{u} = \left[\begin{array}{c}
-      \vec{u}_0 \\
-      \vdots \\
-      \vec{u}_H
-   \end{array}\right],
-   & \text{and} \quad
-   \hvec{d} = \left[\begin{array}{c}
-      \vec{d}_0 \\
-      \vdots \\
-      \vec{d}_H
+      \vec{y}_{H-1}
    \end{array}\right].
 \end{eqnarray}
-We can now define the matrices $\Psi$ and $\Theta$:
+given $\vec{x}_0$, the current state of the system when the plan is made.
+
+The matrices $\Psi$ and $\Theta$ are defined as follows:
 \begin{eqnarray}
    \label{eq:mpc-psi}
    \Psi &=& \left[\begin{array}{c}
@@ -272,11 +278,29 @@ We can now define the matrices $\Psi$ and $\Theta$:
    \end{array}\right]
 \end{eqnarray}
 
-\subsection{Matrix construction}
+\subsection{Problem instance}
 
+Now we are ready to describe the specific state-space model, objectives, and constraints used in the mixed-tank controller.
 The vectors $\vec{u}_e$ and $\vec{u}_d$ are defined as follows:
 \begin{eqnarray}
    \vec{u}_e &=& \left[\begin{array}{c} \dot{m}_{\text{aux}} \end{array} \right] \\
    \vec{u}_d &=& \left[\begin{array}{cccc} \dot{m}_c & \dot{m}_l & T_a & T_l \end{array} \right]
 \end{eqnarray}
 
+
+\section{Implementation}
+
+The bulk of the work in this thesis involved formulating the above system models (particularly tank model) and implementing them correctly for simulation.
+Python was chosen as the implementation language due to its large open-source ecosystem of libraries for numerical computing, particularly the SciPy~\cite{SCIPY} and NumPy~\cite{Walt11} packages.
+In addition, the CVXPY library~\cite{CVXPY} provided a convenient interface for specifying DCP problems.
+
+The Python source code that produces the graphs shown throughout this thesis (especially in \autoref{ch:evaluation}) is partially listed in \autoref{app:code}.
+For those wishing to analyse the code in detail or reproduce these experiments, the code should be fetched from \url{https://github.com/eightyeight/thesis}.
+\todo{embed zip file in PDF builds}
+
+Before settling on Cristofari's tank model, a simulation was coded using the model described by \textcite{Pfeiffer11}.
+However, the description in that paper was incomplete and I was unable to reproduce the model in a working state.
+This incomplete source code is not listed.
+
+The source code is organised around two major scripts which run the experiments for the thermostat and MPC controller.
+These scripts are parameterised with command-line arguments to produce the various simulations used in model analysis.
