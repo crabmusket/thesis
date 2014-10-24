@@ -1,3 +1,52 @@
+if __name__ == '__main__':
+    import sys
+    import argparse
+    parser = argparse.ArgumentParser(description='Simulate the MPC controller')
+
+    parser.add_argument('--month',   default='jun', choices=['jan', 'jun'],
+        help='Which month to start the simulation in.')
+    parser.add_argument('--days',    default=8, type=int,
+        help='Number of days the sinulation will run for.')
+    parser.add_argument('--start',   type=int,
+        help='Start graphing at the start of this day (indexed from 0).')
+    parser.add_argument('--end',     type=int,
+        help='End graphing at the end of this day (indexed from 0).')
+
+    parser.add_argument('--width',   default=6, type=float,
+        help='Width in inches of the resulting plot')
+    parser.add_argument('--height',  default=4, type=float,
+        help='height in inches of the resulting plot.')
+
+    parser.add_argument('--cost',    default=1, type=float,
+        help='Weight on the input term of the cost function.')
+    parser.add_argument('--horizon', default=6, type=int,
+        help='Number of hours to predict into the future.')
+    parser.add_argument('--setpoint', default=55, type=int,
+        help='Setpoint for internal tank thermostats.')
+    parser.add_argument('--deadband', default=5,  type=int,
+        help='Deadband for internal control thermostats.')
+    parser.add_argument('--cset', default=8, type=int,
+        help='Setpoint for differential collector thermostat.')
+    parser.add_argument('--cdead', default=6, type=int,
+        help='Deadband for differential collector thermostat.')
+
+    parser.add_argument('--loadP',         default='data/daily_load.txt',
+        help='File containing load prediction values.')
+    parser.add_argument('--insolationP',   default='data/insolation.txt',
+        help='File containing insolation prediction values.')
+    parser.add_argument('--ambientP',      default='data/ambient.txt',
+        help='File containing ambient prediction values.')
+
+    parser.add_argument('--alltemps',      action='store_true',
+        help='Show all tank temperatures, instead of just the top and bottom.')
+    parser.add_argument('--internals',     action='store_true',
+        help='Show controller\'s prediction of average temperature at each timestep.')
+
+    parser.add_argument('name',
+        help='Filename prefix for plot and results.')
+
+    args = parser.parse_args()
+
 print 'Loading modules'
 import matplotlib
 matplotlib.use('agg')
@@ -104,6 +153,8 @@ def run(startTime, args):
         auxOutlet = auxOutlet,
         auxEfficiency = nuX,
         internalControl = True,
+        setpoint = args.setpoint, deadband = args.deadband,
+        collSetpoint = args.cset, collDeadband = args.cdead,
         # Tank receives true disturbances.
         getAmbient = ambientT,
         getLoad = loadT,
@@ -253,8 +304,17 @@ def run(startTime, args):
 
     a4 = subplot(313, sharex=a1)
     ylabel('Load and control')
-    step(th, map(lambda t: float(loadP(t*60*60)[0]), th))
-    [step(th, map(lambda u: u/10.0, us[i,:])) for i in range(len(us[:,0]))]
+    step(
+        th,
+        map(lambda t: float(loadP(t*60*60)[0]), th),
+        label='Load flow'
+    )
+    for i in range(len(us[:,0])):
+        step(
+            th,
+            map(lambda u: u/10.0, us[i,:]),
+            label='Control signal'
+        )
     axis(map(add, [0, 0, -0.01, 0.1], axis()))
 
     xlabel('Simulation time (h)')
@@ -278,46 +338,7 @@ def run(startTime, args):
                 results['solar'] / float(results['solar'] + results['auxiliary']) * 100
             ))
 
-import sys
-import argparse
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Simulate the MPC controller')
-
-    parser.add_argument('-m', '--month',   default='jun', choices=['jan', 'jun'],
-        help='Which month to start the simulation in.')
-    parser.add_argument('-d', '--days',    default=8, type=int,
-        help='Number of days the sinulation will run for.')
-    parser.add_argument('-s', '--start',   type=int,
-        help='Start graphing at the start of this day (indexed from 0).')
-    parser.add_argument('-e', '--end',     type=int,
-        help='End graphing at the end of this day (indexed from 0).')
-
-    parser.add_argument('-w', '--width',   default=6, type=float,
-        help='Width in inches of the resulting plot')
-    parser.add_argument('-g', '--height',  default=4, type=float,
-        help='height in inches of the resulting plot.')
-
-    parser.add_argument('-c', '--cost',    default=1, type=float,
-        help='Weight on the input term of the cost function.')
-    parser.add_argument('-z', '--horizon', default=6, type=int,
-        help='Number of hours to predict into the future.')
-
-    parser.add_argument('--loadP',         default='data/daily_load.txt',
-        help='File containing load prediction values.')
-    parser.add_argument('--insolationP',   default='data/insolation.txt',
-        help='File containing insolation prediction values.')
-    parser.add_argument('--ambientP',      default='data/ambient.txt',
-        help='File containing ambient prediction values.')
-
-    parser.add_argument('--alltemps',      action='store_true',
-        help='Show all tank temperatures, instead of just the top and bottom.')
-    parser.add_argument('--internals',     action='store_true',
-        help='Show controller\'s prediction of average temperature at each timestep.')
-
-    parser.add_argument('name',
-        help='Filename prefix for plot and results.')
-
-    args = parser.parse_args()
     if args.month == 'jan':
         start = datetime(2014, 1, 1, 00, 00, 00)
     else:

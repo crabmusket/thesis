@@ -8,6 +8,8 @@ from math import sin, pi
 # Implement the hot water tank model of \textcite{Cristofari02}.
 def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
         auxEfficiency, internalControl,
+        setpoint, deadband,
+        collSetpoint, collDeadband,
         getAmbient, getLoad, getInsolation):
     # Water and tank constants
     rho = 1000 # Water density
@@ -45,8 +47,8 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
         measure = tankLast,
         on  = array([1]),
         off = array([0]),
-        setpoint = 55,
-        deadband = 5
+        setpoint = setpoint,
+        deadband = deadband,
     )
 
     # The auxiliary heater controller is responsible for heating the water
@@ -57,8 +59,8 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
         measure = auxLast,
         on  = P, # Power input when heating
         off = 0,
-        setpoint = 55,
-        deadband = 5
+        setpoint = setpoint,
+        deadband = deadband,
     )
     # Two cases: if there is mass flow, use the thermostat. No mass flow, no heat.
     auxHeat = lambda m_aux, t, T: 0 if m_aux == 0 else auxHeat_(t, T)
@@ -69,11 +71,11 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
     collPump_ = thermostat.controller(
         measure = lambda T: T[collLast] - T[tankFirst],
         on  = (0, m_coll_on), # When we are 'on', i.e. the tank doesn't want our
-        off = (m_coll_on, 0), # water, send the water back to the collector,
-        setpoint = 8,         # and vice versa.
-        deadband = 6
+        off = (m_coll_on, 0), # water, send the water back to the collector.
+        setpoint = collSetpoint,
+        deadband = collDeadband,
     )
-    collPump = collPump_ # TODO turn off at night
+    collPump = collPump_ # TODO turn off at night?
 
     # Inlet control for cold water entering the tank. Returns 1 at if cold water
     # should be deposited into node i, given the temperature distribution in T.
