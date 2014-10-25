@@ -3,8 +3,11 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Simulate the MPC controller')
 
-    parser.add_argument('--month',   default='jun', choices=['jan', 'jun'],
+    parser.add_argument('--month',   default=6, type=int,
         help='Which month to start the simulation in.')
+    parser.add_argument('--day',   default=1, type=int,
+        help='Which day of the month to start the simulation on.')
+
     parser.add_argument('--days',    default=8, type=int,
         help='Number of days the sinulation will run for.')
     parser.add_argument('--start',   type=int,
@@ -92,7 +95,7 @@ def run(startTime, args):
     # MPC parameters
     H = args.horizon
     C = 2400
-    UA = 8 * (2 * pi * r * h + 2 * pi * r * r)
+    UA = 4 * (2 * pi * r * h + 2 * pi * r * r)
     rho = 1000
     m = pi * r * r * h * rho
 
@@ -353,8 +356,5 @@ def run(startTime, args):
             ))
 
 if __name__ == '__main__':
-    if args.month == 'jan':
-        start = datetime(2014, 1, 1, 00, 00, 00)
-    else:
-        start = datetime(2014, 6, 1, 00, 00, 00)
+    start = datetime(2014, args.month, args.day, 00, 00, 00)
     run(start, args)
