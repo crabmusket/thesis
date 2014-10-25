@@ -231,8 +231,10 @@ def run(startTime, args):
     def report(t, T, u):
         if t - report.lastTime >= 3600:
             report.lastTime = t
-            print t
-        if loadP(t)[0] > 0:
+            now = datetime.now()
+            print '{}\t{:.2f}'.format(int(t/3600.0), (now - report.lastWallTime).total_seconds())
+            report.lastWallTime = now
+        if loadT(t)[0] > 0:
             if T[N-1] >= 50:
                 results['satisfied'] += dt
             else:
@@ -240,9 +242,10 @@ def run(startTime, args):
         if u[0] > 0:
             results['energy'] += u[0] * P * dt / (3.6e6) # convert to kWh
         [m_aux, U_aux, m_coll, m_coll_return] = tankModel.lastInternalControl
-        results['solar'] += m_coll * T[N+NC-1] / 1000.0
-        results['auxiliary'] += m_aux * T[N+NC+NX-1] / 1000.0
+        results['solar'] += m_coll * T[N+NC-1]
+        results['auxiliary'] += m_aux * T[N+NC+NX-1]
     report.lastTime = 0
+    report.lastWallTime = datetime.now()
 
     tf = 60 * 60 * 24 * args.days - dt
     x0 = array([24] * (N+NC+NX)).T

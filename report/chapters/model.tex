@@ -196,6 +196,9 @@ Whether this matches actual user behaviour is unverified.
 \subsection{Linear optimisation problem}
 
 This section describes a generic convex optimisation problem for linear state-space models which may be time-varying.
+
+\subsubsection{Matrix construction}
+
 A linear time-varying system takes the following form:
 \begin{eqnarray}
    \label{eq:continuous-xdot}
@@ -273,7 +276,7 @@ The matrices $\Psi$ and $\Theta$ are defined as follows:
    \end{array}\right]
 \end{eqnarray}
 
-\subsection{Problem instance}
+\subsubsection{Problem instance}
 
 Now we are ready to describe the specific state-space model, objectives, and constraints used in the mixed-tank controller.
 The vectors $\vec{u}_e$ and $\vec{u}_d$, the explicit and disturbance inputs, are filled with the appropriate variables:
@@ -301,9 +304,28 @@ The system matrices $A$ and $B$ are also evident from \autoref{eq:tdot-halvgaard
 	\end{array} \right]
 \end{eqnarray}
 
-\subsection{Objective and constraints}
+\subsubsection{Objective and constraints}
 
+The remainder of the planning problem formulation concerns the objective function and constraints.
+\Autoref{eq:mpc-opt} already specifies that the system dynamics, $\hvec{y} = \Psi \vec{x}_0 + \Theta \hvec{u}$, should be considered a constraint.
+We must add the additional constraint that $0 \le u \le 1$, as we take the control input to mean the proportion of full power to be used by the auxiliary heater.
+Evidently, negative power cannot be used, and nor can a greater amount than the heater's rated power.
 
+The objective function chosen, $f^*$, may have a significant effect on the behaviour of the controller.
+However, the objective function is easy to write and modify thanks to the declarative nature of MPC.
+The objective function decided upon for this thesis is the following:
+\begin{equation}
+	f^*(\hvec{y}, \hvec{u}) = |R \min{\hvec{y} - \vec{50}, 0}| + \rho |\hvec{u}|_1
+\end{equation}
+The two terms of this equation respectively penalise deviation from the desired tank temperature and use of the control input.
+The first term deserves some explanation.
+The first expression of note is the use of the min function.
+Given a reference average temperature of 50 degrees centigrade, I only wished to penalise negative deviations from this reference point.
+I was happy to allow the water to be hotter than the specified setpoint, and trust the tank's internal controllers to ensure the water does not reach dangerous temperatures.
+
+Note that the controller has no way of \emph{removing} heat from the system, only the option of \emph{not adding} heat.
+Given this limitation, specifying a maximum temperature constrains frequently leads to infeasible control problems in summer months, as the solar input provides enough heat to drive the tank to high temperatures with almost no actuation.
+As noted above, the tank's internal controllers will prevent the auxiliary heater from achieving dangerous temperatures, so the controller need not take this constraint into account itself.
 
 \section{Implementation}
 
