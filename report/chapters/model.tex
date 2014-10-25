@@ -308,22 +308,36 @@ The system matrices $A$ and $B$ are also evident from \autoref{eq:tdot-halvgaard
 
 The remainder of the planning problem formulation concerns the objective function and constraints.
 \Autoref{eq:mpc-opt} already specifies that the system dynamics, $\hvec{y} = \Psi \vec{x}_0 + \Theta \hvec{u}$, should be considered a constraint.
-We must add the additional constraint that $0 \le u \le 1$, as we take the control input to mean the proportion of full power to be used by the auxiliary heater.
-Evidently, negative power cannot be used, and nor can a greater amount than the heater's rated power.
 
 The objective function chosen, $f^*$, may have a significant effect on the behaviour of the controller.
 However, the objective function is easy to write and modify thanks to the declarative nature of MPC.
 The objective function decided upon for this thesis is the following:
 \begin{equation}
-	f^*(\hvec{y}, \hvec{u}) = |R \min{\hvec{y} - \vec{50}, 0}| + \rho |\hvec{u}|_1
+	f^*(\hvec{y}, \hvec{u}) = |\vec{r}\transpose \min{\hvec{y} - \vec{50}, 0}| + \rho |\hvec{u}|_1
 \end{equation}
 The two terms of this equation respectively penalise deviation from the desired tank temperature and use of the control input.
 The first term deserves some explanation.
 The first expression of note is the use of the min function.
 Given a reference average temperature of 50 degrees centigrade, I only wished to penalise negative deviations from this reference point.
 I was happy to allow the water to be hotter than the specified setpoint, and trust the tank's internal controllers to ensure the water does not reach dangerous temperatures.
+Therefore after subtracting the reference temperature, the elementwise min takes only those elements of the predicted output that are smaller than 0, i.e. those for which the temperature is less than the desired setpoint.
 
-Note that the controller has no way of \emph{removing} heat from the system, only the option of \emph{not adding} heat.
+The value of 50 was chosen after inspecting the operation of the tank from simulations under thermostat control.
+It was observed that the tank's average temperature typically set on the order of 10 degrees below its top temperature.
+Therefore to produce a top temperature of 60 degrees, an average temperature or 50 degrees is demanded.
+
+This new vector is then multiplied by the reference vector $\vec{r}$.
+This vector is a binary constant of the appropriate dimension which contains 1 when the reference signal should be followed, and 0 when not.
+This reference vector is created at the start of each planning problem to contain 1 elements only in hours when there is any espected user load.
+This produces one of the key benefits of this predictive strategy.
+Overnight, or during the middle of the day, the reference vector will contain zeroes, and hence the controller will not be penalised for letting the tank cool in those hours.
+However, it \emph{will} be penalised for presenting a cooled tank to users in hours when there is expected to be demand, and may start to warm the tank in anticipation of those hours.
+
+The only constraint on the controller is that $0 \le u \le 1$, as the control input is defined to mean the proportion of full power to be used by the auxiliary heater.
+Obviously, negative power cannot be used, and nor can a greater amount than the heater's rated power.
+
+There are no constraints placed on the absolute output value.
+The controller has no way of \emph{removing} heat from the system, only the option of \emph{not adding} heat.
 Given this limitation, specifying a maximum temperature constrains frequently leads to infeasible control problems in summer months, as the solar input provides enough heat to drive the tank to high temperatures with almost no actuation.
 As noted above, the tank's internal controllers will prevent the auxiliary heater from achieving dangerous temperatures, so the controller need not take this constraint into account itself.
 
