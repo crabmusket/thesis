@@ -171,7 +171,7 @@ The entire tank is described as a single temperature, taken to represent the ave
 \Autoref{eq:tdot-halvgaard} describes the rate of change of this single temperature in response to the current state, input and disturbance conditions.
 \begin{equation}
    \label{eq:tdot-halvgaard}
-   \dot{T} = -\frac{UA}{mC}T + \frac{P \nu_x}{m} u +
+   \dot{T} = -\frac{UA}{mC}T + \frac{P \nu_x}{m} u_e +
       \left[ \begin{array}{cccc}
          -\frac{50}{mC} & \frac{1}{m} & \frac{1}{mC} & \frac{UA}{mC}
       \end{array} \right] \left[ \begin{array}{c}
@@ -182,6 +182,10 @@ Note that this equation involves a constant 50.
 This accounts for the bilinear effect of hot water leaving the top of the tank to be consumed by the user.
 The true equation would use $T$ instead of a constant 50.
 However, this would not produce a linear model.
+For the same reason, the disturbance input includes the bilinear term $T_l m_l$.
+
+Instead of using values of mass flow which are used in the simulation model (as in, for example, \autoref{eq:mdot}), this model uses values such as $m_l$ which represent the total mass added to the system in a time step.
+These values are calculated by integrating the rates of mass flow over a given interval when required.
 
 \authors{Halvgaard12} get around this problem by specifying disturbances in terms of energy loss, rather than flow rate.
 They assume that a fixed amount of energy will be drawn by the user, regardless of the temperature of the water the user is drawing.
@@ -192,7 +196,7 @@ Whether this matches actual user behaviour is unverified.
 \subsection{Linear optimisation problem}
 
 This section describes a generic convex optimisation problem for linear state-space models which may be time-varying.
-A linear time-varying system is descibed in the following form:
+A linear time-varying system takes the following form:
 \begin{eqnarray}
    \label{eq:continuous-xdot}
    \dvec{x}(t) &=& A(t) \vec{x}(t) + B(t) \vec{u}, \\
@@ -201,7 +205,8 @@ A linear time-varying system is descibed in the following form:
 \end{eqnarray}
 where $\vec{x}$ represents the state vector, $\vec{u}$ the input vector, $\vec{y}$ the output vector, and $t$ the current time.
 From now, all $t$ arguments will be dropped for clarity; it is understood that all matrices may vary in time, and that $\dvec{x}$ and $\vec{y}$ are functions of time.
-This system is discretised in the usual manner for linear state-space systems, assuming a zero-order hold on input signals between each time step, forming a new set of discrete-time equations
+
+The system is discretised in the usual manner for linear state-space systems, assuming a zero-order hold on input signals between each time step, forming a new set of discrete-time equations
 \begin{eqnarray}
    \label{eq:discretise-A}
    A_d &=& e^{A \delta t}, \\
@@ -220,35 +225,35 @@ Our only non-disturbance input is, of course, the electric heating element's sta
 To make this distinction between disturbance and non-disturbance inputs, we decompose $B$ and $\vec{u}$ into
 \begin{eqnarray}
    B &=& \left[\begin{array}{cc}
-      B_u & B_d
+      B_u & B_w
    \end{array}\right], \\
    \vec{u} &=& \left[\begin{array}{c}
-      \vec{u}_e \\ \hvec{u}_d
+      \vec{u}_e \\ \vec{u}_w
    \end{array}\right]
 \end{eqnarray}
-where $\vec{u}_e$ represents our \emph{explicit} control signal to the system and $\vec{u}_d$ represents the disturbance input we cannot control.
-When $B$ is discretised according to \autoref{eq:discretise-B}, we can simply reconstruct the discretised $B_{u, d}$ and $B_{d, d}$ from the appropriate columns of $B_d$.
+where $\vec{u}_e$ represents our \emph{explicit} control signal to the system and $\vec{u}_w$ represents the disturbance input we cannot control.
+When $B$ is discretised according to \autoref{eq:discretise-B}, we can simply reconstruct the discretised $B_{u, d}$ and $B_{w, d}$ from the appropriate columns of $B_d$.
 
 Once the system has been described in this form, a planning problem can be formulated.
-\todo{\autoref{eq:mpc-opt}, diagram of $\hvec{y}, \hvec{u}$ over planning horizon.}
+Following the general format of \autoref{eq:mpc-opt}, we must define the input and disturbance vectors over the planning horizon, and formulate the matrices that encode the system behaviour to constrain the output.
+We use hatted vectors to denote vectors over the time horizon, i.e. whose values are predicted at some future interval.
+For example, while $\vec{u}_w$ refers to the disturbance input vector at some instant, $\hvec{u}_w$ refers to the stacked vector of all predicted disturbances over the time horizon.
+
+\todo{diagram of $\hvec{y}, \hvec{u}$ over planning horizon.}
 We consider a plan over a time horizon $H$ elements long (so the total look-ahead time will be $H \delta t$, where $\delta t$ is the planning resulution) where $H$ is of course a unitless integer.
 First define the input vector over the time horizon
 \begin{eqnarray*}
-   \hvec{u} &=& \left[\begin{array}{cc}
-      \vec{u}_{e, 0} & \vec{u}_{d, 0} \\
-      \vdots & \vdots \\
-      \hvec{u}_{e, H-1} & \hvec{u}_{d, H-1}
+   \hvec{u} &=& \left[\begin{array}{c}
+      \hvec{u}_{e, 0} \\ \hvec{u}_{w, 0} \\
+      \vdots \\
+      \hvec{u}_{e, H-1} \\ \hvec{u}_{w, H-1}
    \end{array}\right]
 \end{eqnarray*}
 which is the vertically-stacked control and disturbance signals for the duration of the entire time horizon.
 Then the output $\hvec{y}$, which is similarly defined as the stacked vector of all output vectors over $H$, can be defined in terms of these vectors multiplied by some time-varying matrices that define the system behaviour:
 \begin{eqnarray}
    \label{eq:mpc-vectors}
-   \hvec{y} = \Psi \vec{x}_0
-      \vec{y}_0 \\
-      \vdots \\
-      \vec{y}_{H-1}
-   \end{array}\right].
+	\hvec{y} = \Psi \vec{x}_0 + \Theta \hvec{u}
 \end{eqnarray}
 given $\vec{x}_0$, the current state of the system when the plan is made.
 
@@ -256,36 +261,48 @@ The matrices $\Psi$ and $\Theta$ are defined as follows:
 \begin{eqnarray}
    \label{eq:mpc-psi}
    \Psi &=& \left[\begin{array}{c}
-      CA \\ CA^2 \\ \vdots \\ CA^H
+      CA \\ CA_d^2 \\ \vdots \\ CA_d^H
    \end{array}\right]
-   \\\label{eq:mpc-theta-u}
+   \\
+	\label{eq:mpc-theta}
    \Theta_u &=& \left[\begin{array}{cccc}
-      CB_u & 0 & 0 & 0 \\
-      CAB_u & \ddots & 0 & 0 \\
+		C B_d & 0 & 0 & 0 \\
+		C A_d B_d & \ddots & 0 & 0 \\
       \vdots & \ddots & \ddots & 0 \\
-      CA^{H-1}B_u & \cdots & CAB_u & CB_u
-   \end{array}\right]
-   \\\label{eq:mpc-theta-d}
-   \Theta_d &=& \left[\begin{array}{cccc}
-      CB_d & 0 & 0 & 0 \\
-      CAB_d & \ddots & 0 & 0 \\
-      \vdots & \ddots & \ddots & 0 \\
-      CA^{H-1}B_d & \cdots & CAB_d & CB_d
-   \end{array}\right]
-   \\\label{eq:mpc-theta}
-   \Theta &=& \left[\begin{array}{cc}
-      \Theta_u & \Theta_d
+		C A_d ^{H-1} B_d & \cdots & C A B_d & C B_d
    \end{array}\right]
 \end{eqnarray}
 
 \subsection{Problem instance}
 
 Now we are ready to describe the specific state-space model, objectives, and constraints used in the mixed-tank controller.
-The vectors $\vec{u}_e$ and $\vec{u}_d$ are defined as follows:
+The vectors $\vec{u}_e$ and $\vec{u}_d$, the explicit and disturbance inputs, are filled with the appropriate variables:
 \begin{eqnarray}
-   \vec{u}_e &=& \left[\begin{array}{c} \dot{m}_{\text{aux}} \end{array} \right] \\
-   \vec{u}_d &=& \left[\begin{array}{cccc} \dot{m}_c & \dot{m}_l & T_a & T_l \end{array} \right]
+   \vec{u}_e &=& \left[\begin{array}{c}
+		u_e
+	\end{array} \right]
+	\\
+   \vec{u}_w &=& \left[\begin{array}{cccc}
+		m_l \\ T_l m_l \\ I \\ T_a
+	\end{array} \right]
 \end{eqnarray}
+The system matrices $A$ and $B$ are also evident from \autoref{eq:tdot-halvgaard}:
+\begin{eqnarray}
+	A &=& \left[\begin{array}{c}
+		-\frac{UA}{mC}
+	\end{array} \right]
+	\\
+	B &=& \left[\begin{array}{ccccc}
+		\frac{P \nu_x}{m} &
+		-\frac{50}{mC} &
+		\frac{1}{m} &
+		\frac{1}{mC} &
+		\frac{UA}{mC}
+	\end{array} \right]
+\end{eqnarray}
+
+\subsection{Objective and constraints}
+
 
 
 \section{Implementation}
