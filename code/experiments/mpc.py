@@ -80,7 +80,7 @@ def run(startTime, args):
     h = 1.3
     P = 3000
     auxOutlet = N/2
-    nuX = 0.8
+    nuX = 1
 
     # Collector parameters
     area = 5
@@ -92,7 +92,7 @@ def run(startTime, args):
     # MPC parameters
     H = args.horizon
     C = 2400
-    UA = 0.5 * (2 * pi * r * h + 2 * pi * r * r)
+    UA = 8 * (2 * pi * r * h + 2 * pi * r * r)
     rho = 1000
     m = pi * r * r * h * rho
 
@@ -127,12 +127,12 @@ def run(startTime, args):
     # True and predicted load profiles.
     loadT = load.predict(
         start = startTime,
-        mainsTemp = ambientT,
+        mainsTemp = lambda t: ambientT(t) * 0.25 + 20 * 0.75,
         filename = 'data/daily_load3.txt',
     )
     loadP = load.predict(
         start = startTime,
-        mainsTemp = ambientP,
+        mainsTemp = lambda t: ambientT(t) * 0.25 + 20 * 0.75,
         filename = args.loadP,
     )
 
@@ -165,7 +165,7 @@ def run(startTime, args):
     # The problem depends on R(t)
     def objective(t, y, u):
         R = co.matrix(diag(reference(t)))
-        return cp.norm(R * cp.min_elemwise(y-50, 0)) \
+        return cp.norm(R * cp.min_elemwise(y-60, 0)) \
              + cp.norm(u, 1) * args.cost
 
     # The reference vector used buy the objective function. This reference is
@@ -286,9 +286,9 @@ def run(startTime, args):
     ts = linspace(hourFrom * 60 * 60, hourTo * 60 * 60, num = len(xs[0,:]))
     th = map(lambda t: t / (60.0*60), ts)
 
-    figure(figsize=(args.width, args.height), dpi=80)
+    ax = figure(figsize=(args.width, args.height), dpi=80)
 
-    a1 = subplot(311)
+    ax = subplot(311)
     ylabel('Tank (deg C)')
     if args.internals:
         [plotControl(h, plotControl.y) for h in range(hourFrom, hourTo)]
@@ -297,34 +297,45 @@ def run(startTime, args):
     else:
         temps = [0, N-1]
     [plot(th, xs[i,:])[0] for i in temps]
+    ax.set_xlim(hourFrom, hourTo)
     axis(map(add, [0, 0, -1, 1], axis()))
 
-    a2 = subplot(312, sharex=a1)
-    ylabel('Costs')
-    [step(th, getControl(th, cost), label=cost) for cost in ['Ucost', 'Ycost']]
-    legend()
-    axis(map(add, [0, 0, -0.1, 0], axis()))
+    ax = subplot(312, sharex=ax)
+    ax.set_ylabel('Input cost')
+    ax.step(th, getControl(th, 'Ucost'))
+    for tl in ax.get_yticklabels():
+        tl.set_color('b')
+    ax.axis(map(add, [0, 0, -0.1, 0], ax.axis()))
+    ax.set_xlim(hourFrom, hourTo)
+    ax = ax.twinx()
+    ax.set_ylabel('State cost')
+    ax.step(th, getControl(th, 'Ycost'), 'g')
+    for tl in ax.get_yticklabels():
+        tl.set_color('g')
+    ax.set_xlim(hourFrom, hourTo)
+    ax.axis(map(add, [0, 0, -0.1, 0], ax.axis()))
 
-    a4 = subplot(313, sharex=a1)
-    ylabel('Load and control')
-    step(
-        th,
-        map(lambda t: float(loadP(t*60*60)[0]), th),
-        label='Load flow'
-    )
+    ax = subplot(313, sharex=ax)
+    ax.set_ylabel('Load flow (L/s)')
+    ax.step(th, map(lambda t: float(loadP(t*60*60)[0]), th))
+    ax.axis(map(add, [0, 0, -0.01, 0.03], ax.axis()))
+    ax.set_xlim(hourFrom, hourTo)
+    for tl in ax.get_yticklabels():
+        tl.set_color('b')
+    ax = ax.twinx()
+    ax.set_ylabel('Control signal')
     for i in range(len(us[:,0])):
-        step(
-            th,
-            map(lambda u: u/10.0, us[i,:]),
-            label='Control signal'
-        )
-    axis(map(add, [0, 0, -0.01, 0.1], axis()))
+        ax.step(th, us[i,:], 'g')
+    for tl in ax.get_yticklabels():
+        tl.set_color('g')
+    ax.axis(map(add, [0, 0, -0.1, 0.1], ax.axis()))
+    ax.set_xlim(hourFrom, hourTo)
 
     xlabel('Simulation time (h)')
 
     savefig(args.name+'.png')
 
-    with open(args.name+'_results.txt', 'w') as f:
+    with open(args.name+'.txt', 'w') as f:
         if results['unsatisfied'] is 0:
             f.write('Satisfaction: {:.2f}%\n'.format(100))
         else:

@@ -14,7 +14,7 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
     # Water and tank constants
     rho = 1000 # Water density
     C = 2400 # Specific heat capacity
-    U = 0.5 # Tank wall heat loss coefficient
+    U = 4 # Tank wall heat loss coefficient, W/sqm
 
     # Derived parameters
     d = float(h) / NT # Depth of each segment
@@ -24,8 +24,8 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
     A_int = 2 * pi * r * d # Wall area of interior segment
     A_end = A_int + pi * r * r # Wall area of end segment
     U_s = (A_int + A_end / (NT/2)) * U # Rate of temperature something
-    U_s_x = 0.3
-    U_s_c = 0.1
+    U_s_x = 0.5 / NX
+    U_s_c = 1 / NC
 
     m_aux_on = 0.05 # Aux pump flow.
     m_coll_on = 0.02 # Collector flow
