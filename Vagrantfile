@@ -29,6 +29,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provider "virtualbox" do |v|
     v.name = "thesis_dkbuckmaster"
     v.memory = 1024
+    v.cpus = 2
+    v.customize ["modifyvm", :id, "--cpuexecutioncap", "100"]
   end
 
   # Share an additional folder to the guest VM. The first argument is
