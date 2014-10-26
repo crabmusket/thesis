@@ -70,7 +70,7 @@ def run(args):
     # MPC parameters
     H = args.horizon
     C = 2400
-    UA = 4 * (2 * pi * r * h + 2 * pi * r * r)
+    UA = 10 * (2 * pi * r * h + 2 * pi * r * r)
     rho = 1000
     m = pi * r * r * h * rho
 

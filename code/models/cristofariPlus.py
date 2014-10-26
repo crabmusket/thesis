@@ -14,7 +14,7 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
     # Water and tank constants
     rho = 1000 # Water density
     C = 2400 # Specific heat capacity
-    U = 4 # Tank wall heat loss coefficient, W/sqm
+    U = 10 # Tank wall heat loss coefficient, W/sqm
 
     # Derived parameters
     d = float(h) / NT # Depth of each segment
