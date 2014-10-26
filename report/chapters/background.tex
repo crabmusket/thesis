@@ -46,14 +46,17 @@ The class of solar water heating systems we are concerned with have a number of 
       This means that, for example, anti-freeze chemicals can be added to the collector loop.
       In this case, a heat exchanger must be used to transfer heat from the collector loop to the storage tank.
 
-   \item[Bypass] Some systems include a bypass \todo{work out the proper name for this thing} that allows water from the collector output to bypass the storage tank and be returned to the collector input for further heating.
+   \item[Flow control] Some systems include a bypass that allows water from the collector output to bypass the storage tank and be returned to the collector input for further heating.
+      This means that water does not have to enter the tank until it is warm enough, but water can be kept moving through the collector to avoid stagnation.
+      Most systems also include safety release valves on either the tank or collector (or both), allowing excess pressure and heat to be released on hot days.
 
    \item[Hydronics] Applications are not limited to providing potable hot water for taps.
       Hydronic systems use hot water for space heating, often on a separate loop to potable water.
       This may be achieved using radiators, or by passing the water through pipes in floors.
 
    \item[Scale] Solar hot water services must obviously come in many sizes to fulfil the requirements of different users.
-      The variables include the size of the water tank itself, the area of and water volume in the solar collectors, the power of the auxiliary booster, 
+      The variables include the size of the water tank itself, the area of --- and water volume in --- the solar collectors, and the power of the auxiliary booster.
+      Solar systems are typically sized for a specific user's summer consumption requirements, to avoid overheating, though this means their performance in winter is low.
 \end{description}
 
 \subsection{Control}
@@ -120,11 +123,18 @@ However, MPC will determine the best course of action itself without requiring m
 
 \subsection{Application to hot water services}
 
-\todo{Write this section}
+This author believes that model-predictive control is a strong fit for control of hot water services.
+Firstly, the system is underactuated and heavily affected by disturbances.
+These disturbances \emph{can}, however, be predicted and planned for, at least in the short term (matters of hours).
+The Nest thermostat has shown that it is feasible to predict user activity, and use this to optimise building control.
+
+Further, domestic systems may involve interaction with the user --- thermostats that control home air conditioning are an example, as are the `eco modes' becoming more common in automotive control systems.
+MPC affords the possibility of easily designing and specifying tuning parameters that a user can interact with, due to its declarative and intuitive nature.
+This will be seen in later sections.
 
 \subsection{Linear systems}
 
-MPC controllers solve an optimisation problem at every instant in time to determine the next control input.
+Model-predictive controllers solve an optimisation problem at every instant in time to determine the next control input.
 When controlling a system whose dynamics can be modeled linearly, the form of this optimisation problem is, in general,
 \begin{equation}
    \label{eq:mpc-opt}
@@ -139,6 +149,7 @@ When controlling a system whose dynamics can be modeled linearly, the form of th
 \end{equation}
 The controller attempts to minimise the chosen objective function $f^*$ while satisfying the system dynamic constraints.
 $\Phi$ and $\Theta$ encode these linear dynamic constraints on the output $\hvec{y}$ given the input $\hvec{u}$, over some time horizon usually referred to as $H$.
+More detail on this problem formulation is found in \autoref{sec:models:control}.
 
 Note that the general constraints in this problem, $f_i$ and $g_j$, are representative of meaningful constraints in the context of a particular problem.
 They are given here in generic form to denote that there may be constraints in the form of both equlities and inequalities.
@@ -172,8 +183,6 @@ Grant and Boyd opine that this process is difficult and error-prone, even for ex
 They propose a method called \emph{disciplined convex programming} (DCP)~\cite{Grant06} which aims to express convex optimisation problems in such a way that transformation to an efficiently-solvable representation can be automated, removing this ``expertise barrier'', as they put it.
 
 Recent DCP software such as CVX for MATLAB~\cite{CVX} and CVXPY in Python~\cite{CVXPY} implements this paradigm to provide a simple user interface without sacrificing the efficiency of specialised solvers for subclasses of convex problems.
-\opinion{It has yet to be seen whether the same gains discovered by \textcite{Wang10} in the area of MPC can be achieved by this general software.}
-\todo{Refer to MPC chapter in lit review}
 
 \section{Nonconvex optimisation}
 

@@ -24,9 +24,9 @@ This thesis will concern itself with the following issues and methods:
          The new controller will only have access to the same actuation as the thermostat control (i.e. turning the heating element on or off).
    \item Evaluating the effectiveness of the new controller in terms of three metrics:
          \begin{itemize}
-            \item To what extent the user's demand is satisfied
-            \item Total auxiliary energy used
-            \item Solar contribution to the tank
+            \item to what extent the user's demand is satisfied,
+            \item the total auxiliary energy used, and
+            \item solar contribution to the tank.
          \end{itemize}
 \end{itemize}
 
@@ -36,17 +36,26 @@ This thesis will not examine the following issues, leaving them instead for futu
 	\item[State estimation and sensing]
          It is assumed that the controller has access to the full internal state of the system when planning.
          Due to the slow system dynamics and ability to directly measure the system state at certain points this is taken to be a less important problem than the control itself.
+
 	\item[Validation of the model against an existing solar hot water system]
          As the model was reproduced from literature it was assumed to be adequately valid.
          In addition, the comparison of model-predictive control was expected to yield interesting results even if the simulation was not an exact match for an existing system.
+
 	\item[Nonlinear control]
          The true system under consideration involves complex fluid dynamics that could only be appropriately captured by a CFD simulation.
          The implemented simulation is nonlinear and nonsmooth, and attempts to capture these dynamics without performing full CFD, but the controller itself uses a linear simplification of the true system.
+
 	\item[Robust control]
          Due to time constraints, this thesis does not examine the controller's robustness in the face of incorrect predictions, nor develop any of the robust control methods described in the literature.
+
 	\item[Legionella cleansing requirements]
 			Actual hot water services in operation are required to follow one of several strict heating regimens regularly to prevent the growth of legionella bacteria.
 			We do not consider this problem as it is beyond the ability of the model-predictive controller to account for.
+
+   \item[Prediction]
+         This thesis develops a controller that uses predictions of weather and user load as part of a control strategy, but does not consider how these predictions are acquired.
+         Machine learning techniques to learn user load patterns are beyond its scope, as is any form of weather prediction synthesis.
+         A practical implementation would also need to consider the various networked computers that have this information and how they would share it, but this thesis does not go that far.
 \end{description}
 
 \section{Structure}

@@ -14,10 +14,10 @@ The resulting simulation conditions are shown together in \autoref{fig:cer-data}
 June was chosen because the control problem is interesting in winter, whereas in summer the sun provides plentiful heat to keep the tank hot with minimal boosting.
 
 \begin{figure}
-	\centering
-	\includegraphics[width=10cm]{images/cer-data}
-	\caption{Two days of simulated weather and load conditions}
-	\label{fig:cer-data}
+   \centering
+   \includegraphics[width=10cm]{images/cer-data}
+   \caption{Two days of simulated weather and load conditions}
+   \label{fig:cer-data}
 \end{figure}
 
 \subsection{Metrics}
@@ -25,19 +25,19 @@ June was chosen because the control problem is interesting in winter, whereas in
 The controller's performance was quantified according to three metrics:
 
 \begin{description}
-	\item[Satisfaction]
-		The user's satisfaction was measured by accumulating the total amounts of time when water was flowing to the user and was at least 50 degrees, and when water was flowing and was less than 50 degrees.
-		This number was chosen based on guidelines for domestic water use from Sustainability Victoria~\cite{LSTS}.
-	\item[Energy use]
-		The total energy use of the controller is integrated across each experiment run.
-		This provides an obvious way to compare the strategies of each controller based on how much power they consume to achieve the level of comfort measured by the first metric.
-		Note that energy bill is assumed to be implicit in this metric, as this thesis does not take into account the effects of a varying energy price.
-	\item[Solar contribution]
-		The `solar contribution' refers to the amount of energy gained from sunlight relative to the total amount of energy put into the hot water tank.
-		This is a relevant metric as it permits the examination of how effectively the solar resource was exploited.
-		However, analysis is complicated by the relationship between solar fraction and total energy used by the controller.
-		If one controller expends less control power, all else being equal, it will tend to have a higher solar contribution simply because the amount of energy gained from the sun is now greater in comparison.
-		However, this metric does take into account the effect of a tank kept too-hot, which will result in the solar pump differential controller never choosing to let water enter the tank, thereby reducing solar contribution.
+   \item[Satisfaction]
+      The user's satisfaction was measured by accumulating the total amounts of time when water was flowing to the user and was at least 50 degrees, and when water was flowing and was less than 50 degrees.
+      This number was chosen based on guidelines for domestic water use from Sustainability Victoria~\cite{LSTS}.
+   \item[Energy use]
+      The total energy use of the controller is integrated across each experiment run.
+      This provides an obvious way to compare the strategies of each controller based on how much power they consume to achieve the level of comfort measured by the first metric.
+      Note that energy bill is assumed to be implicit in this metric, as this thesis does not take into account the effects of a varying energy price.
+   \item[Solar contribution]
+      The `solar contribution' refers to the amount of energy gained from sunlight relative to the total amount of energy put into the hot water tank.
+      This is a relevant metric as it permits the examination of how effectively the solar resource was exploited.
+      However, analysis is complicated by the relationship between solar fraction and total energy used by the controller.
+      If one controller expends less control power, all else being equal, it will tend to have a higher solar contribution simply because the amount of energy gained from the sun is now greater in comparison.
+      However, this metric does take into account the effect of a tank kept too-hot, which will result in the solar pump differential controller never choosing to let water enter the tank, thereby reducing solar contribution.
 \end{description}
 
 These metrics were evaluated each minute during the simulation.
@@ -62,22 +62,22 @@ The predicted profile is identical each day, and overpredicts the amount of inso
 The true profile is a standard July week.
 
 \begin{figure}
-	\centering
-	\begin{adjustwidth}{-2cm}{-2cm}
-	\begin{subfigure}[b]{0.65\textwidth}
-		\includegraphics[width=\textwidth]{images/insolation-prediction}
-		\caption{Insolation prediction}
-		\label{fig:insolation-error-p}
-	\end{subfigure}
-	~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-	\begin{subfigure}[b]{0.65\textwidth}
-		\includegraphics[width=\textwidth]{images/insolation-actual}
-		\caption{Actual insolation}
-		\label{fig:insolation-error-t}
-	\end{subfigure}
-	\end{adjustwidth}
-	\caption{Insolation profiles for experiment 2}
-	\label{fig:insolation-error}
+   \centering
+   \begin{adjustwidth}{-2cm}{-2cm}
+   \begin{subfigure}[b]{0.65\textwidth}
+      \includegraphics[width=\textwidth]{images/insolation-prediction}
+      \caption{Insolation prediction}
+      \label{fig:insolation-error-p}
+   \end{subfigure}
+   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+   \begin{subfigure}[b]{0.65\textwidth}
+      \includegraphics[width=\textwidth]{images/insolation-actual}
+      \caption{Actual insolation}
+      \label{fig:insolation-error-t}
+   \end{subfigure}
+   \end{adjustwidth}
+   \caption{Insolation profiles for experiment 2}
+   \label{fig:insolation-error}
 \end{figure}
 
 \subsubsection{Experiment 3. The effect of the control weight}
@@ -98,17 +98,17 @@ For completeness, it is desirable to determine what effect, if any, the length o
 \section{Results}
 
 \begin{figure}
-	\centering
-	\includegraphics[width=\textwidth]{images/comparison}
-	\caption{Comparison of predictive and thermostat control}
-	\label{fig:comparison}
+   \centering
+   \includegraphics[width=\textwidth]{images/comparison}
+   \caption{Comparison of predictive and thermostat control}
+   \label{fig:comparison}
 \end{figure}
 
 \begin{table}
-	\centering
-	\begin{tabular}{l c c c}
-		Controller & Exeriment & Satisfaction (\%)	& Total energy (kWh)	& Solar contribution (\%) \\ \hline
-		MPC & Dec 1 & 94.29 & 97.8   & 60.08 \\
+   \centering
+   \begin{tabular}{l c c c}
+      Controller & Exeriment & Satisfaction (\%)   & Total energy (kWh) & Solar contribution (\%) \\ \hline
+      MPC & Dec 1 & 94.29 & 97.8   & 60.08 \\
           & Dec 2 & 96.19 & 104.1  & 57.19 \\
           & Jan 1 & 91.43 & 110.4  & 54.41 \\
           & Jan 2 & 82.86 & 126.6  & 45.55 \\
@@ -124,7 +124,26 @@ For completeness, it is desirable to determine what effect, if any, the length o
           & Jun 2 & 46.35 & 243.7  & 17.72 \\
           & Jul 1 & 46.98 & 243.5  & 21.16 \\
           & Jul 2 & 42.22 & 246.35 & 21.78
-	\end{tabular}
-	\caption{Table of results comparing MPC to thermostat control}
-	\label{tab:comparison}
+   \end{tabular}
+   \caption{Table of results comparing MPC to thermostat control}
+   \label{tab:comparison}
 \end{table}
+
+\begin{figure}
+   \centering
+   \begin{adjustwidth}{-2cm}{-2cm}
+   \begin{subfigure}[b]{0.65\textwidth}
+      \includegraphics[width=\textwidth]{results/mpc-rho-1.1}
+      \caption{With $\rho = 1e-9$}
+      \label{fig:mpc-rho-1.1}
+   \end{subfigure}
+   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+   \begin{subfigure}[b]{0.65\textwidth}
+      \includegraphics[width=\textwidth]{results/mpc-rho-3.5}
+      \caption{With $\rho = 5e-7$}
+      \label{fig:mpc-rho-3.5}
+   \end{subfigure}
+   \end{adjustwidth}
+   \caption{Simulations with two values of the tuning parameter $\rho$}
+   \label{fig:mpc-rho}
+\end{figure}
