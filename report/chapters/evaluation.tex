@@ -81,7 +81,7 @@ The true profile is a standard July week.
 
 The controller was designed with a tuning parameter $\rho$ (see \autoref{eq:controller-problem}).
 A series of simulations was run with identical conditions except for this parameter.
-Eight values were used, arranged linearly from $1\e{-9}$ to $5\e{-4}$.
+Eight values were used, arranged linearly from $1\e{-9}$ to $1\e{-5}$.
 This was determined to be the range over which the controller varied from maximum satisfaction, keeping the tank very warm most of the time, down to roughly 85\% satisfaction, and only heating the tank immediately before a period of use.
 
 Note that other experiments were conducted with $\rho = 1$.
@@ -131,18 +131,15 @@ Longer timeframes were not investigated, based on the results achieved from thes
    \centering
    \begin{tabular}{l c c c}
       $\rho$ & Satisfaction (\%) & Total energy (kWh) & Solar contribution (\%) \\ \hline
-      $1\e{-9}$ & 100.00 & 42.90 & 20.39
-      $5\e{-9}$ & 100.00 & 42.60 & 20.51
-      $1\e{-8}$ & 91.11 & 39.60 & 22.10
-      $5\e{-8}$ & 93.33 & 38.70 & 22.52
-      $1\e{-7}$ & 91.11 & 38.10 & 22.79
-      $5\e{-7}$ & 91.11 & 37.20 & 23.09
-      $1\e{-6}$ & 91.11 & 30.30 & 27.23
-      $5\e{-6}$ & 84.44 & 25.20 & 31.59
-      $1\e{-5}$ & 
-      $5\e{-5}$ & 
-      $1\e{-4}$ & 
-      $5\e{-4}$ & 
+      $1\e{-9}$ & 100.00 & 42.90 & 20.39 \\
+      $5\e{-9}$ & 100.00 & 42.60 & 20.51 \\
+      $1\e{-8}$ & 91.11 & 39.60 & 22.10 \\
+      $5\e{-8}$ & 93.33 & 38.70 & 22.52 \\
+      $1\e{-7}$ & 91.11 & 38.10 & 22.79 \\
+      $5\e{-7}$ & 91.11 & 37.20 & 23.09 \\
+      $1\e{-6}$ & 91.11 & 30.30 & 27.23 \\
+      $5\e{-6}$ & 84.44 & 25.20 & 31.59 \\
+      $1\e{-5}$ & 80.00 & 30.30 & 29.43 \\
    \end{tabular}
    \caption{Table of results comparing tuning values of $\rho$}
    \label{tab:comparison}
@@ -152,15 +149,15 @@ Longer timeframes were not investigated, based on the results achieved from thes
    \centering
    \begin{adjustwidth}{-2cm}{-2cm}
    \begin{subfigure}[b]{0.65\textwidth}
-      \includegraphics[width=\textwidth]{results/mpc-rho-1}
+      \includegraphics[width=\textwidth]{results/mpc-rho-19}
       \caption{With $\rho = 1\e{-9}$}
-      \label{fig:mpc-rho-1.1}
+      \label{fig:mpc-rho-small}
    \end{subfigure}
    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
    \begin{subfigure}[b]{0.65\textwidth}
-      \includegraphics[width=\textwidth]{results/mpc-rho-3}
+      \includegraphics[width=\textwidth]{results/mpc-rho-57}
       \caption{With $\rho = 5\e{-7}$}
-      \label{fig:mpc-rho-3.5}
+      \label{fig:mpc-rho-larger}
    \end{subfigure}
    \end{adjustwidth}
    \caption{Simulations with two values of the tuning parameter $\rho$}
