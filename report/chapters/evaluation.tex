@@ -101,6 +101,7 @@ Longer timeframes were not investigated, based on the results achieved from thes
 \subsubsection{Experiment 1. Comparison to thermostat control}
 
 \Autoref{fig:comparison} shows the results across all three metrics measured in the sixteen simulations performed for experiment 1.
+The source data of this chart is listed in \autoref{tab:comparison}.
 Each set of three metrics is a single simulation.
 Two simulations were performed in each month for each controller.
 All results for MPC are in the left half of the chart, whereas thermostat results are on the right.
@@ -145,13 +146,28 @@ The thermostat, on the other hand, can only respond when the temperature falls b
 
 \subsubsection{Experiment 2. The effect of inaccurate predictions}
 
+The effect of erroneous solar predictions appeared to be minimal.
+An example of the predictions affecting the controller over a single day is shown in \autoref{fig:mpc-error}.
+The pink lines in the temperature plot show, at each hour, the predicted future average temperatures the controller expects.
+Over midday, when insolation would have the greatest effect, a large pink crest indicates the controller's optimistic expectation of large solar gains.
+However, this still only resulted in a modest decrease in energy use by the controller, and a small violation of the user's comfort.
+
+\begin{figure}
+   \centering
+   \includegraphics[width=12cm]{results/mpc-prediction-error}
+   \caption{A day in the life of a controller with bad predictions}
+   \label{fig:mpc-error}
+\end{figure}
 
 \subsubsection{Experiment 3. The effect of the control weight}
 
 The parameter $\rho$ caused predictable changes in the control response.
 Higher values imposed a more severe penalty on using any control input, while lower values allowed the controller to take any means necessary to avoid accruing penalties due to the comfort requirement.
 \Autoref{fig:mpc-rho} illustrates this with two control profiles from this experiment.
-\Autoref{fig:rho-graphs} shows the changes in each metric as functions of $\rho$.
+
+\Autoref{fig:rho-graphs} shows the trends in each metric as functions of $\rho$.
+It makes clear the downward trend in comfort and energy usage as values of $\rho$ increase.
+The data which produced this graph is listed in \autoref{tab:rho}.
 
 \begin{figure}
    \centering
@@ -172,13 +188,73 @@ Higher values imposed a more severe penalty on using any control input, while lo
 
 \begin{figure}
    \centering
-   \includegraphics[width=8cm]{images/rho-graphs}
+   \includegraphics[width=12cm]{images/rho-graphs}
    \caption{Effects of $\rho$ on the three metrics}
    \label{fig:rho-graphs}
 \end{figure}
 
 \subsubsection{Experiment 4. The effect of the prediction horizon}
 
-
+The effect of the planning horizon appeared to be minimal.
+Above a horizon of four hours, the controller could not take advantage of increased prescience.
 
 \section{Discussion}
+
+\subsection{Interpretation}
+
+The discussion in this section must be prefaced with a word of caution: the simulations presented should be taken anecdotally, rather than as statistically significant.
+The reader must also bear in mind that they were conducted with a hignly unrealistic scenario, both in terms of the load pattern, and the controller's ability to predict future disturbances.
+
+\subsubsection{Performance}
+
+The controller did not achieve the significant gains seen for MPC in other research.
+At most, it decreased energy usage by around 10\%, and increased user satisfaction by the same amount.
+These results are not trivial, but do not approach the 30\% that \authors{Halvaard12}, for example, were able to achieve.
+It also remains to be seen whether this performance benefit would apply to real systems.
+
+However, the fundamental difference of MPC has been made clear by comparison to the thermostat controller.
+The predictive controller consistently heats the tank \emph{in advance} of a large period of load, whereas the thermostat reheats the tank \emph{in response} to one.
+This is a fundamental difference that demonstrates the controller's utility.
+
+\subsubsection{Tuning}
+
+An interesting result from experiment 3 was the process of tuning $\rho$.
+While MPC is said to be `intuitive' in its tuning --- and this is largely true --- it was at first difficult to find values of $\rho$ that had the desired effect.
+There also appears to be a large inexplicable plateau between the values of $1\e{-5}$ and 1, where the controller behaves largely the same no matter the tuning parameter.
+For larger values than 1, the controller will start to become conservative very quickly, hardly expending any effort at all with $\rho=10$.
+
+The process of finding the values that would display an interesting portion of the metrics curves shown in \autoref{fig:rho-graphs} took more time than running those simulations with the correct numbers once they were found.
+This has interesting implications for the design process.
+How should parameters like $\rho$ be tuned by the designers?
+And how, if at all, should they be exposed to user tuning?
+
+The effect of $\rho$ has an obvious and intuitive meaning as a balance between comfort and control expense.
+But the actual effects on the user of a certain change in $\rho$ may not be simple, even when measured as a statistic like the satisfaction metric presented here.
+
+\subsection{Future work}
+
+Evidently this controller still has its limitations, as does the evaluation presented in this thesis.
+The most obvious work that needs to be done is greater experimental coverage of the design space, both to test the controller's robustness and to begin to make statistically valid conclusions.
+Heavier and less regular load profiles should be used, and more combinations of controller variables should be tested in combination (a 2D gridded approach, rather than the several 1D experiments presented here).
+
+Due to time constraints, this thesis never explored more complex control models.
+A simple extension would be to add a two-zone model of the controller, where the temperatures of the top and bottom of the tank were treated independently.
+This becomes interesting considering that the auxiliary heater only heats the top half of the tank.
+It may allow the controller to make more informed decisions about how much of the tank it should heat.
+
+And finally, the option of nonlinear control remains.
+The simulation model presented was bilinear, and with certain simplifying assumptions together with the removal of the internal controllers, could be made smooth.
+It would then be suitable for modelling and control with software such as ACADO.
+It would be necessary in this case for the controller to take responsibility for all pumps and valves in the system, to remove all non-smoothness from the model itself.
+This would present even more opportunities for the controller to intelligently manage the system.
+
+Finally, immediate future work must include improvements to the tank model itself.
+This model still leaves some important factors unaccounted for, such as pressure release valves on the tank and collector.
+Validation against a real system would help to tune the constants involved, which for this thesis were simply set to plausible values based on qualitative descriptions of how hot water systems commonly behave --- or were approximated from values found in datasheets or other studies.
+
+\section{Conclusion}
+
+This thesis has presented a successful model-predictive control algorithm for use on domestic solar water systems.
+It was shown to be a viable competitor to the thermostat controller in simulations, having slightly reduced energy usage and slightly increased user satisfaction in both winter and summer months.
+
+Much work remains to be done, but this appears to be a promising start.
