@@ -5,7 +5,8 @@ from ..controllers import thermostat
 from ..utils.time import hours_after_midnight
 from math import sin, pi
 
-# Implement the hot water tank model of \textcite{Cristofari02}.
+# Implement the hot water tank model of \textcite{Cristofari02} described in
+# \autoref{ch:models}.
 def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
         auxEfficiency, internalControl,
         setpoint, deadband,
@@ -170,7 +171,7 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
             U_mflow = (min(0, m(i-1)) * C * (T[i] - T[i-1]) if i > 0 else 0) \
                     + (max(0, m(i))   * C * (T[i+1] - T[i]) if i < NT-1 else 0)
 
-            # Final temperature change (\autoref{eq:node-dT})
+            # Final temperature change
             dT[i] = (U_amb + U_inlet + U_mflow) / (rho * C * vT)
 
         # Make the last internal control state available to external watchers.

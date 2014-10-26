@@ -176,7 +176,7 @@ This effect is not explicitly accounted for due to the faster action of heating 
 The mflow energy flow accounts for the heat that enters and exits each node carried by the actual volume of water that flows through it.
 As water is flows through the system during charging (hot water entering from the solar collector) drawing (hot water exiting to the load), and auxiliary heating, the composition of each node changes.
 The factor $\dot{m}_i$, defined in \autoref{eq:mdot}, refers to the amount of water entering node $i$ from node $i+1$, the node above it, and is therefore positive when water is flowing downwards through the tank (in the direction of drawing).
-In the collector and auxiliary loop, water flows from the entrance to the exit (as illustrated in \autoref{fig:tank-nodes}).
+In the collector and auxiliary loop, water flows from the entrance to the exit (as illustrated in \autoref{fig:discretised-tank}).
 \begin{equation}
    \label{eq:tank-Q-mflow}
    \Q{$T$, mflow} = \max \left\{ 0, \dot{m}_i \right\}     C_i (T_{i+1} - T_i)
@@ -185,7 +185,7 @@ In the collector and auxiliary loop, water flows from the entrance to the exit (
 We additionally define $\dot{m}_{N-1} = \dot{m}_{-1} = 0$ to handle the ends of the tank.
 In the collector and auxiliary loop, the water flow is identical across all nodes, equal to $\dot{m}_c$ and $\dot{m}_x$ respectively.
 These variables are `inputs' in the sense that they are controlled, but this control is usually performed by internal actuators instead of by external command.
-For more detail see \autoref{ch:model:control-internal}.
+For more detail see \autoref{sec:models:system:control}.
 The load flow is a disturbance, and is named $\dot{m}_l$.
 
 The heat flow from each inlet is calculated in terms of its current mass flow and temperature.

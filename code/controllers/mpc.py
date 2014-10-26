@@ -7,7 +7,7 @@ from control.matlab import *
 import cvxopt as cvx
 from cvxpy import *
 
-# Implement discretisation according to \autoref{eq:discretise-xdot}.
+# Implement discretisation according to \autoref{eq:discrete-xdot}.
 def discretise(dt, (A, Bu, Bw, C, D)):
     Adis = array(expm2(A * dt))
     B = np.hstack([Bu, Bw])
@@ -30,7 +30,7 @@ def LTI(horizon, step, system, objective, constraints, disturbances, outputs=Non
     N = A.shape[0]/2
 
     # Construct the matrices that predict the state over the prediction horizon.
-    def builder(B):
+    def makeTheta(B):
         z = zeros((C*A*B).shape)
         def inner(i, j):
             if j > i:
@@ -39,11 +39,12 @@ def LTI(horizon, step, system, objective, constraints, disturbances, outputs=Non
                 return C * matrix_power(A, i-j) * B
         return inner
 
-    # \Autoref{eq:mpc-theta-u}.
-    b = builder(Bu)
+    # \Autoref{eq:mpc-theta}. Note that we separate $\Theta_u$ and $\Theta_w$
+    # because of possible intabilities in CVXPY. Dod not investigate in too
+    # much depth.
+    b = makeTheta(Bu)
     thetaU = bmat([[b(i, j) for j in range(0, H)] for i in range(0, H)])
-    # \Autoref{eq:mpc-theta-d}.
-    b = builder(Bw)
+    b = makeTheta(Bw)
     thetaW = bmat([[b(i, j) for j in range(0, H)] for i in range(0, H)])
     # \Autoref{eq:mpc-psi}.
     psi = bmat([[C * matrix_power(A, i)] for i in range(1, H+1)])
