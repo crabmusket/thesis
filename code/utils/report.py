@@ -13,7 +13,7 @@ def to(results, model, dt, loadT, N, NC, NX, P):
             else:
                 results['unsatisfied'] += dt
         if u[0] > 0:
-            results['energy'] += u[0] * P * dt
+            results['energy'] += u[0] * P * dt / 3.6e6
         [m_aux, U_aux, m_coll, m_coll_return] = model.lastInternalControl
         results['solar'] += m_coll * T[N+NC-1]
         results['auxiliary'] += m_aux * T[N+NC+NX-1]
@@ -21,20 +21,17 @@ def to(results, model, dt, loadT, N, NC, NX, P):
     report.lastWallTime = datetime.now()
     return report
  
-def write(fname, results):
+def write(fname, results, verbose):
     with open(fname, 'w') as f:
-        if results['unsatisfied'] is 0:
-            f.write('Satisfaction: {:.2f}%\n'.format(100))
+        satisfaction = 100 if results['unsatisfied'] is 0 else \
+            (results['satisfied'] / float(results['satisfied'] + results['unsatisfied']) * 100)
+        fraction = 100 if results['auxiliary'] is 0 else \
+            (results['solar'] / float(results['solar'] + results['auxiliary']) * 100)
+        energy = results['energy']
+
+        if verbose:
+            f.write('Satisfaction: {:.2f}%\n'.format(satisfaction))
+            f.write('Energy used: {:.2f}kWh\n'.format(energy))
+            f.write('Solar fraction: {:.2f}%\n'.format(fraction))
         else:
-            f.write('Satisfaction: {:.2f}%\n'.format(
-                results['satisfied'] / float(results['satisfied'] + results['unsatisfied']) * 100
-            ))
-        f.write('Energy used: {:.2f}kWh\n'.format(
-            results['energy'] / (3.6e6)
-        ))
-        if results['auxiliary'] is 0:
-            f.write('Solar fraction: {:.2f}%\n'.format(100))
-        else:
-            f.write('Solar fraction: {:.2f}%\n'.format(
-                results['solar'] / float(results['solar'] + results['auxiliary']) * 100
-            ))
+            f.write('{:.2f}\t{:.2f}\t{:.2f}'.format(satisfaction, energy, fraction))

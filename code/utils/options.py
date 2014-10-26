@@ -16,7 +16,7 @@ def setup(parser):
     parser.add_argument('--height',  default=4, type=float,
         help='height in inches of the resulting plot.')
 
-    parser.add_argument('--setpoint', default=55, type=int,
+    parser.add_argument('--setpoint', default=60, type=int,
         help='Setpoint for internal tank thermostats.')
     parser.add_argument('--deadband', default=5,  type=int,
         help='Deadband for internal control thermostats.')
@@ -27,6 +27,9 @@ def setup(parser):
 
     parser.add_argument('--alltemps',      action='store_true',
         help='Show all tank temperatures, instead of just the top and bottom.')
+
+    parser.add_argument('--verbose', default=False, type=bool,
+        help='Print results to file in a verbose fashion')
 
     parser.add_argument('name',
         help='Filename prefix for plot and results.')

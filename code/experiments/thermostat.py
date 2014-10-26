@@ -173,7 +173,7 @@ def run(args):
 
     savefig(args.name+'.png')
 
-    report.write(args.name+'.txt', results)
+    report.write(args.name+'.txt', results, args.verbose)
 
 if __name__ == '__main__':
     run(args)

@@ -139,7 +139,7 @@ def run(args):
         getInsolation = insolationT,
     )
 
-    Tobj = 60
+    Tobj = 50
     # Construct the objective function for one solve step of the controller.
     # The problem depends on R(t)
     def objective(t, y, u):
@@ -290,14 +290,14 @@ def run(args):
     #   ax.step(th, us[i,:], 'g')
     for tl in ax.get_yticklabels():
         tl.set_color('g')
-    ax.axis(map(add, [0, 0, -0.05, 0.0], ax.axis()))
+    ax.axis(map(add, [0, 0, -0.05, -0.01], ax.axis()))
     ax.set_xlim(hourFrom, hourTo)
 
     xlabel('Simulation time (h)')
 
     savefig(args.name+'.png')
 
-    report.write(args.name+'.txt', results)
+    report.write(args.name+'.txt', results, args.verbose)
 
 if __name__ == '__main__':
     run(args)
