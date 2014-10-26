@@ -28,10 +28,12 @@ The controller's performance was quantified according to three metrics:
    \item[Satisfaction]
       The user's satisfaction was measured by accumulating the total amounts of time when water was flowing to the user and was at least 50 degrees, and when water was flowing and was less than 50 degrees.
       This number was chosen based on guidelines for domestic water use from Sustainability Victoria~\cite{LSTS}.
+
    \item[Energy use]
       The total energy use of the controller is integrated across each experiment run.
       This provides an obvious way to compare the strategies of each controller based on how much power they consume to achieve the level of comfort measured by the first metric.
       Note that energy bill is assumed to be implicit in this metric, as this thesis does not take into account the effects of a varying energy price.
+
    \item[Solar contribution]
       The `solar contribution' refers to the amount of energy gained from sunlight relative to the total amount of energy put into the hot water tank.
       This is a relevant metric as it permits the examination of how effectively the solar resource was exploited.
@@ -78,6 +80,7 @@ The true profile is a standard July week.
 \end{figure}
 
 \subsubsection{Experiment 3. The effect of the control weight}
+\label{experiment3}
 
 The controller was designed with a tuning parameter $\rho$ (see \autoref{eq:controller-problem}).
 A series of simulations was run with identical conditions except for this parameter.
@@ -93,7 +96,14 @@ For completeness, it is desirable to determine what effect, if any, the length o
 To determine this, a week-long experiment was run five times with controller prediction horizons varying from 4 to 12 hours.
 Longer timeframes were not investigated, based on the results achieved from these simulations.
 
-\section{Results}
+\subsection{Results}
+
+\subsubsection{Experiment 1. Comparison to thermostat control}
+
+\Autoref{fig:comparison} shows the results across all three metrics measured in the sixteen simulations performed for experiment 1.
+Each set of three metrics is a single simulation.
+Two simulations were performed in each month for each controller.
+All results for MPC are in the left half of the chart, whereas thermostat results are on the right.
 
 \begin{figure}
    \centering
@@ -102,64 +112,73 @@ Longer timeframes were not investigated, based on the results achieved from thes
    \label{fig:comparison}
 \end{figure}
 
-\begin{table}
-   \centering
-   \begin{tabular}{c c c c}
-      Controller & Experiment & Sat (\%) & Energy (kWh) & Solar (\%) \\ \hline
-      MPC & Dec 1 & 94.29 & 97.8   & 60.08 \\
-          & Dec 2 & 96.19 & 104.1  & 57.19 \\
-          & Jan 1 & 91.43 & 110.4  & 54.41 \\
-          & Jan 2 & 82.86 & 126.6  & 45.55 \\
-          & Jun 1 & 79.37 & 190.2  & 28.99 \\
-          & Jun 2 & 79.37 & 205.2  & 23.21 \\
-          & Jul 1 & 79.37 & 198.9  & 28.2  \\
-          & Jul 2 & 78.73 & 202.5  & 29.38 \\
-      THE & Dec 1 & 78.1  & 112.4  & 57.21 \\
-          & Dec 2 & 73.97 & 119.5  & 54.32 \\
-          & Jan 1 & 71.11 & 120.95 & 53.16 \\
-          & Jan 2 & 68.25 & 142.75 & 43.69 \\
-          & Jun 1 & 33.97 & 228.05 & 24.27 \\
-          & Jun 2 & 46.35 & 243.7  & 17.72 \\
-          & Jul 1 & 46.98 & 243.5  & 21.16 \\
-          & Jul 2 & 42.22 & 246.35 & 21.78
-   \end{tabular}
-   \caption{Table of results comparing MPC to thermostat control}
-   \label{tab:comparison}
-\end{table}
+Broad trends are visible.
+Predictably, the controllers both use more energy in winter, and have lower user satisfaction and solar fraction.
+Also notice that the predictive controller has higher satisfaction and lower power usage in corresponding experiments.
+However, this effect appears only marginal.
 
-\begin{table}
-   \centering
-   \begin{tabular}{c c c c}
-      $\rho$ & Satisfaction (\%) & Total energy (kWh) & Solar contribution (\%) \\ \hline
-      $1\e{-9}$ & 100.00 & 42.90 & 20.39 \\
-      $5\e{-9}$ & 100.00 & 42.60 & 20.51 \\
-      $1\e{-8}$ & 91.11 & 39.60 & 22.10 \\
-      $5\e{-8}$ & 93.33 & 38.70 & 22.52 \\
-      $1\e{-7}$ & 91.11 & 38.10 & 22.79 \\
-      $5\e{-7}$ & 91.11 & 37.20 & 23.09 \\
-      $1\e{-6}$ & 91.11 & 30.30 & 27.23 \\
-      $5\e{-6}$ & 84.44 & 25.20 & 31.59 \\
-      $1\e{-5}$ & 80.00 & 30.30 & 29.43 \\
-   \end{tabular}
-   \caption{Table of results comparing tuning values of $\rho$}
-   \label{tab:comparison}
-\end{table}
+As noted in \autoref{experiment3}, the value $\rho=1$ was used for these simulations.
+This assigned a fairly hefty penalty to use of the control signal, and caused most days to follow a heating regimen similar to that of \autoref{fig:mpc-comparison}, which shows a single day from the first June simulation.
+The controller fires just before the two main periods of water use during the day, with some use during the middle of the day to counteract the effects of ambient cooling.
+Contrast this to the profile in \autoref{fig:thermostat-comparison}, where the main periods of heating are just \emph{after} peak load times.
+
+Also of interest is the smoother profile shown by the MPC controller.
+This is a result of the rapid (10 minute period) PWM used to interpret the MPC's continuous control inputs.
+The thermostat, on the other hand, can only respond when the temperature falls below its deadband, and causes the sawtooth seen in the middle of the day.
 
 \begin{figure}
    \centering
-   \begin{adjustwidth}{-2cm}{-2cm}
-   \begin{subfigure}[b]{0.65\textwidth}
+   \begin{subfigure}[b]{0.85\textwidth}
+      \includegraphics[width=\textwidth]{results/mpc-comparison-6-1}
+      \caption{MPC heating action}
+      \label{fig:mpc-comparison}
+   \end{subfigure}
+   \\ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+   \begin{subfigure}[b]{0.85\textwidth}
+      \includegraphics[width=\textwidth]{results/thermostat-comparison-6-1}
+      \caption{Thermostat heating action}
+      \label{fig:thermostat-comparison}
+   \end{subfigure}
+   \caption{Examples of heating profiles of two controllers}
+   \label{fig:profile-comparison}
+\end{figure}
+
+\subsubsection{Experiment 2. The effect of inaccurate predictions}
+
+
+\subsubsection{Experiment 3. The effect of the control weight}
+
+The parameter $\rho$ caused predictable changes in the control response.
+Higher values imposed a more severe penalty on using any control input, while lower values allowed the controller to take any means necessary to avoid accruing penalties due to the comfort requirement.
+\Autoref{fig:mpc-rho} illustrates this with two control profiles from this experiment.
+\Autoref{fig:rho-graphs} shows the changes in each metric as functions of $\rho$.
+
+\begin{figure}
+   \centering
+   \begin{subfigure}[b]{0.85\textwidth}
       \includegraphics[width=\textwidth]{results/mpc-rho-19}
       \caption{With $\rho = 1\e{-9}$}
       \label{fig:mpc-rho-small}
    \end{subfigure}
-   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-   \begin{subfigure}[b]{0.65\textwidth}
+   \\
+   \begin{subfigure}[b]{0.85\textwidth}
       \includegraphics[width=\textwidth]{results/mpc-rho-57}
       \caption{With $\rho = 5\e{-7}$}
       \label{fig:mpc-rho-larger}
    \end{subfigure}
-   \end{adjustwidth}
    \caption{Simulations with two values of the tuning parameter $\rho$}
    \label{fig:mpc-rho}
 \end{figure}
+
+\begin{figure}
+   \centering
+   \includegraphics[width=8cm]{images/rho-graphs}
+   \caption{Effects of $\rho$ on the three metrics}
+   \label{fig:rho-graphs}
+\end{figure}
+
+\subsubsection{Experiment 4. The effect of the prediction horizon}
+
+
+
+\section{Discussion}
