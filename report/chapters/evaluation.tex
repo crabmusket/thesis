@@ -56,6 +56,30 @@ Each simulation lasted for one week, and weeks were evenly distributed in Decemb
 
 \subsubsection{Experiment 2. The effect of inaccurate predictions}
 
+To gauge how critical the effect of prediction accuracy is to the controller's performance, an experiment was set up comparing the controller on a week in july with perfect prediction 9as is standard in all other experiments) and with an incorrect prediction that overestimated how much solar energy would be available.
+\Autoref{fig:insolation-error} shows two days from the two profiles used for simulation and prediction.
+The predicted profile is identical each day, and overpredicts the amount of insolation.
+The true profile is a standard July week.
+
+\begin{figure}
+	\centering
+	\begin{adjustwidth}{-2cm}{-2cm}
+	\begin{subfigure}[b]{0.65\textwidth}
+		\includegraphics[width=\textwidth]{images/insolation-prediction}
+		\caption{Insolation prediction}
+		\label{fig:insolation-error-p}
+	\end{subfigure}
+	~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+	\begin{subfigure}[b]{0.65\textwidth}
+		\includegraphics[width=\textwidth]{images/insolation-actual}
+		\caption{Actual insolation}
+		\label{fig:insolation-error-t}
+	\end{subfigure}
+	\end{adjustwidth}
+	\caption{Insolation profiles for experiment 2}
+	\label{fig:insolation-error}
+\end{figure}
+
 \subsubsection{Experiment 3. The effect of the control weight}
 
 The controller was designed with a tuning parameter $\rho$ (see \autoref{eq:control-problem}).
@@ -64,23 +88,43 @@ Eight values were used, arranged linearly from $1e-9$ to $5e-6$.
 This was determined to be the range over which the controller varied from maximum satisfaction, keeping the tank very warm most of the time, down to roughly 85\% satisfaction, and only heating the tank immediately before a period of use.
 A prediction horizon of 8 hours was used in all tests.
 
-\subsubsection{Experiment 4. The effect of the control horizon}
+Note that other experiments were conducted with $\rho = 1$.
+This provides slightly less comfort and energy usage than the smallest value used in this experiment, and was found to be a good match for thermostat control.
+
+\subsubsection{Experiment 4. The effect of the prediction horizon}
+
+For completeness, it is desirable to determine what effect, if any, the length of the prediction horizon has on the controller's behaviour.
+
+\section{Results}
 
 \begin{figure}
 	\centering
-	\begin{subfigure}[b]{0.45\textwidth}
-		\includegraphics[width=\textwidth]{images/insolation-prediction}
-		\caption{Insolation prediction}
-		\label{fig:insolation-error-p}
-	\end{subfigure}
-	~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-	\begin{subfigure}[b]{0.45\textwidth}
-		\includegraphics[width=\textwidth]{images/insolation-actual}
-		\caption{Actual insolation}
-		\label{fig:insolation-error-t}
-	\end{subfigure}
-	\caption{Insolation profiles for experiment 2}
-	\label{fig:insolation-error}
+	\includegraphics[width=\textwidth]{images/comparison}
+	\caption{Comparison of predictive and thermostat control}
+	\label{fig:comparison}
 \end{figure}
 
-\section{}
+\begin{table}
+	\centering
+	\begin{tabular}{l c c c}
+		Controller & Exeriment & Satisfaction (\%)	& Total energy (kWh)	& Solar contribution (\%) \\ \hline
+		MPC & Dec 1 & 94.29 & 97.8   & 60.08 \\
+          & Dec 2 & 96.19 & 104.1  & 57.19 \\
+          & Jan 1 & 91.43 & 110.4  & 54.41 \\
+          & Jan 2 & 82.86 & 126.6  & 45.55 \\
+          & Jun 1 & 79.37 & 190.2  & 28.99 \\
+          & Jun 2 & 79.37 & 205.2  & 23.21 \\
+          & Jul 1 & 79.37 & 198.9  & 28.2  \\
+          & Jul 2 & 78.73 & 202.5  & 29.38 \\
+      THE & Dec 1 & 78.1  & 112.4  & 57.21 \\
+          & Dec 2 & 73.97 & 119.5  & 54.32 \\
+          & Jan 1 & 71.11 & 120.95 & 53.16 \\
+          & Jan 2 & 68.25 & 142.75 & 43.69 \\
+          & Jun 1 & 33.97 & 228.05 & 24.27 \\
+          & Jun 2 & 46.35 & 243.7  & 17.72 \\
+          & Jul 1 & 46.98 & 243.5  & 21.16 \\
+          & Jul 2 & 42.22 & 246.35 & 21.78
+	\end{tabular}
+	\caption{Table of results comparing MPC to thermostat control}
+	\label{tab:comparison}
+\end{table}
