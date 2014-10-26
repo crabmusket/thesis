@@ -123,8 +123,7 @@ Note that this approach assumes stratification baffle devices are present on the
 
 \subsection{Discretisation}
 
-The tank is split into $N_T$ identical horizontal disks as illustrated in \autoref{fig:models:discretised-tank}, numbered $0$ (bottom) to $N_T-1$ (top).
-\todo{Badly needs diagram}
+The tank is split into $N_T$ identical horizontal disks as illustrated in \autoref{fig:discretised-tank}, numbered $0$ (bottom) to $N_T-1$ (top).
 Each disk, called a node, has uniform volume $v_T$.
 The heat flows into the node, as shown in \autoref{fig:models:discretised-disk}, are governed by the equation:
 \begin{equation}
@@ -132,6 +131,20 @@ The heat flows into the node, as shown in \autoref{fig:models:discretised-disk},
    \rho C v_T \dot{T}_i = \Q{amb} + \Q{$T$, mflow} + \Q{inlet}
 \end{equation}
 That is, the total energy flow through the node can be broken into three parts: ambient losses, changes from the mass flow through the tank while charging/drawing, and input from the three heat/cold inlet: the collector inlet, mains inlet, and auxiliary inlet.
+
+\begin{figure}
+   \centering
+   \begin{lpic}{images/nodes(4.5cm,)}
+      \lbl{31,48; $N_T$}
+      \lbl{-5,48; $N_C$}
+      \lbl{65,62; $N_X$}
+      \lbl{31,64; $\dot{m}_l$}
+      \lbl{20,64; $\dot{m}_c$}
+      \lbl{42,64; $\dot{m}_x$}
+   \end{lpic}
+   \caption{The solar hot water service under consideration}
+   \label{fig:discretised-tank}
+\end{figure}
 
 The collector and auxiliary heater are also treated as discretised volumes of water with $N_C$ and $N_X$ nodes of volumes $v_C$ and $v_X$ respectively.
 The indices $i$ of the collector nodes begin at $N_T$ and end at $N_T+N_C-1$, while the auxiliary indices begin at $N_T+N_X$ and end at $N_T+N_C+N_X-1$.

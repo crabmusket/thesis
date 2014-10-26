@@ -60,6 +60,18 @@
 % Exponentiation.
 \providecommand{\e}[1]{\ensuremath{\times 10^{#1}}}
 
+% http://stackoverflow.com/a/1436113/945863
+\newcommand{\doublesignature}[2]{
+   \vspace{3cm}
+   \noindent
+   \begin{tabular}{lcl}
+      \rule{5cm}{1pt} & \hspace{2cm} & \rule{5cm}{1pt} \\
+      #1 & & #2
+   \end{tabular}
+   \vspace{1cm}
+}
+
+
 % Autoref command for capitalisation.
 % http://www.latex-community.org/forum/viewtopic.php?f=5&t=2539#p9976
 \let\orgautoref\autoref

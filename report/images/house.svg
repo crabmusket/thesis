@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.5 r10040"
+   sodipodi:docname="house.svg">
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient3768">
+      <stop
+         style="stop-color:#469d9d;stop-opacity:1;"
+         offset="0"
+         id="stop3770" />
+      <stop
+         style="stop-color:#ff7272;stop-opacity:1;"
+         offset="1"
+         id="stop3772" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3768"
+       id="linearGradient3774"
+       x1="497.23715"
+       y1="444.91113"
+       x2="497.13779"
+       y2="363.84641"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-8,0)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3768"
+       id="linearGradient3784"
+       x1="489.26306"
+       y1="-106.37965"
+       x2="490.0744"
+       y2="-190.46252"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.979899"
+     inkscape:cx="378.9238"
+     inkscape:cy="723.82103"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1366"
+     inkscape:window-height="706"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="fill:#ff7272;fill-opacity:1;stroke:#000000;stroke-width:0.56300002;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m 469.53125,370.15625 c -0.58918,0 -1.0625,0.64607 -1.0625,1.4375 0,0.79143 0.47332,1.4375 1.0625,1.4375 l 25.46875,0 c -0.0172,0.18655 -0.0312,0.39636 -0.0312,0.59375 l 0,9 c 0,0.0933 -0.004,0.19021 0,0.28125 -0.003,0.0853 0,0.16277 0,0.25 l 0,17.03571 c 0,0.19739 0.014,0.4072 0.0312,0.59375 l -25.46875,0 c -0.58918,0 -1.0625,0.64607 -1.0625,1.4375 0,0.79143 0.47332,1.4375 1.0625,1.4375 l 26.875,0 c 0.58918,0 1.0625,-0.64607 1.0625,-1.4375 0,-0.0214 6.9e-4,-0.0413 0,-0.0625 0.21811,-0.52643 0.34375,-1.21295 0.34375,-1.96875 l 0,-17.03571 c 0,-0.0872 0.003,-0.1647 0,-0.25 0.004,-0.091 0,-0.188 0,-0.28125 l 0,-9 c 0,-0.7558 -0.12564,-1.44232 -0.34375,-1.96875 6.9e-4,-0.0212 0,-0.0411 0,-0.0625 0,-0.79143 -0.47332,-1.4375 -1.0625,-1.4375 z"
+       id="rect3786-1"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ssscsscsscssssscsscsscsss"
+       inkscape:export-filename="C:\code\thesis\report\images\house.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       inkscape:connector-curvature="0"
+       style="fill:#469d9d;fill-opacity:1;stroke:#000000;stroke-width:0.56300002000000005;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m 400.92816,313.47431 c -0.79143,0 -1.4375,1.338 -1.4375,3 l 0,119.47035 c 0,0.7558 0.12564,1.44232 0.34375,1.96875 -6.9e-4,0.0212 0,0.0411 0,0.0625 0,0.79143 0.47332,1.4375 1.0625,1.4375 l 55.82218,0 c 0.58918,0 1.0625,-0.64607 1.0625,-1.4375 0,-0.79143 -0.47332,-1.4375 -1.0625,-1.4375 l -54.41593,0 c 0.0172,-0.18655 0.0312,-0.39636 0.0312,-0.59375 l 0,-119.47035 c 0,-1.662 -0.61482,-3 -1.40625,-3 z"
+       id="rect3786-3"
+       sodipodi:nodetypes="csscssssscsscc"
+       inkscape:export-filename="C:\code\thesis\report\images\house.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:#ff7272;stroke:#000000;stroke-width:0.56300002000000005;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;fill-opacity:1"
+       d="M 432.15625 291.28125 C 431.36482 291.28125 430.71875 292.61925 430.71875 294.28125 L 430.71875 370.0625 C 430.71875 370.8183 430.84439 371.50482 431.0625 372.03125 C 431.06181 372.05241 431.0625 372.07236 431.0625 372.09375 C 431.0625 372.88518 431.53582 373.53125 432.125 373.53125 L 459 373.53125 C 459.58918 373.53125 460.0625 372.88518 460.0625 372.09375 C 460.0625 371.30232 459.58918 370.65625 459 370.65625 L 433.53125 370.65625 C 433.54842 370.4697 433.5625 370.25989 433.5625 370.0625 L 433.5625 294.28125 C 433.5625 292.61925 432.94768 291.28125 432.15625 291.28125 z "
+       id="rect3786"
+       inkscape:export-filename="C:\code\thesis\report\images\house.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <rect
+       style="fill:url(#linearGradient3774);fill-opacity:1;stroke:#000000;stroke-width:0.56300002;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect2985"
+       width="42.842255"
+       height="81.428574"
+       x="446.3006"
+       y="363.79074"
+       rx="8"
+       ry="8"
+       inkscape:export-filename="C:\code\thesis\report\images\house.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.56299999999999994;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;fill-opacity:1"
+       d="M 449.71875 285.75 L 449.15625 286.5625 L 358.9375 350.8125 L 364.71875 358.96875 L 382.84375 346.0625 L 382.84375 447.375 L 392.84375 447.375 L 392.84375 338.9375 L 450 298.21875 L 505 337.40625 L 505 447.375 L 515 447.375 L 515 344.53125 L 535.28125 358.96875 L 541.0625 350.8125 L 450.84375 286.5625 L 450.28125 285.75 L 450 285.9375 L 449.71875 285.75 z "
+       id="rect3757"
+       inkscape:export-filename="C:\code\thesis\report\images\house.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <rect
+       style="fill:url(#linearGradient3784);stroke:#000000;stroke-width:0.56300002000000005;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;fill-opacity:1"
+       id="rect3776"
+       width="4.0406103"
+       height="82.832512"
+       x="487.83426"
+       y="-189.48393"
+       rx="8"
+       ry="8"
+       transform="matrix(0.5835091,0.8121066,-0.8121066,0.5835091,0,0)"
+       inkscape:export-filename="C:\code\thesis\report\images\house.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#ffeeaa;fill-opacity:1;stroke:#ffeeaa;stroke-width:0.56300002;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="path3809"
+       sodipodi:cx="335.62317"
+       sodipodi:cy="262.67542"
+       sodipodi:rx="13.384521"
+       sodipodi:ry="13.384521"
+       d="m 349.00769,262.67542 a 13.384521,13.384521 0 1 1 -26.76904,0 13.384521,13.384521 0 1 1 26.76904,0 z"
+       transform="translate(34.850263,-0.50507627)"
+       inkscape:export-filename="C:\code\thesis\report\images\house.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <rect
+       style="fill:#ffeeaa;fill-opacity:1;stroke:#ffeeaa;stroke-width:0.45743245;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect3813"
+       width="3.0304577"
+       height="20.338734"
+       x="367.69553"
+       y="281.61578"
+       rx="3"
+       ry="0.70206249"
+       inkscape:export-filename="C:\code\thesis\report\images\house.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <rect
+       ry="0.70206249"
+       rx="3"
+       y="415.89487"
+       x="217.93153"
+       height="20.338734"
+       width="3.0304577"
+       id="rect3815"
+       style="fill:#ffeeaa;fill-opacity:1;stroke:#ffeeaa;stroke-width:0.45743245;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       transform="matrix(0.90150972,-0.43275885,0.43275885,0.90150972,0,0)"
+       inkscape:export-filename="C:\code\thesis\report\images\house.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <rect
+       style="fill:#ffeeaa;fill-opacity:1;stroke:#ffeeaa;stroke-width:0.45743245;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect3817"
+       width="3.0304577"
+       height="20.338734"
+       x="48.297256"
+       y="470.25311"
+       rx="3"
+       ry="0.70206249"
+       transform="matrix(0.66362496,-0.74806545,0.74806545,0.66362496,0,0)"
+       inkscape:export-filename="C:\code\thesis\report\images\house.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <rect
+       ry="0.70206249"
+       rx="3"
+       y="454.99243"
+       x="-129.53484"
+       height="20.338734"
+       width="3.0304577"
+       id="rect3819"
+       style="fill:#ffeeaa;fill-opacity:1;stroke:#ffeeaa;stroke-width:0.45743245;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       transform="matrix(0.32342048,-0.94625535,0.94625535,0.32342048,0,0)"
+       inkscape:export-filename="C:\code\thesis\report\images\house.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#ff7f7f;fill-opacity:1;stroke:#28220b;stroke-width:0.56300002;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="path3842"
+       sodipodi:cx="489.16638"
+       sodipodi:cy="387.55554"
+       sodipodi:rx="8.0812206"
+       sodipodi:ry="8.0812206"
+       d="m 497.2476,387.55554 a 8.0812206,8.0812206 0 1 1 -16.16244,0 8.0812206,8.0812206 0 1 1 16.16244,0 z"
+       transform="matrix(0.74331629,0,0,0.74331629,132.82373,99.352925)"
+       inkscape:export-filename="C:\code\thesis\report\images\house.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+  </g>
+</svg>
