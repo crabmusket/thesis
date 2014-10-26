@@ -4,7 +4,6 @@ if __name__ == '__main__':
     from ..utils import options
     parser = argparse.ArgumentParser(description='Simulate the MPC controller')
     options.setup(parser)
-    parser.add_argument('--cost', help='Does nothing.')
     args = parser.parse_args()
 
 print 'Loading modules'

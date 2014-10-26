@@ -4,22 +4,6 @@ if __name__ == '__main__':
     from ..utils import options
     parser = argparse.ArgumentParser(description='Simulate the MPC controller')
     options.setup(parser)
-
-    parser.add_argument('--cost',    default=1, type=float,
-        help='Weight on the input term of the cost function.')
-    parser.add_argument('--horizon', default=6, type=int,
-        help='Number of hours to predict into the future.')
-
-    parser.add_argument('--loadP',         default='data/daily_load.txt',
-        help='File containing load prediction values.')
-    parser.add_argument('--insolationP',   default='data/insolation.txt',
-        help='File containing insolation prediction values.')
-    parser.add_argument('--ambientP',      default='data/ambient.txt',
-        help='File containing ambient prediction values.')
-
-    parser.add_argument('--internals',     action='store_true',
-        help='Show controller\'s prediction of average temperature at each timestep.')
-
     args = parser.parse_args()
 
 print 'Loading modules'
