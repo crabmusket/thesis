@@ -58,6 +58,12 @@ Each simulation lasted for one week, and weeks were evenly distributed in Decemb
 
 \subsubsection{Experiment 3. The effect of the control weight}
 
+The controller was designed with a tuning parameter $\rho$ (see \autoref{eq:control-problem}).
+A series of simulations was run with identical conditions except for this parameter.
+Eight values were used, arranged linearly from $1e-9$ to $5e-6$.
+This was determined to be the range over which the controller varied from maximum satisfaction, keeping the tank very warm most of the time, down to roughly 85\% satisfaction, and only heating the tank immediately before a period of use.
+A prediction horizon of 8 hours was used in all tests.
+
 \subsubsection{Experiment 4. The effect of the control horizon}
 
 \begin{figure}
