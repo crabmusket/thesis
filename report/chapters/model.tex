@@ -12,19 +12,27 @@ These sections all use the variables defined in \autoref{tab:model-symbols}.
    \begin{center}
    \begin{tabular}{l l}
       \toprule
-      $N$ & Number of nodes in the discretised tank model \\
-      $T_i$ & Temperature of node $i$ in the water tank \\
+      $N_T$ & Number of nodes in the discretised tank model \\
+      $N_C$ & Number of nodes in the discretised collector loop model \\
+      $N_X$ & Number of nodes in the discretised auxiliary loop model \\
+      $T_i$ & Temperature of node $i$ in the discretised model \\
       $T_c$ & Temperature of hot water from the collector entering the tank \\
       $T_x$ & Temperature of hot water from the auxiliary heater entering the tank \\
       $T_l$ & Temperature of the mains water entering the tank \\
       $T_a$ & Temperature of the air outside the tank \\
       $T_T$ & Target temperature for hot water inlets \\
+      $\dot{m}_l$ & Rate at which water is flowing through the load loop \\
+      $\dot{m}_c$ & Rate at which water is flowing through the collector loop\\
+      $\dot{m}_x$ & Rate at which water is flowing through the auxiliary loop\\
       $\Q{*}$ & Energy inflow into tank node $i$ caused by * \\
       $\B{*}$ & Control/indicator function for flow * at node $i$ \\
-      $\rho$ & Density of water \\
+      $\rho_w$ & Density of water \\
       $C$ & Thermal capacitance of water \\
       $v_T$ & Volume of a node in the tank \\
+      $v_C$ & Volume of a node in the collector loop \\
+      $v_X$ & Volume of a node in the auxiliary loop \\
       $U_s$ & Coefficient of surface temperature loss \\
+      $\rho$ & Controller tuning parameter \\
       \bottomrule
    \end{tabular}
    \end{center}
@@ -35,9 +43,7 @@ These sections all use the variables defined in \autoref{tab:model-symbols}.
 
 So far, several different system types have been encountered and several variables introduced that affect a solar domestic water service's modelling and operation.
 I will now define concretely the system that will be analysed for the remainder of this thesis.
-This includes qualitative and quantitative descriptions of the system dimensions and operation.
-
-\todo{Don't forget to refer to \autoref{sec:background:system}}
+Refer to \autoref{sec:background:system} for background information.
 
 \subsection{Hardware}
 
@@ -52,18 +58,16 @@ The hot water service considered by this thesis outlined in \autoref{fig:system-
          The valve is assumed to be electronically or mechanically controlled by a thermostat (see below).
    \item Not shown on the diagram are thermometers at the top of the tank, and inside the tops of both the collector and auxiliary heating loops.
          Three thermostats are connected between these thermometers and the pumps and valve.
-         The operation of these thermostats is detailed in \autoref{sec:system:control}.
+         The operation of these thermostats is detailed in \autoref{sec:models:system:control}.
 \end{itemize}
 
 \begin{figure}
    \centering
-   \begin{lpic}{images/system-overview(7.5cm,)}
-      \lbl{97.5,57; \LaTeX}
+   \begin{lpic}{images/system-overview(6.5cm,)}
    \end{lpic}
    \caption{The solar hot water service under consideration}
    \label{fig:system-overview}
 \end{figure}
-\todo{label the diagram}
 
 Note that there are several omissions in this simplified model.
 A practical system would include pressure release valves in both the solar collector and the heated tank itself to allow venting of excess heat on hot days.
@@ -71,7 +75,7 @@ This is a normal part of direct heating system operation.
 There is no plumbing considered between the tank and the collector, or between the tank and the load --- it is assumed that these transfers happen over zero distance.
 
 \subsection{Internal control}
-\label{sec:model:system:control}
+\label{sec:models:system:control}
 
 The hot water service has three actuators and two sensors, described above.
 They are used by three internal thermostat controllers.
@@ -103,13 +107,12 @@ They are used by three internal thermostat controllers.
 
 \subsection{Site and situation}
 
-Describe physical environment/location/other relevant factors exterior to the system itself, including probable load conditions, ambient temperature, etc.
-\todo{write this}
+The solar system is taken to be located in Sydney, Australia, and weather data for that city is used in simulations.
+Local obstructions to solar radiation such as nearby buildings or trees are not considered, so the collector is assumed to be mounted in a sufficiently high place, or far away from such obstructions.
 
-\begin{itemize}
-   \item Location of the system -- therefore likely weather patterns.
-   \item Load conditions (i.e. how many people in the house, what other equipment).
-\end{itemize}
+The load profile will be taken from standard datasets (described in \autoref{sec:evaluation:schedules}), and is taken to represent the median profile for a four-person family.
+It is assumed that all members of the family are absent during the day, and take showers in the morning.
+Light usage at night is accounted for.
 
 \section{Simulation model}
 \label{sec:models:simulation}
@@ -125,36 +128,36 @@ Note that this approach assumes stratification baffle devices are present on the
 
 The tank is split into $N_T$ identical horizontal disks as illustrated in \autoref{fig:discretised-tank}, numbered $0$ (bottom) to $N_T-1$ (top).
 Each disk, called a node, has uniform volume $v_T$.
-The heat flows into the node, as shown in \autoref{fig:models:discretised-disk}, are governed by the equation:
+The heat flows into the node are governed by the equation:
 \begin{equation}
    \label{eq:tank-node-dT}
-   \rho C v_T \dot{T}_i = \Q{amb} + \Q{$T$, mflow} + \Q{inlet}
+   \rho_w C v_T \dot{T}_i = \Q{amb} + \Q{$T$, mflow} + \Q{inlet}.
 \end{equation}
-That is, the total energy flow through the node can be broken into three parts: ambient losses, changes from the mass flow through the tank while charging/drawing, and input from the three heat/cold inlet: the collector inlet, mains inlet, and auxiliary inlet.
+That is, the total energy flow through the node can be considered in three distinct parts: ambient losses, changes due to the mass flow through the tank while charging/drawing, and input from the three heat/cold inlets: the collector inlet, mains inlet, and auxiliary inlet.
 
 \begin{figure}
    \centering
    \begin{lpic}{images/nodes(4.5cm,)}
-      \lbl{31,48; $N_T$}
+      \lbl{31,49; $N_T$}
       \lbl{-5,48; $N_C$}
       \lbl{65,62; $N_X$}
       \lbl{31,64; $\dot{m}_l$}
       \lbl{20,64; $\dot{m}_c$}
       \lbl{42,64; $\dot{m}_x$}
    \end{lpic}
-   \caption{The solar hot water service under consideration}
+   \caption{The discretised tank, collector, and booster}
    \label{fig:discretised-tank}
 \end{figure}
 
 The collector and auxiliary heater are also treated as discretised volumes of water with $N_C$ and $N_X$ nodes of volumes $v_C$ and $v_X$ respectively.
 The indices $i$ of the collector nodes begin at $N_T$ and end at $N_T+N_C-1$, while the auxiliary indices begin at $N_T+N_X$ and end at $N_T+N_C+N_X-1$.
-Their state equations look like this:
+Their state equations are:
 \begin{eqnarray}
    \label{eq:coll-node-dT}
-   \rho C v_C \dot{T}_i &=& \Q{amb} + \Q{$C$, mflow} + \Q{$C$, external}
+   \rho_w C v_C \dot{T}_i &=& \Q{amb} + \Q{$C$, mflow} + \Q{$C$, external}
    \\
    \label{eq:aux-node-dT}
-   \rho C v_X \dot{T}_i &=& \Q{amb} + \Q{$X$, mflow} + \Q{$X$, external}
+   \rho_w C v_X \dot{T}_i &=& \Q{amb} + \Q{$X$, mflow} + \Q{$X$, external}
 \end{eqnarray}
 
 \subsection{Heat flows}
@@ -196,6 +199,16 @@ $\Q{inlet}$ represents the heat gained due to flows of water entering the tank f
 The control functions $\B{*}$ are described in the next section.
 The two inlet temperatures for collector and auxiliary heat, $T_c$ and $T_x$, are determined by taking the current temperature at the `outlet' nodes of the collector loop and auxiliary loop, $T_{i=N_T+N_C-1}$ and $T_{i=N_T+N_C+N_X-1}$.
 The load inlet temperature $T_l$ is a disturbance.
+
+Within the collector and auxiliary heater, the $\Q{*, external}$ flows are defined by external disturbances --- either insolation, or auxiliary power input as appropriate.
+The mass flow heating equations are less trivial, ut are easily defined in terms of the mass flows through the collector and auxiliary loops:
+\begin{eqnarray}
+   \Q{$C$, mflow} &=& \dot{m}_c C (T_{i-1} - T_i)
+   \\
+   \Q{$X$, mflow} &=& \dot{m}_x C (T_{i-1} - T_i)
+\end{eqnarray}
+Note that at the first element of the collector loop, $i-1$ is taken to refer to element 0, the bottom of the tank.
+At the first element of the auxiliary loop, $i-1$ is taken to refer to element $N/2$, the missle of the tank, where the auxiliary outlet is connected.
 
 \subsection{Control functions}
 
@@ -334,7 +347,6 @@ Following the general format of \autoref{eq:mpc-opt}, we must define the input a
 We use hatted vectors to denote vectors over the time horizon, i.e. whose values are predicted at some future interval.
 For example, while $\vec{u}_w$ refers to the disturbance input vector at some instant, $\hvec{u}_w$ refers to the stacked vector of all predicted disturbances over the time horizon.
 
-\todo{diagram of $\hvec{y}, \hvec{u}$ over planning horizon.}
 We consider a plan over a time horizon $H$ elements long (so the total look-ahead time will be $H \delta t$, where $\delta t$ is the planning resulution) where $H$ is of course a unitless integer.
 First define the input vector over the time horizon
 \begin{eqnarray*}
@@ -405,7 +417,7 @@ The objective function chosen, $f^*$, may have a significant effect on the behav
 However, the objective function is easy to write and modify thanks to the declarative nature of MPC.
 The objective function decided upon for this thesis is the following:
 \begin{equation}
-   f^*(\hvec{y}, \hvec{u}) = |\vec{r}\transpose \min \left{ \hvec{y} - \vec{50}, 0 \right}| + \rho |\hvec{u}|_1
+   f^*(\hvec{y}, \hvec{u}) = |\vec{r}\transpose \min \left{ \hvec{y} - \vec{50}, 0 \right}| + \rho_w |\hvec{u}|_1
 \end{equation}
 The two terms of this equation respectively penalise deviation from the desired tank temperature and use of the control input.
 The first term deserves some explanation.
@@ -463,7 +475,6 @@ For example, a generic thermostat controller was designed and reused several tim
 The generic implementation allowed controllers to be `stacked' or `nested' within each other to provide more complex behaviour.
 For example, the MPC controller developed must perform PWM modulation of its output to convert from a continuous input signal to the binary control expected by the heating element.
 This was achieved by inserting an MPC control function inside the PWM controller, which decided when to call the MPC routine, and how to deal with its output.
-This is illustrated in \autoref{fig:mpc-pwm}.
 
 The Python source code that was developed throughout this thesis, and the scripts that produce the graphs displayed, is partially listed in \autoref{app:code}.
 Those wishing to view the full source code or reproduce the experiments should visit \url{https://github.com/eightyeight/thesis}.
