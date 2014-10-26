@@ -197,6 +197,7 @@ The data which produced this graph is listed in \autoref{tab:rho}.
 
 The effect of the planning horizon appeared to be minimal.
 Above a horizon of four hours, the controller could not take advantage of increased prescience.
+The results are presented in \autoref{tab:H}, but are not very interesting.
 
 \section{Discussion}
 
@@ -230,6 +231,11 @@ And how, if at all, should they be exposed to user tuning?
 
 The effect of $\rho$ has an obvious and intuitive meaning as a balance between comfort and control expense.
 But the actual effects on the user of a certain change in $\rho$ may not be simple, even when measured as a statistic like the satisfaction metric presented here.
+
+The results of experiment 4, tuning the control horizon, appear to agree with the findings of \textcite{Halvgaard12}.
+They noted that increasing the lookahead further than 24 hours did not gain them anything.
+It appears that 24 hours is a `natural' length of time for their controller to work with, given the physical dimensions of their tank, actuators, and disturbances --- such as cheaper energy prices occurring nightly.
+I hazard to suggest that the `natural' period of the control problem examined in this thesis is shorter due to the dynamics of the smaller tank, which is mostly governed not by a nightly energy price, but by the user's load schedule.
 
 \subsection{Future work}
 

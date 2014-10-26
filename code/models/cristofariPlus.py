@@ -156,7 +156,6 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
         # Calculate tank state change.
         for i in range(tankFirst, tankFirst+NT):
             # Ambient temperature losses.
-            # \todo{fix ends. Need to account for larger surface area there.}
             U_amb = U_s * (T_a - T[i])
 
             # Temperature flow from inlets. Use the B functions to only apply
