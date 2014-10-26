@@ -208,7 +208,7 @@ The mass flow heating equations are less trivial, ut are easily defined in terms
    \Q{$X$, mflow} &=& \dot{m}_x C (T_{i-1} - T_i)
 \end{eqnarray}
 Note that at the first element of the collector loop, $i-1$ is taken to refer to element 0, the bottom of the tank.
-At the first element of the auxiliary loop, $i-1$ is taken to refer to element $N/2$, the missle of the tank, where the auxiliary outlet is connected.
+At the first element of the auxiliary loop, $i-1$ is taken to refer to element $N/2$, the middle of the tank, where the auxiliary outlet is connected.
 
 \subsection{Control functions}
 
@@ -347,7 +347,7 @@ Following the general format of \autoref{eq:mpc-opt}, we must define the input a
 We use hatted vectors to denote vectors over the time horizon, i.e. whose values are predicted at some future interval.
 For example, while $\vec{u}_w$ refers to the disturbance input vector at some instant, $\hvec{u}_w$ refers to the stacked vector of all predicted disturbances over the time horizon.
 
-We consider a plan over a time horizon $H$ elements long (so the total look-ahead time will be $H \delta t$, where $\delta t$ is the planning resulution) where $H$ is of course a unitless integer.
+We consider a plan over a time horizon $H$ elements long (so the total look-ahead time will be $H \delta t$, where $\delta t$ is the planning resolution) where $H$ is of course a unitless integer.
 First define the input vector over the time horizon
 \begin{eqnarray*}
    \hvec{u} &=& \left[\begin{array}{c}
@@ -432,7 +432,7 @@ Therefore to produce a top temperature of 60 degrees, an average temperature or 
 
 This new vector is then multiplied by the reference vector $\vec{r}$.
 This vector is a binary constant of the appropriate dimension which contains 1 when the reference signal should be followed, and 0 when not.
-This reference vector is created at the start of each planning problem to contain 1 elements only in hours when there is any espected user load.
+This reference vector is created at the start of each planning problem to contain 1 elements only in hours when there is any expected user load.
 This produces one of the key benefits of this predictive strategy.
 Overnight, or during the middle of the day, the reference vector will contain zeroes, and hence the controller will not be penalised for letting the tank cool in those hours.
 However, it \emph{will} be penalised for presenting a cooled tank to users in hours when there is expected to be demand, and may start to warm the tank in anticipation of those hours.

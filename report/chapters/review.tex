@@ -30,7 +30,7 @@ Demanding requirements like this have historically prevented MPC for being pract
 When applied to an MPC controller by \textcite{Wang10}, a bespoke quadratic program (QP) solver achieved a 200Hz control frequency on a system with 13 states and 3 inputs over a 30-step control horizon.
 This was achievable by taking advantage of the structure of the MPC problem and the QP that was formed.
 The authors implemented an algorithm that solved the problem with time complexity linear in the horizon dimension, rather than cubic as seen in interior-point methods.
-Note that these results were observed running on a 3GHz Athlon desktop processor, but a hot water system would require significanly slower control than 200Hz.
+Note that these results were observed running on a 3GHz Athlon desktop processor, but a hot water system would require significantly slower control than 200Hz.
 
 This is the sort of expert optimisation that Grant and Boyd would hide in the backend of DCP software, quietly applying this transformation if the problem fits it.
 However, it remains to be seen whether intelligent transformations like this actually can be entirely automated and give such performance gains.
@@ -62,7 +62,7 @@ The three heat flows, $Q_h$, $Q_s$ and $Q_l$ represent energy input/loss from th
 The last term accounts for losses to the environment.
 The heat gained from the element is a constrained input, the solar heat gain is a function of the instantaneous insolation, and the load is based on predicted user activity.
 
-Their model was verified by measuring the temperature in a large water tank at eight different vertical locations and averaging these readings to calulate the approximate energy in the tank.
+Their model was verified by measuring the temperature in a large water tank at eight different vertical locations and averaging these readings to calculate the approximate energy in the tank.
 In a practical experiment they found that even with this simplified model of the tank, their controller was able to reduce the operating power bill by up to 30\%.
 This is further discussed in \autoref{sec:review:mpc:halvgaard}.
 
@@ -104,7 +104,7 @@ $$ \epsilon_t = \left\{ \begin{array}{ll}
 \end{array} \right. $$
 
 In contrast to the model described by Cristofari, the one used by Pfeiffer accounts explicitly for diffusion of heat by water buoyancy.
-\authors{Cristofari02} make the assumption that slow effects such as diffusion will be insiginficant compared to the mass volume flows throughout the tank.
+\authors{Cristofari02} make the assumption that slow effects such as diffusion will be insignificant compared to the mass volume flows throughout the tank.
 
 \section{Building automation}
 
@@ -183,7 +183,7 @@ The unrestrained MPC controller performed best out of the four trials, increasin
 They found that overall, the MPC strategy was very similar to the manual strategy used by the operators, but with more finely-tuned timing.
 
 This study considered a stratified water tank where only two layers were modelled (a third was observed in actual data, but ignored).
-The campus load was modelled as an RC network that accounted for wall and window thermal masses, thermal loads from occupants, lights, equipment, and environmental facturs such as ambient temperature and sunlight.
+The campus load was modelled as an RC network that accounted for wall and window thermal masses, thermal loads from occupants, lights, equipment, and environmental factors such as ambient temperature and sunlight.
 Weather prediction was used to predict the campus load based on historical data.
 
 The controller included a robustness guarantee.
@@ -197,15 +197,15 @@ Experienced human operators were unable to design a better control regime for th
 \subsection{Technical University of Denmark}
 \label{sec:review:mpc:halvgaard}
 
-\textcite{Halvgaard12} used their mixed-tank model (descibed in \autoref{sec:review:mixed-tank}) to perform what they term `economic MPC', by which they mean that their objective function measured the monetary cost to the operator of the water tank.
+\textcite{Halvgaard12} used their mixed-tank model (described in \autoref{sec:review:mixed-tank}) to perform what they term `economic MPC', by which they mean that their objective function measured the monetary cost to the operator of the water tank.
 They used simulated load and weather predictions to evaluate the MPC controller they designed.
 The load, importantly, involved three equal draw-offs at 7am, noon, and 7pm.
 In addition, they used real wholesale electricity prices from the Elspot market, which has a significant off-peak discount in the early morning.
 
 \authors{Halvgaard12} discovered savings of 25--30\% of the electricity bill with the MPC controlling the tank heating element during simulation.
-This was achieved mainly by shifting the heating schedule to perform most of its work at night, when the spot price of electricy was cheaper.
+This was achieved mainly by shifting the heating schedule to perform most of its work at night, when the spot price of electricity was cheaper.
 The large tank may have contributed to these results against standard domestic consumption and solar production, allowing a night-time boost to provide adequate heat in the tank for an entire day of usage.
-Smaller tanks may require more detailed controle regimes, for which the mixed-tank assumption may not prove adequate.
+Smaller tanks may require more detailed control regimes, for which the mixed-tank assumption may not prove adequate.
 
 Over longer time horizons, the authors discovered that total power usage would increase even as the energy bill decreased, because the controller was considering only the energy bill, and consuming more cheap off-peak power.
 The authors also noted that any prediction horizon longer than 24 hours did not noticeably affect the savings achieved, and nor did the accuracy of the weather forecasts.

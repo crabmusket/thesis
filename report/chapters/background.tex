@@ -82,8 +82,8 @@ Simply, the temperature of the water exiting the solar collectors is compared to
 The handbook goes on to detail refinements to this approach --- using proportional motor speeds instead of binary control, hysterisis to avoid pump hunting (rapid on/off motor cycles), and also mentions integration with building automation systems and ``time-of-day clocks \ldots for applications that have a repeated daily hot water demand pattern.''
 
 Additional insight is provided in a 1994 paper by~\textcite{Beckman94} in which the process of designing these binary differential controllers is analysed.
-They primarily cocern themselves with designing hysterisis bands that result in stable simulations, in order that fair and correct results may be obtained when comparing system ratings.
-They note that in practise, this instability in pump control is rarely a problem because ``solar radiation is generally increasing continuously (in the morning) and the system soon reaches a stable condition''.
+They primarily concern themselves with designing hysterisis bands that result in stable simulations, in order that fair and correct results may be obtained when comparing system ratings.
+They note that in practice, this instability in pump control is rarely a problem because ``solar radiation is generally increasing continuously (in the morning) and the system soon reaches a stable condition''.
 
 \subsubsection{Stratification}
 \label{sec:background:stratification}
@@ -100,7 +100,7 @@ This is an effect of lower-temperature water entering the solar collector.
 
 These diffusers have been investigated in studies such as \textcite{Andersen08} and \textcite{Gari82}.
 While they may still not be common in commercial hot water systems, diffusers appear to be a proven technology.
-A diffuser typically takes the form of a pipe running the length of the tank, either of slotted platic or double-layered fabric.
+A diffuser typically takes the form of a pipe running the length of the tank, either of slotted plastic or double-layered fabric.
 Water is inlet into the pipe, and it allowed to travel vertically before it naturally diffuses out of the manifold at a height matching its temperature.
 In this way turbulent mixing is mostly localised to within the manifold, and overall tank stratification is preserved.
 The mathematical model used and extended by this thesis relies on the presence and operation of these stratification-enhancing devices.
@@ -109,7 +109,7 @@ The mathematical model used and extended by this thesis relies on the presence a
 
 \subsection{Overview and comparison to PID control}
 
-As described by \textcite{Camacho04} in their work on the subject, model-predictive control (MPC) is a class of control strategies that incporate an explicit model of the system into their decision-making process.
+As described by \textcite{Camacho04} in their work on the subject, model-predictive control (MPC) is a class of control strategies that incorporate an explicit model of the system into their decision-making process.
 Note that this model may include the system's input response, disturbance response, predictions of time-varying effects, etcetera.
 The typical implementation of MPC follows this simplified flow:
 
@@ -165,7 +165,7 @@ $\Phi$ and $\Theta$ encode these linear dynamic constraints on the output $\hvec
 More detail on this problem formulation is found in \autoref{sec:models:control}.
 
 Note that the general constraints in this problem, $f_i$ and $g_j$, are representative of meaningful constraints in the context of a particular problem.
-They are given here in generic form to denote that there may be constraints in the form of both equlities and inequalities.
+They are given here in generic form to denote that there may be constraints in the form of both equalities and inequalities.
 The constraint on system dynamics is one of these equality constraints, which has been singled out for its particular universality in linear MPC problems.
 
 \section{Convex optimisation}
@@ -197,8 +197,8 @@ Note that if a system is linear and its objective function and constraints are c
 
 \subsection{Disciplined convex programming}
 
-While the theoretical advantages of using convex optimisation are widely known~\cite{Luo06}, in practise these rewards may be difficult to reap.
-While there exist general-purpose solvers for non-smooth convex optimisation problems which have attractive theoretical properties, they may in practise be slower than transforming a non-smooth problem into a smooth problem of higher dimension, and using an efficient solver for the new problem class.
+While the theoretical advantages of using convex optimisation are widely known~\cite{Luo06}, in practice these rewards may be difficult to reap.
+While there exist general-purpose solvers for non-smooth convex optimisation problems which have attractive theoretical properties, they may in practice be slower than transforming a non-smooth problem into a smooth problem of higher dimension, and using an efficient solver for the new problem class.
 Grant and Boyd opine that this process is difficult and error-prone, even for experts in the field~\cite{Grant08}.
 They propose a method called \emph{disciplined convex programming} (DCP)~\cite{Grant06} which aims to express convex optimisation problems in such a way that transformation to an efficiently-solvable representation can be automated, removing this ``expertise barrier'', as they put it.
 
