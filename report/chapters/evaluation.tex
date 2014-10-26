@@ -62,13 +62,13 @@ The true profile is a standard July week.
    \centering
    \begin{adjustwidth}{-2cm}{-2cm}
    \begin{subfigure}[b]{0.65\textwidth}
-      \includegraphics[width=\textwidth]{../images/insolation-prediction}
+      \includegraphics[width=\textwidth]{images/insolation-prediction}
       \caption{Insolation prediction}
       \label{fig:insolation-error-p}
    \end{subfigure}
    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
    \begin{subfigure}[b]{0.65\textwidth}
-      \includegraphics[width=\textwidth]{../images/insolation-actual}
+      \includegraphics[width=\textwidth]{images/insolation-actual}
       \caption{Actual insolation}
       \label{fig:insolation-error-t}
    \end{subfigure}
@@ -97,15 +97,15 @@ Longer timeframes were not investigated, based on the results achieved from thes
 
 \begin{figure}
    \centering
-   \includegraphics[width=\textwidth]{../images/comparison}
+   \includegraphics[width=\textwidth]{images/comparison}
    \caption{Comparison of predictive and thermostat control}
    \label{fig:comparison}
 \end{figure}
 
 \begin{table}
    \centering
-   \begin{tabular}{l c c c}
-      Controller & Exeriment & Satisfaction (\%)   & Total energy (kWh) & Solar contribution (\%) \\ \hline
+   \begin{tabular}{c c c c}
+      Controller & Experiment & Sat (\%) & Energy (kWh) & Solar (\%) \\ \hline
       MPC & Dec 1 & 94.29 & 97.8   & 60.08 \\
           & Dec 2 & 96.19 & 104.1  & 57.19 \\
           & Jan 1 & 91.43 & 110.4  & 54.41 \\
@@ -129,7 +129,7 @@ Longer timeframes were not investigated, based on the results achieved from thes
 
 \begin{table}
    \centering
-   \begin{tabular}{l c c c}
+   \begin{tabular}{c c c c}
       $\rho$ & Satisfaction (\%) & Total energy (kWh) & Solar contribution (\%) \\ \hline
       $1\e{-9}$ & 100.00 & 42.90 & 20.39 \\
       $5\e{-9}$ & 100.00 & 42.60 & 20.51 \\
@@ -149,13 +149,13 @@ Longer timeframes were not investigated, based on the results achieved from thes
    \centering
    \begin{adjustwidth}{-2cm}{-2cm}
    \begin{subfigure}[b]{0.65\textwidth}
-      \includegraphics[width=\textwidth]{../results/mpc-rho-19}
+      \includegraphics[width=\textwidth]{results/mpc-rho-19}
       \caption{With $\rho = 1\e{-9}$}
       \label{fig:mpc-rho-small}
    \end{subfigure}
    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
    \begin{subfigure}[b]{0.65\textwidth}
-      \includegraphics[width=\textwidth]{../results/mpc-rho-57}
+      \includegraphics[width=\textwidth]{results/mpc-rho-57}
       \caption{With $\rho = 5\e{-7}$}
       \label{fig:mpc-rho-larger}
    \end{subfigure}
