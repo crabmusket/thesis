@@ -117,6 +117,7 @@ def run(args):
         internalControl = True,
         setpoint = args.setpoint, deadband = args.deadband,
         collSetpoint = args.cset, collDeadband = args.cdead,
+        auxSetpoint = args.aset, auxDeadband = args.adead,
         # Tank receives true disturbances.
         getAmbient = ambientT,
         getLoad = loadT,

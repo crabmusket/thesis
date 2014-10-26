@@ -32,6 +32,8 @@ from ..prediction import insolation, ambient, load, collector
 from ..simulation import nonlinear
 
 def run(args):
+    startTime = datetime(2014, args.month, args.day, 00, 00, 00)
+
     # Tank parameters
     N = 20
     NC = 10
@@ -99,6 +101,7 @@ def run(args):
         internalControl = True,
         setpoint = args.setpoint, deadband = args.deadband,
         collSetpoint = args.cset, collDeadband = args.cdead,
+        auxSetpoint = args.aset, auxDeadband = args.adead,
         getAmbient = ambientT,
         getLoad = loadT,
         getInsolation = insolationT,
@@ -114,7 +117,7 @@ def run(args):
         'auxiliary': 0,
     }
 
-    tf = 60 * 60 * 24 * days - dt
+    tf = 60 * 60 * 24 * args.days - dt
     x0 = array([24] * (N+NC+NX)).T
     s = nonlinear.Run(
         xdot = tankModel,
@@ -127,25 +130,28 @@ def run(args):
 
     (us_, xs_) = s.result()
 
-    if len(showRange) == 0:
+    if args.start is None:
         hourFrom = 0
+    else:
+        hourFrom = 24 * args.start
+    if args.end is None:
         hourTo = int(tf / 60.0 / 60.0)
     else:
-        hourFrom = 24 * showRange[0]
-        hourTo = 24 * (showRange[-1]+1)
+        hourTo = 24 * (args.end+1)
+
     plotFrom = int(hourFrom * 60 * 60 / dt)
     plotTo = int(hourTo * 60 * 60 / dt)
     us = us_[:, plotFrom:plotTo]
     xs = xs_[:, plotFrom:plotTo]
-    ts = linspace(0, tf, num = len(xs[0,:]))
+    ts = linspace(hourFrom * 60 * 60, hourTo * 60 * 60, num = len(xs[0,:]))
     th = map(lambda t: t / (60.0*60), ts)
 
-    figure(figsize=(30, 15), dpi=80)
+    ax = figure(figsize=(args.width, args.height), dpi=80)
 
     ax = subplot(311)
-    ax.set_xlim([hourFrom, hourTo])
-    ylabel('Tank temperatures (deg C)')
+    ylabel('Tank (deg C)')
     [plot(th, xs[i,:])[0] for i in [0, N-1]]
+    ax.set_xlim(hourFrom, hourTo)
     axis(map(add, [0, 0, -1, 1], axis()))
 
     """
@@ -156,18 +162,27 @@ def run(args):
     axis(map(add, [0, 0, -1, 1], axis()))
     """
 
-    ax = subplot(312, sharex=a1)
+    ax = subplot(312, sharex=ax)
     ylabel('Insolation (W)')
     step(th, map(lambda t: float(insolationT(t*60*60)), th))
+    ax.set_xlim(hourFrom, hourTo)
     axis(map(add, [0, 0, -0.9, 0.5], axis()))
 
-    ax = subplot(313, sharex=a1)
-    ylabel('Load flow (L/s) and control signal')
+    ax = subplot(313, sharex=ax)
+    ax.set_ylabel('Load flow (L/s)')
     ax.step(th, map(lambda t: float(loadT(t*60*60)[0]), th))
-    ax.axis(map(add, [0, 0, -0.1, 0.1], ax.axis()))
+    ax.axis(map(add, [0, 0, -0.01, 0.03], ax.axis()))
+    ax.set_xlim(hourFrom, hourTo)
+    for tl in ax.get_yticklabels():
+        tl.set_color('b')
     ax = ax.twinx()
-    [ax.step(th, us[i,:]) for i in range(len(us[:,0]))]
-    ax.axis(map(add, [0, 0, -0.1, 0.1], ax.axis()))
+    ax.set_ylabel('Control signal')
+    for i in range(len(us[:,0])):
+       ax.step(th, us[i,:], 'g')
+    for tl in ax.get_yticklabels():
+        tl.set_color('g')
+    ax.axis(map(add, [0, 0, -0.05, 0.05], ax.axis()))
+    ax.set_xlim(hourFrom, hourTo)
 
     xlabel('Simulation time (h)')
 

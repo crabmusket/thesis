@@ -11,19 +11,23 @@ def setup(parser):
     parser.add_argument('--end',     type=int,
         help='End graphing at the end of this day (indexed from 0).')
 
-    parser.add_argument('--width',   default=6, type=float,
+    parser.add_argument('--width',   default=7, type=float,
         help='Width in inches of the resulting plot')
-    parser.add_argument('--height',  default=4, type=float,
+    parser.add_argument('--height',  default=6, type=float,
         help='height in inches of the resulting plot.')
 
-    parser.add_argument('--setpoint', default=60, type=int,
-        help='Setpoint for internal tank thermostats.')
+    parser.add_argument('--setpoint', default=55, type=int,
+        help='Setpoint for internal tank thermostat.')
     parser.add_argument('--deadband', default=5,  type=int,
-        help='Deadband for internal control thermostats.')
+        help='Deadband for internal control thermostat.')
     parser.add_argument('--cset', default=8, type=int,
         help='Setpoint for differential collector thermostat.')
     parser.add_argument('--cdead', default=6, type=int,
         help='Deadband for differential collector thermostat.')
+    parser.add_argument('--aset', default=60, type=int,
+        help='Setpoint for auxiliary heater thermostat.')
+    parser.add_argument('--adead', default=5, type=int,
+        help='Deadband for auxiliary heater thermostat.')
 
     parser.add_argument('--cost',    default=1, type=float,
         help='Weight on the input term of the cost function.')

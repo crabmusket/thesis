@@ -10,6 +10,7 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
         auxEfficiency, internalControl,
         setpoint, deadband,
         collSetpoint, collDeadband,
+        auxSetpoint, auxDeadband,
         getAmbient, getLoad, getInsolation):
     # Water and tank constants
     rho = 1000 # Water density
@@ -59,8 +60,8 @@ def model(h, r, NT, NC, NX, P, collVolume, auxVolume, auxOutlet,
         measure = auxLast,
         on  = P, # Power input when heating
         off = 0,
-        setpoint = setpoint,
-        deadband = deadband,
+        setpoint = auxSetpoint,
+        deadband = auxDeadband,
     )
     # Two cases: if there is mass flow, use the thermostat. No mass flow, no heat.
     auxHeat = lambda m_aux, t, T: 0 if m_aux == 0 else auxHeat_(t, T)
