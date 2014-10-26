@@ -188,9 +188,11 @@ This property means that gradient descent algorithms can be guaranteed to find t
 \begin{figure}
    \centering
    \includegraphics[width=12cm]{images/convexity}
-   \caption{An illustration of Jensen's inequality from \autoref{eq:jensen}}
+   \caption{An illustration of Jensen's inequality from \autoref{eq:jensen}\footnotemark{}}
    \label{fig:convexity}
 \end{figure}
+
+\footnotetext{Image source Eli Osherovich \url{http://en.wikipedia.org/wiki/Convex_function#mediaviewer/File:ConvexFunction.svg}}
 
 Since the core of model-predictive control algorithms involves optimising the choice of cost function over the future control sequence, convex optimisation problems play an important role in its implementation.
 Note that if a system is linear and its objective function and constraints are convex, the optimisation problem governing its control can be convex, and hence efficiently solved.
