@@ -10,9 +10,7 @@ In the context of a hot water system, a robust controller might ensure that ther
 We are interested in robustness as it pertains to keeping the user satisfied in most conditions, which is the primary goal of a hot water service, and the reason thermostat control is attractive: it is pessimistic and provides the best possible robustness, at the cost of possible unnecessary heating.
 
 \textcite{Jalali06} take the view that robust MPC has the goal of ``[minimizing] some objective function, while guaranteeing a set of constraints to be satisfied for all possible uncertainties.''
-\todo{Say more about this paper?}
-
-\textcite{Oldewurtel10} take the view instead that robustness can be formulated in terms of probability.
+\textcite{Oldewurtel10} instead suggest that robustness can be formulated in terms of probability.
 They note that in building automation problems, assigning hard constraints can often result in infeasible problems, so they instead create an objective function that represents the probability of constraints being violated.
 Minimising this provides a robust response to disturbances modelled as Gaussians, which have ``infinite support'': a non-zero probability of occurrence at all values.
 This approach has the additional advantage that European standards are specified in this way (probability of violating bounds), so the control design maps almost directly onto standards compliance.
@@ -22,10 +20,6 @@ This is a key benefit for practical implementations of MPC, where the controller
 They retain the chance constraints and objective formulation from \authors{Oldewurtel10} but considered the maximum possible disturbance from a finite set of disturbance scenarios as a constraint.
 These disturbance scenarios are hand-constructed as black-box functions that ``do not require the specification of particular probability distributions \dots but only the capability of randomly extracting from them''.
 This was augmented using a vector of slack variables, which in effect assign a large penalty to constraint violation instead of declaring the problem infeasible.
-
-\subsection{Applying DCP}
-
-\todo{Review papers that have results using DCP software}
 
 \subsection{High performance/embedded hardware}
 
@@ -50,8 +44,8 @@ In one example, \textcite{Vukov12} showed that the code generation of the ACADO 
 
 \authors{Camacho04} estimate that one of the key differences in MPC control is the significant up-front modelling effort, as the system model is very important to the overall control achieved.
 Therefore care must me taken to study various efforts in modelling hot water tanks.
-In \autoref{ch:models} a model is developed following the work presented in this section, in order to evaluate the controllers designed in \autoref{ch:control}.
-The model must be adequately able to capture the subtleties of the domestic hot water tank in order to better evaluate the effect of different control strategies.
+In \autoref{ch:models} a model is developed following the work presented in this section.
+The model must be able to adequately capture the subtleties of the domestic hot water tank in order to better evaluate the effect of different control strategies.
 Some of the details outlined here will also be used to derive a simplified tank model used in the controllers themselves, as control of the full nonlinear model is beyond the scope of this thesis.
 
 \textcite{Vrettos12} note that many current publications use ``single-point'' or zero-dimensional models of domestic water heaters, where the entire tank is represented by a single value (temperature or energy).
@@ -62,31 +56,22 @@ This type of model is able to capture the effect of stratification, described in
 \subsection{Mixed-tank models}
 \label{sec:review:mixed-tank}
 
-\todo{DuffBradnum, Ayompe, Hollands?}
-
 \textcite{Halvgaard12} made use of a mixed-tank model in order to perform economic model-predictive control of the heating elements.
 Their model involves a single heat balance equation,
-$$ C \dot{T} = Q_h + Q_s - Q_l - U A (T - T_a) $$
-where
-\begin{itemize}
-   \item $C$ is the heat vapacity of water,
-   \item $T$ is the temperature of the tank,
-   \item $T_a$ is the ambient temperature,
-   \item $Q_h$ is the temperature added to the tank by the electric heating element,
-   \item $Q_s$ is the heat added by the solar collector,
-   \item $Q_l$ is the heat removed by the load, and
-   \item $U A$ is the product of heat transmission and surface area of the tank.
-\end{itemize}
-The heat gained from the element is a constrained input, the solar heat gain is a function of the instantaneous insolation, the load is based on predicted user activity and the loss is a simple physical equation based on the ambient temperature.
+$$ \dot{T} \propto Q_h + Q_s - Q_l - UA (T - T_{\text{amb}}). $$
+The three heat flows, $Q_h$, $Q_s$ and $Q_l$ represent energy input/loss from the submerged heating element, solar collector, and load, respectively.
+The last term accounts for losses to the environment.
+The heat gained from the element is a constrained input, the solar heat gain is a function of the instantaneous insolation, and the load is based on predicted user activity.
+
 Their model was verified by measuring the temperature in a large water tank at eight different vertical locations and averaging these readings to calulate the approximate energy in the tank.
 In a practical experiment they found that even with this simplified model of the tank, their controller was able to reduce the operating power bill by up to 30\%.
 This is further discussed in \autoref{sec:review:mpc:halvgaard}.
-\todo{Mention that stratification devices were in the tank --- why?
-Simulation ignored stratification.}
 
-\textcite{Cao14} also used a mixed-tank model when designing a large-scale solar water heating system for a hotel.
-Their publication does not include a practical experiment, just simulation of the system design.
-\todo{More detail}
+This experiment is notable for its large tank (790L whereas a typical tank in Australia might be half that size).
+It must be pointed out that the authors explicitly mention that the tank has internal stratification-enhancing devices like those described in \autoref{sec:background:stratification}, even though the tank model is fully mixed.
+It appears 
+
+\Autoref{sec:review:mpc:halvgaard} details the portions of this paper relevant to control.
 
 \subsection{Stratified models}
 \label{sec:review:stratified-tank-models}
@@ -119,12 +104,14 @@ $$ \epsilon_t = \left\{ \begin{array}{ll}
    0 & \text{otherwise}.
 \end{array} \right. $$
 
+In contrast to the model described by Cristofari, the one used by Pfeiffer accounts explicitly for diffusion of heat by water buoyancy.
+\authors{Cristofari02} make the assumption that slow effects such as diffusion will be insiginficant compared to the mass volume flows throughout the tank.
+
 \section{Building automation}
 
 \subsection{Prague}
 
-A study of model-predictive control for heating, ventilation and
-air-conditioning (HVAC) systems was undertaken by \textcite{Siroky11} in the Czech Republic.
+A study of model-predictive control for heating, ventilation and air-conditioning (HVAC) systems was undertaken by \textcite{Siroky11} in the Czech Republic.
 They implemented a controller for a building with three identical blocks, which provided a good opportunity to apply different control methods across near-uniform weather and lighting conditions.
 Instead of cooling, this study was mainly concerned with heating the building during cold winder conditions.
 Over their cross-comparisons between blocks with different control strategies, they found that the MPC controller saved between 15\% and 28\% of their energy bill.
@@ -186,8 +173,6 @@ The latter two methods were developed by and for the OptiControl project.
 
 \section{Water tank control}
 
-\todo{Maybe: Azzouzi, Hasan, Yang, Sossan, AbdelMalek, Michaels}
-
 \subsection{University of California, Merced}
 
 A study of a \emph{chilled} water tank took place on the campus of Berkeley university by \textcite{Ma12}.
@@ -207,7 +192,8 @@ Historical disturbance data for the campus was used to construct a terminal cons
 
 In addition, the authors incorporated a binary (non-convex) control input --- the mass flow rate to the chillers --- by choosing to optimise not over a sequence of input values in time, but by restricting the controller to only use the chiller for one continuous period, and optimising over the start and end times of this period.
 In this way they were able to avoid the difficulties in designing an optimal binary controller.
-\todo{Verify this is what they did. It sure looked like it, but\ldots}
+They became subject to the restriction of having only one chilling period per day, but the tradeoff seemed worth it.
+Experienced human operators were unable to design a better control regime for the system, even after seeing and refining an initial solution by the predictive controller.
 
 \subsection{Technical University of Denmark}
 \label{sec:review:mpc:halvgaard}
@@ -219,7 +205,7 @@ In addition, they used real wholesale electricity prices from the Elspot market,
 
 \authors{Halvgaard12} discovered savings of 25--30\% of the electricity bill with the MPC controlling the tank heating element during simulation.
 This was achieved mainly by shifting the heating schedule to perform most of its work at night, when the spot price of electricy was cheaper.
-The large tank (over 700 litres) may have contributed to these results against standard domestic consumption and solar production, allowing a night-time boost to provide adequate heat in the tank for an entire day of usage.
+The large tank may have contributed to these results against standard domestic consumption and solar production, allowing a night-time boost to provide adequate heat in the tank for an entire day of usage.
 Smaller tanks may require more detailed controle regimes, for which the mixed-tank assumption may not prove adequate.
 
 Over longer time horizons, the authors discovered that total power usage would increase even as the energy bill decreased, because the controller was considering only the energy bill, and consuming more cheap off-peak power.

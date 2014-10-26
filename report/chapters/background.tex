@@ -91,6 +91,7 @@ While they may still not be common in commercial hot water systems, diffusers ap
 A diffuser typically takes the form of a pipe running the length of the tank, either of slotted platic or double-layered fabric.
 Water is inlet into the pipe, and it allowed to travel vertically before it naturally diffuses out of the manifold at a height matching its temperature.
 In this way turbulent mixing is mostly localised to within the manifold, and overall tank stratification is preserved.
+The mathematical model used and extended by this thesis relies on the presence and operation of these stratification-enhancing devices.
 
 \section{Model-predictive control}
 
@@ -162,15 +163,22 @@ The constraint on system dynamics is one of these equality constraints, which ha
 
 Convex optimisation refers to the class of mathematical optimisation problems where the objective and constraint functions are all convex with respect to the decision variable(s)~\cite{Boyd04}.
 Convexity, briefly, is the property that a function is `bowl-shaped'.
-\todo{Diagram of convex function}
 It must at all points obey Jensen's inequality:
 \begin{equation}
+   \label{eq:jensen}
    f(\theta x + (1-\theta)y) \le \theta f(x) + (1-\theta) f(y).
 \end{equation}
 That is, in between any two points, the function must lie on or below the direct line between those points.
+\Autoref{fig:convexity} illustrates this property.
 Importantly, this implies that any local minimum of the function will also be a \emph{global} minimum.
 This property means that gradient descent algorithms can be guaranteed to find the global optimum of the function, and very efficient solvers can take advantage of this.
-\todo{More detail here?}
+
+\begin{figure}
+   \centering
+   \includegraphics[width=10cm]{images/convexity}
+   \caption{An illustration of Jensen's inequality from \autoref{eq:jensen}}
+   \label{fig:convexity}
+\end{figure}
 
 Since the core of model-predictive control algorithms involves optimising the choice of cost function over the future control sequence, convex optimisation problems play an important role in its implementation.
 Note that if a system is linear and its objective function and constraints are convex, the optimisation problem governing its control can be convex, and hence efficiently solved.
@@ -183,9 +191,3 @@ Grant and Boyd opine that this process is difficult and error-prone, even for ex
 They propose a method called \emph{disciplined convex programming} (DCP)~\cite{Grant06} which aims to express convex optimisation problems in such a way that transformation to an efficiently-solvable representation can be automated, removing this ``expertise barrier'', as they put it.
 
 Recent DCP software such as CVX for MATLAB~\cite{CVX} and CVXPY in Python~\cite{CVXPY} implements this paradigm to provide a simple user interface without sacrificing the efficiency of specialised solvers for subclasses of convex problems.
-
-\section{Nonconvex optimisation}
-
-\todo{Introduce ACADO, \textcite{Houska11}.
-Mention code generation.
-Refer to MPC chapter in lit review.}

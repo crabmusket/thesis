@@ -21,7 +21,7 @@ These sections all use the variables defined in \autoref{tab:model-symbols}.
       $T_T$ & Target temperature for hot water inlets \\
       $\Q{*}$ & Energy inflow into tank node $i$ caused by * \\
       $\B{*}$ & Control/indicator function for flow * at node $i$ \\
-		$\rho$ & Density of water \\
+      $\rho$ & Density of water \\
       $C$ & Thermal capacitance of water \\
       $v_T$ & Volume of a node in the tank \\
       $U_s$ & Coefficient of surface temperature loss \\
@@ -139,7 +139,7 @@ Their state equations look like this:
 \begin{eqnarray}
    \label{eq:coll-node-dT}
    \rho C v_C \dot{T}_i &=& \Q{amb} + \Q{$C$, mflow} + \Q{$C$, external}
-	\\
+   \\
    \label{eq:aux-node-dT}
    \rho C v_X \dot{T}_i &=& \Q{amb} + \Q{$X$, mflow} + \Q{$X$, external}
 \end{eqnarray}
@@ -335,7 +335,7 @@ which is the vertically-stacked control and disturbance signals for the duration
 Then the output $\hvec{y}$, which is similarly defined as the stacked vector of all output vectors over $H$, can be defined in terms of these vectors multiplied by some time-varying matrices that define the system behaviour:
 \begin{eqnarray}
    \label{eq:mpc-vectors}
-	\hvec{y} = \Psi \vec{x}_0 + \Theta \hvec{u}
+   \hvec{y} = \Psi \vec{x}_0 + \Theta \hvec{u}
 \end{eqnarray}
 given $\vec{x}_0$, the current state of the system when the plan is made.
 
@@ -343,15 +343,15 @@ The matrices $\Psi$ and $\Theta$ are defined as follows:
 \begin{eqnarray}
    \label{eq:mpc-psi}
    \Psi &=& \left[\begin{array}{c}
-      CA \\ CA_d^2 \\ \vdots \\ CA_d^H
+      CA_d \\ CA_d^2 \\ \vdots \\ CA_d^H
    \end{array}\right]
    \\
-	\label{eq:mpc-theta}
+   \label{eq:mpc-theta}
    \Theta &=& \left[\begin{array}{cccc}
-		C B_d & 0 & 0 & 0 \\
-		C A_d B_d & \ddots & 0 & 0 \\
+      C B_d & 0 & 0 & 0 \\
+      C A_d B_d & \ddots & 0 & 0 \\
       \vdots & \ddots & \ddots & 0 \\
-		C A_d ^{H-1} B_d & \cdots & C A B_d & C B_d
+      C A_d ^{H-1} B_d & \cdots & C A_d B_d & C B_d
    \end{array}\right]
 \end{eqnarray}
 
@@ -361,26 +361,26 @@ Now we are ready to describe the specific state-space model, objectives, and con
 The vectors $\vec{u}_e$ and $\vec{u}_d$, the explicit and disturbance inputs, are filled with the appropriate variables:
 \begin{eqnarray}
    \vec{u}_e &=& \left[\begin{array}{c}
-		u_e
-	\end{array} \right]
-	\\
+      u_e
+   \end{array} \right]
+   \\
    \vec{u}_w &=& \left[\begin{array}{cccc}
-		m_l \\ T_l m_l \\ I \\ T_a
-	\end{array} \right]
+      m_l \\ T_l m_l \\ I \\ T_a
+   \end{array} \right]
 \end{eqnarray}
 The system matrices $A$ and $B$ are also evident from \autoref{eq:tdot-halvgaard}:
 \begin{eqnarray}
-	A &=& \left[\begin{array}{c}
-		-\frac{UA}{mC}
-	\end{array} \right]
-	\\
-	B &=& \left[\begin{array}{ccccc}
-		\frac{P \nu_x}{m} &
-		-\frac{50}{mC} &
-		\frac{1}{m} &
-		\frac{1}{mC} &
-		\frac{UA}{mC}
-	\end{array} \right]
+   A &=& \left[\begin{array}{c}
+      -\frac{UA}{mC}
+   \end{array} \right]
+   \\
+   B &=& \left[\begin{array}{ccccc}
+      \frac{P \nu_x}{m} &
+      -\frac{50}{mC} &
+      \frac{1}{m} &
+      \frac{1}{mC} &
+      \frac{UA}{mC}
+   \end{array} \right]
 \end{eqnarray}
 
 \subsection{Objective and constraints}
@@ -392,7 +392,7 @@ The objective function chosen, $f^*$, may have a significant effect on the behav
 However, the objective function is easy to write and modify thanks to the declarative nature of MPC.
 The objective function decided upon for this thesis is the following:
 \begin{equation}
-	f^*(\hvec{y}, \hvec{u}) = |\vec{r}\transpose \min \left{ \hvec{y} - \vec{50}, 0 \right}| + \rho |\hvec{u}|_1
+   f^*(\hvec{y}, \hvec{u}) = |\vec{r}\transpose \min \left{ \hvec{y} - \vec{50}, 0 \right}| + \rho |\hvec{u}|_1
 \end{equation}
 The two terms of this equation respectively penalise deviation from the desired tank temperature and use of the control input.
 The first term deserves some explanation.
@@ -424,11 +424,11 @@ This results in the final convex optimisation problem solved at each control int
 \begin{equation}
    \label{eq:controller-problem}
    \begin{aligned}
-      & \underset{\vec{u}}{\text{minimise}}
-      & & |\vec{r}\transpose \min \left{ \hvec{y} - \vec{50}, 0 \right}| + \rho |\hvec{u}|_1 \\
+      & \underset{\hvec{u}}{\text{minimise}}
+      & & |\vec{r}\transpose \min \left\{ \hvec{y} - \vec{50}, 0 \right\}| + \rho |\hvec{u}|_1 \\
       & \text{subject to}
-      & & \hvec{y} = \Psi \vec{x}_0 + \Theta \vec{u}, \\
-		&&& \vec{0} \le \vec{u} \le \vec{1}.
+      & & \hvec{y} = \Psi \vec{x}_0 + \Theta \hvec{u}, \\
+      &&& \vec{0} \le \hvec{u} \le \vec{1}.
    \end{aligned}
 \end{equation}
 
