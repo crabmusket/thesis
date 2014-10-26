@@ -52,7 +52,8 @@ The class of solar water heating systems we are concerned with have a number of 
       Hydronic systems use hot water for space heating, often on a separate loop to potable water.
       This may be achieved using radiators, or by passing the water through pipes in floors.
 
-   \item[Scale] \todo{System size, tank size, collector count}
+   \item[Scale] Solar hot water services must obviously come in many sizes to fulfil the requirements of different users.
+      The variables include the size of the water tank itself, the area of and water volume in the solar collectors, the power of the auxiliary booster, 
 \end{description}
 
 \subsection{Control}
@@ -73,7 +74,7 @@ They note that in practise, this instability in pump control is rarely a problem
 \label{sec:background:stratification}
 
 The heart of the domestic hot water service is the tank where hot water is stored waiting for the user to demand it.
-(While tankless systems may provide efficiency gains~\cite{DuffBradnum13}, they are unable to store solar heat and use it when the sun is not shining.)
+(While tankless systems may provide efficiency gains~\cite{DuffBradnum13}, they are unable to store solar heat and use it when the sun is not shining, and therefore forgo most of the free energy the sun provides.)
 Tank stratification is an important concept to understand and account for when considering these systems.
 
 Stratification is the natural tendency of water to form layers of uniform temperature, between which there is relatively little heat flow.
@@ -87,8 +88,6 @@ While they may still not be common in commercial hot water systems, diffusers ap
 A diffuser typically takes the form of a pipe running the length of the tank, either of slotted platic or double-layered fabric.
 Water is inlet into the pipe, and it allowed to travel vertically before it naturally diffuses out of the manifold at a height matching its temperature.
 In this way turbulent mixing is mostly localised to within the manifold, and overall tank stratification is preserved.
-
-\todo{diagram}
 
 \section{Model-predictive control}
 
@@ -121,7 +120,7 @@ However, MPC will determine the best course of action itself without requiring m
 
 \subsection{Application to hot water services}
 
-
+\todo{Write this section}
 
 \subsection{Linear systems}
 
@@ -134,21 +133,16 @@ When controlling a system whose dynamics can be modeled linearly, the form of th
       & & f^*(\hvec{y}, \vec{u}) \\
       & \text{subject to}
       & & \hvec{y} = \Psi \vec{x}_0 + \Theta \vec{u}, \\
-      &&& \vec{u}_{\text{min}} \le \vec{u} \le \vec{u}_{\text{max}}, \\
-      &&& \hvec{y}_{\text{min}} \le \hvec{y} \le \hvec{y}_{\text{max}}.
+      &&& f_i(\hvec{y}, \hvec{u}) \le 0\ \text{for all $i$}, \\
+      &&& g_j(\hvec{y}, \hvec{u})   = 0\ \text{for all $j$}. \\
    \end{aligned}
 \end{equation}
-The controller attempts to minimise the chosen objective function $f$ while satisfying the system dynamic constraints.
-$\Phi$ and $\Theta$ encode these linear dynamic constraints on the output $\hvec{y}$ given the input $\vec{u}$, over some time horizon usually referred to as $H$.
-Note that there may be other types of constraint that are omitted in this short example, since constraining the absolute ranges of input and state are common.
+The controller attempts to minimise the chosen objective function $f^*$ while satisfying the system dynamic constraints.
+$\Phi$ and $\Theta$ encode these linear dynamic constraints on the output $\hvec{y}$ given the input $\hvec{u}$, over some time horizon usually referred to as $H$.
 
-\subsection{Nonlinear systems}
-
-\todo{Write this section}
-
-Describe the general form of a nonlinear system and what sorts of challenges it introduces.
-Introduce bilinear.
-Refer to \ref{Oldewurtel10}.
+Note that the general constraints in this problem, $f_i$ and $g_j$, are representative of meaningful constraints in the context of a particular problem.
+They are given here in generic form to denote that there may be constraints in the form of both equlities and inequalities.
+The constraint on system dynamics is one of these equality constraints, which has been singled out for its particular universality in linear MPC problems.
 
 \section{Convex optimisation}
 \label{sec:background:convex}
