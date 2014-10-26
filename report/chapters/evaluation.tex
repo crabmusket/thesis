@@ -42,7 +42,39 @@ The controller's performance was quantified according to three metrics:
 
 These metrics were evaluated each minute during the simulation.
 
-\subsection{Experiment matrix}
+\subsection{Experiment specifications}
 
-Grid of variables that were used for each experiment.
-Be sure to cover properties like handling an inaccurate prediction, and the effect of the PWM period.
+Four distinct experiments were run.
+Each set involved one or more simulations of the system with varying environmental and control parameters.
+The experiments performed are described in the sections below, and a selection of results are presented.
+
+\subsubsection{Experiment 1. Comparison to thermostat control}
+
+The goal of this experiment is to compare the predictive controller to the baseline thermostat controller.
+For each of the two controllers, eight simulations were run.
+Each simulation lasted for one week, and weeks were evenly distributed in December, January, June, and July to compare the operation of the controllers in summer and winter.
+
+\subsubsection{Experiment 2. The effect of inaccurate predictions}
+
+\subsubsection{Experiment 3. The effect of the control weight}
+
+\subsubsection{Experiment 4. The effect of the control horizon}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{images/insolation-prediction}
+		\caption{Insolation prediction}
+		\label{fig:insolation-error-p}
+	\end{subfigure}
+	~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+	\begin{subfigure}[b]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{images/insolation-actual}
+		\caption{Actual insolation}
+		\label{fig:insolation-error-t}
+	\end{subfigure}
+	\caption{Insolation profiles for experiment 2}
+	\label{fig:insolation-error}
+\end{figure}
+
+\section{}

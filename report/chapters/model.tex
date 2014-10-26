@@ -438,13 +438,19 @@ The bulk of the work in this thesis involved formulating the above system models
 Python was chosen as the implementation language due to its large open-source ecosystem of libraries for numerical computing, particularly the SciPy~\cite{SCIPY} and NumPy~\cite{Walt11} packages.
 In addition, the CVXPY library~\cite{CVXPY} provided a convenient interface for specifying DCP problems.
 
-The Python source code that produces the graphs shown throughout this thesis (especially in \autoref{ch:evaluation}) is partially listed in \autoref{app:code}.
-For those wishing to analyse the code in detail or reproduce these experiments, the code should be fetched from \url{https://github.com/eightyeight/thesis}.
-\todo{embed zip file in PDF builds}
-
 Before settling on Cristofari's tank model, a simulation was coded using the model described by \textcite{Pfeiffer11}.
 However, the description in that paper was incomplete and I was unable to reproduce the model in a working state.
 This incomplete source code is not listed.
 
 The source code is organised around two major scripts which run the experiments for the thermostat and MPC controller.
 These scripts are parameterised with command-line arguments to produce the various simulations used in model analysis.
+
+The controllers developed were separated based on their functionality and implemented generically to support better code reuse.
+For example, a generic thermostat controller was designed and reused several times for the internal tank controllers.
+The generic implementation allowed controllers to be `stacked' or `nested' within each other to provide more complex behaviour.
+For example, the MPC controller developed must perform PWM modulation of its output to convert from a continuous input signal to the binary control expected by the heating element.
+This was achieved by inserting an MPC control function inside the PWM controller, which decided when to call the MPC routine, and how to deal with its output.
+This is illustrated in \autoref{fig:mpc-pwm}.
+
+The Python source code that was developed throughout this thesis, and the scripts that produce the graphs displayed, is partially listed in \autoref{app:code}.
+For those wishing to view the full source code or reproduce the experiments, the code should be fetched from \url{https://github.com/eightyeight/thesis}.

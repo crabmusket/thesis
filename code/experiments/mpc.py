@@ -1,37 +1,14 @@
 if __name__ == '__main__':
     import sys
     import argparse
+    from ..utils import options
     parser = argparse.ArgumentParser(description='Simulate the MPC controller')
-
-    parser.add_argument('--month',   default=6, type=int,
-        help='Which month to start the simulation in.')
-    parser.add_argument('--day',   default=1, type=int,
-        help='Which day of the month to start the simulation on.')
-
-    parser.add_argument('--days',    default=8, type=int,
-        help='Number of days the sinulation will run for.')
-    parser.add_argument('--start',   type=int,
-        help='Start graphing at the start of this day (indexed from 0).')
-    parser.add_argument('--end',     type=int,
-        help='End graphing at the end of this day (indexed from 0).')
-
-    parser.add_argument('--width',   default=6, type=float,
-        help='Width in inches of the resulting plot')
-    parser.add_argument('--height',  default=4, type=float,
-        help='height in inches of the resulting plot.')
+    options.setup(parser)
 
     parser.add_argument('--cost',    default=1, type=float,
         help='Weight on the input term of the cost function.')
     parser.add_argument('--horizon', default=6, type=int,
         help='Number of hours to predict into the future.')
-    parser.add_argument('--setpoint', default=55, type=int,
-        help='Setpoint for internal tank thermostats.')
-    parser.add_argument('--deadband', default=5,  type=int,
-        help='Deadband for internal control thermostats.')
-    parser.add_argument('--cset', default=8, type=int,
-        help='Setpoint for differential collector thermostat.')
-    parser.add_argument('--cdead', default=6, type=int,
-        help='Deadband for differential collector thermostat.')
 
     parser.add_argument('--loadP',         default='data/daily_load.txt',
         help='File containing load prediction values.')
@@ -40,13 +17,8 @@ if __name__ == '__main__':
     parser.add_argument('--ambientP',      default='data/ambient.txt',
         help='File containing ambient prediction values.')
 
-    parser.add_argument('--alltemps',      action='store_true',
-        help='Show all tank temperatures, instead of just the top and bottom.')
     parser.add_argument('--internals',     action='store_true',
         help='Show controller\'s prediction of average temperature at each timestep.')
-
-    parser.add_argument('name',
-        help='Filename prefix for plot and results.')
 
     args = parser.parse_args()
 
@@ -60,6 +32,7 @@ warnings.simplefilter('ignore', np.ComplexWarning)
 
 from ..utils.interval import Interval
 from ..utils.time import hours_after_midnight
+from ..utils import report
 from numpy import array, linspace, average, diag, minimum
 from numpy.linalg import norm
 from operator import add
@@ -74,7 +47,9 @@ from ..controllers import thermostat, mpc, pwm
 from ..prediction import insolation, ambient, load, collector
 from ..simulation import nonlinear
 
-def run(startTime, args):
+def run(args):
+    startTime = datetime(2014, args.month, args.day, 00, 00, 00)
+
     # Tank parameters
     N = 20
     NC = 10
@@ -164,11 +139,12 @@ def run(startTime, args):
         getInsolation = insolationT,
     )
 
+    Tobj = 60
     # Construct the objective function for one solve step of the controller.
     # The problem depends on R(t)
     def objective(t, y, u):
         R = co.matrix(diag(reference(t)))
-        return cp.norm(R * cp.min_elemwise(y-60, 0)) \
+        return cp.norm(R * cp.min_elemwise(y-Tobj, 0)) \
              + cp.norm(u, 1) * args.cost
 
     # The reference vector used buy the objective function. This reference is
@@ -196,7 +172,8 @@ def run(startTime, args):
     def analyse(out, t, x, y, u, dists):
         R = diag(reference(t))
         out['Ucost'] = norm(u.value, 1)
-        out['Ycost'] = norm(R.dot(minimum(y.value-50, 0)))
+        out['Ycost'] = norm(R.dot(minimum(y.value-Tobj, 0)))
+        out['u'] = float(u.value[0])
 
     controlOutputs = []
     controller = pwm.controller(
@@ -231,25 +208,6 @@ def run(startTime, args):
         'auxiliary': 0,
     }
 
-    def report(t, T, u):
-        if t - report.lastTime >= 3600:
-            report.lastTime = t
-            now = datetime.now()
-            print '{}\t{:.2f}'.format(int(t/3600.0), (now - report.lastWallTime).total_seconds())
-            report.lastWallTime = now
-        if loadT(t)[0] > 0:
-            if T[N-1] >= 50:
-                results['satisfied'] += dt
-            else:
-                results['unsatisfied'] += dt
-        if u[0] > 0:
-            results['energy'] += u[0] * P * dt / (3.6e6) # convert to kWh
-        [m_aux, U_aux, m_coll, m_coll_return] = tankModel.lastInternalControl
-        results['solar'] += m_coll * T[N+NC-1]
-        results['auxiliary'] += m_aux * T[N+NC+NX-1]
-    report.lastTime = 0
-    report.lastWallTime = datetime.now()
-
     tf = 60 * 60 * 24 * args.days - dt
     x0 = array([24] * (N+NC+NX)).T
     s = nonlinear.Run(
@@ -258,7 +216,7 @@ def run(startTime, args):
         x0 = x0,
         dt = dt,
         tf = tf,
-        report = report,
+        report = report.to(results, tankModel, dt, loadT, N, NC, NX, P),
     )
 
     (us_, xs_) = s.result()
@@ -320,41 +278,26 @@ def run(startTime, args):
 
     ax = subplot(313, sharex=ax)
     ax.set_ylabel('Load flow (L/s)')
-    ax.step(th, map(lambda t: float(loadP(t*60*60)[0]), th))
+    ax.step(th, map(lambda t: float(loadT(t*60*60)[0]), th))
     ax.axis(map(add, [0, 0, -0.01, 0.03], ax.axis()))
     ax.set_xlim(hourFrom, hourTo)
     for tl in ax.get_yticklabels():
         tl.set_color('b')
     ax = ax.twinx()
     ax.set_ylabel('Control signal')
-    for i in range(len(us[:,0])):
-        ax.step(th, us[i,:], 'g')
+    ax.step(th, getControl(th, 'u'), 'g')
+    #for i in range(len(us[:,0])):
+    #   ax.step(th, us[i,:], 'g')
     for tl in ax.get_yticklabels():
         tl.set_color('g')
-    ax.axis(map(add, [0, 0, -0.1, 0.1], ax.axis()))
+    ax.axis(map(add, [0, 0, -0.05, 0.0], ax.axis()))
     ax.set_xlim(hourFrom, hourTo)
 
     xlabel('Simulation time (h)')
 
     savefig(args.name+'.png')
 
-    with open(args.name+'.txt', 'w') as f:
-        if results['unsatisfied'] is 0:
-            f.write('Satisfaction: {:.2f}%\n'.format(100))
-        else:
-            f.write('Satisfaction: {:.2f}%\n'.format(
-                results['satisfied'] / float(results['satisfied'] + results['unsatisfied']) * 100
-            ))
-        f.write('Energy used: {:.2f}kWh\n'.format(
-            results['energy']
-        ))
-        if results['auxiliary'] is 0:
-            f.write('Solar fraction: {:.2f}%\n'.format(100))
-        else:
-            f.write('Solar fraction: {:.2f}%\n'.format(
-                results['solar'] / float(results['solar'] + results['auxiliary']) * 100
-            ))
+    report.write(args.name+'.txt', results)
 
 if __name__ == '__main__':
-    start = datetime(2014, args.month, args.day, 00, 00, 00)
-    run(start, args)
+    run(args)

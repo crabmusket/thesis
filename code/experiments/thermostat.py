@@ -1,3 +1,11 @@
+if __name__ == '__main__':
+    import sys
+    import argparse
+    from ..utils import options
+    parser = argparse.ArgumentParser(description='Simulate the MPC controller')
+    options.setup(parser)
+    args = parser.parse_args()
+
 print 'Loading modules'
 import matplotlib
 matplotlib.use('agg')
@@ -8,6 +16,7 @@ warnings.simplefilter('ignore', np.ComplexWarning)
 
 from ..utils.interval import Interval
 from ..utils.time import hours_after_midnight
+from ..utils import report
 from numpy import array, linspace, average, diag
 from numpy.linalg import norm
 from operator import add
@@ -22,7 +31,7 @@ from ..controllers import thermostat, mpc, pwm
 from ..prediction import insolation, ambient, load, collector
 from ..simulation import nonlinear
 
-def run(startTime, days, showRange, name):
+def run(args):
     # Tank parameters
     N = 20
     NC = 10
@@ -71,7 +80,7 @@ def run(startTime, days, showRange, name):
     loadT = load.predict(
         start = startTime,
         mainsTemp = ambientT,
-        filename = 'data/daily_load.txt',
+        filename = 'data/daily_load3.txt',
     )
 
     def loadHour(t):
@@ -88,8 +97,8 @@ def run(startTime, days, showRange, name):
         auxOutlet = auxOutlet,
         auxEfficiency = nuX,
         internalControl = True,
-        setpoint = 55, deadband = 5,
-        collSetpoint = 8, collDeadband = 6,
+        setpoint = args.setpoint, deadband = args.deadband,
+        collSetpoint = args.cset, collDeadband = args.cdead,
         getAmbient = ambientT,
         getLoad = loadT,
         getInsolation = insolationT,
@@ -105,25 +114,6 @@ def run(startTime, days, showRange, name):
         'auxiliary': 0,
     }
 
-    def report(t, T, u):
-        if t - report.lastTime >= 3600:
-            report.lastTime = t
-            now = datetime.now()
-            print '{}\t{:.2f}'.format(int(t/3600.0), (now - report.lastWallTime).total_seconds())
-            report.lastWallTime = now
-        if loadT(t)[0] > 0:
-            if T[N-1] >= 50:
-                results['satisfied'] += dt
-            else:
-                results['unsatisfied'] += dt
-        if u[0] > 0:
-            results['energy'] += u[0] * P * dt
-        [m_aux, U_aux, m_coll, m_coll_return] = tankModel.lastInternalControl
-        results['solar'] += m_coll * T[N+NC-1]
-        results['auxiliary'] += m_aux * T[N+NC+NX-1]
-    report.lastTime = 0
-    report.lastWallTime = datetime.now()
-
     tf = 60 * 60 * 24 * days - dt
     x0 = array([24] * (N+NC+NX)).T
     s = nonlinear.Run(
@@ -132,7 +122,7 @@ def run(startTime, days, showRange, name):
         x0 = x0,
         dt = dt,
         tf = tf,
-        report = report,
+        report = report.to(results, tankModel, dt, loadT, N, NC, NX, P),
     )
 
     (us_, xs_) = s.result()
@@ -181,30 +171,9 @@ def run(startTime, days, showRange, name):
 
     xlabel('Simulation time (h)')
 
-    savefig(name+'.png')
+    savefig(args.name+'.png')
 
-    with open(name+'.txt', 'w') as f:
-        if results['unsatisfied'] is 0:
-            f.write('Satisfaction: {:.2f}%\n'.format(100))
-        else:
-            f.write('Satisfaction: {:.2f}%\n'.format(
-                results['satisfied'] / float(results['satisfied'] + results['unsatisfied']) * 100
-            ))
-        f.write('Energy used: {:.2f}kWh\n'.format(
-            results['energy'] / (3.6e6)
-        ))
-        if results['auxiliary'] is 0:
-            f.write('Solar fraction: {:.2f}%\n'.format(100))
-        else:
-            f.write('Solar fraction: {:.2f}%\n'.format(
-                results['solar'] / float(results['solar'] + results['auxiliary']) * 100
-            ))
+    report.write(args.name+'.txt', results)
 
-import sys
 if __name__ == '__main__':
-    [_, name, month] = sys.argv
-    if month == 'jan':
-        start = datetime(2014, 1, 1, 00, 00, 00)
-    else:
-        start = datetime(2014, 6, 1, 00, 00, 00)
-    run(start, days=3, showRange=[], name='{}_{}'.format(name, month))
+    run(args)
